@@ -117,7 +117,7 @@ const season=r=>Math.floor((r.dy||0)/((r.ev&&r.ev.sl)||4))%4,FG=r=>[1,1.2,.8,0][
 const BASEP={flour:25,wood:15,stone:25,wheat:20,bread:40,meat:30,cheese:50,wool:30,cloth:70,gambeson:95,fish:25,weapons:90,armor:140,potions:85,iron:35,copper:45,honey:40,leather:60,apples:15,beer:30,sausage:45,smoked:45};
 const priceOf=(r,k)=>BASEP[k]*(['wheat','bread','meat','cheese','fish','apples','sausage','smoked','honey'].includes(k)?[1,.95,.85,1.35][season(r)]:k==='wood'?[1,1,1,1.3][season(r)]:1)*(1+.08*Math.sin((r.dy||0)*1.7+k.length*2.1));
 const used=(r,b)=>r.n.filter(n=>n.wb===b.id&&n.hp>0).length;
-const priestCap=b=>({chapel:6,church:12,cathedral:18}[b.t]||0);
+const priestCap=b=>({chapel:6,church:12,cathedral:18}[b.t]||0),SICK_IMMUNE=new Set(['gravedigger','healer']);
 const sickLimit=n=>[0,780,600,450][Math.max(1,Math.min(3,n.sk|0))]||600;
 function diseaseName(n){return ['','leicht','mittelschwer','schwer'][Math.max(1,Math.min(3,n.sk|0))]}
 function freeSlot(r,job,at){let best=null,bd=1e9;for(const b of r.b){const s=jobsOf(b)&&jobsOf(b)[job];if(!s||b.off||b.manual||used(r,b)>=s)continue;const d=at?dist(b,at):0;if(d<bd){bd=d;best=b}}return best}
@@ -234,7 +234,7 @@ function events(r,dt,bm,stf){r.wells=r.b.filter(b=>b.t==='well').length;r.fires=
  }
 }
 function trigger(r,k){if(k==='fire'){const L=r.b.filter(FLAM);if(L.length)ignite(r,L[Math.random()*L.length|0],'Ein Funke!')}
- else if(k==='sick'){const L=r.n.filter(n=>!n.sk);if(!L.length)return;const c=Math.max(1,Math.floor(L.length*.25));for(let i=0;i<c&&L.length;i++){const n=L.splice(Math.random()*L.length|0,1)[0];n.sk=1+(Math.random()<Math.max(.15,(r.sup||0)/160)?1:0);n.sickStage=0}say(r,'🤒 Krankheit! '+c+' Bewohner sind erkrankt'+(r.b.some(b=>b.t==='apothecary')?'':' – eine Apotheke mit Heiler fehlt'))}
+ else if(k==='sick'){const L=r.n.filter(n=>!n.sk&&!SICK_IMMUNE.has(n.k));if(!L.length)return;const c=Math.max(1,Math.floor(L.length*.25));for(let i=0;i<c&&L.length;i++){const n=L.splice(Math.random()*L.length|0,1)[0];n.sk=1+(Math.random()<Math.max(.15,(r.sup||0)/160)?1:0);n.sickStage=0}say(r,'🤒 Krankheit! '+c+' Bewohner sind erkrankt'+(r.b.some(b=>b.t==='apothecary')?'':' – eine Apotheke mit Heiler fehlt'))}
  else if(k==='rats'){const pool=['wheat','bread','cheese','sausage','smoked','apples'].filter(g=>r.inv[g]>0);if(!pool.length)return;const protectedStore=r.b.some(b=>b.t==='granary'||b.t==='storage');say(r,'🐀 Ratten im Vorratslager! '+(protectedStore?'Das Lagerhaus begrenzt den Schaden.':'Ein Teil der Nahrung wird verdorben.'));for(let i=0;i<Math.min(2,pool.length);i++){const g=pool[i],loss=Math.min(r.inv[g],(protectedStore?1:3)+Math.ceil((r.sup||0)/24));r.inv[g]-=loss}r.dirty=true}
  else if(k==='thieves'){const guard=r.n.filter(n=>['sword','archer'].includes(n.k)).length+r.b.filter(b=>b.t==='watchpost'||b.t==='garrison').length,loss=Math.max(12,30-guard*3);r.gold=Math.max(0,r.gold-loss);say(r,'🕵️ Diebe in Schatzkammer und Lager! '+loss+' Gold fehlen.');}
  else if(k==='ambush'){const c=r.cv.find(c=>c.kind==='caravan'&&c.st!=='leave')||r.cv.find(c=>c.kind==='ship'&&c.st!=='leave');if(c){c.st='leave';c.t=0;const goods=['honey','cloth','potions','weapons','armor'].find(g=>r.inv[g]>0);if(goods)r.inv[goods]=Math.max(0,r.inv[goods]-1);say(r,'⚔ Handelsroute überfallen – '+c.from+' kehrt um und der Handel stockt.')}else{r.tt+=80;say(r,'⚔ Räuber bedrohen die Handelsroute – die nächsten Händler verspäten sich.')}} 
@@ -251,7 +251,7 @@ function trigger(r,k){if(k==='fire'){const L=r.b.filter(FLAM);if(L.length)ignite
     else{say(r,'🪢 Aberglaube eskaliert! Ein Dorfbewohner wird am Galgen gehängt – baue eine Kapelle oder Kirche!')}
     r.plazaEvent=mode;r.plazaEventT=40;
   }}}
-function sickTick(r,n,dt,stf){if(!n.sk||n.hp<=0)return;n.sk=Math.max(1,Math.min(3,n.sk|0));n.sickTime=(n.sickTime||0)+dt;n.sickStage=(n.sickStage||0)+dt;
+function sickTick(r,n,dt,stf){if(n.hp<=0)return;if(SICK_IMMUNE.has(n.k)){n.sk=0;n.sickTime=0;n.sickStage=0;n.cu=0;return}if(!n.sk)return;n.sk=Math.max(1,Math.min(3,n.sk|0));n.sickTime=(n.sickTime||0)+dt;n.sickStage=(n.sickStage||0)+dt;
  if(n.sickStage>=110&&n.sk<3){n.sickStage=0;n.sk++;say(r,'🤢 Eine Krankheit verschlimmert sich zu '+diseaseName(n)+'em Verlauf')}
  if(n.sickTime>=sickLimit(n)){n.hp=0;n.work=0;n.cr=0;say(r,'⚰ Ein Bewohner ist an einer '+diseaseName(n)+'en Krankheit gestorben');return;}
  n.work=0;n.cr=0;n.aim=0;n.cd=0;n.vis=null;n.pr=0;n.el=0;const home=homeOf(r,n)||r.b.find(b=>b.t==='keep');if(!home)return;const old=r.b.find(b=>b.id===n.insideId&&b.id!==home.id);if(old&&!exitBuilding(n,old,dt))return;n.home=home;const slot=r.n.filter(o=>o.hid===home.id&&o.hp>0).findIndex(o=>o.id===n.id),target=fp(home,((Math.max(0,slot)%3)-1)*.85,-.5-Math.floor(Math.max(0,slot)/3)*.7);if(!enterBuilding(n,home,target,dt))return;
