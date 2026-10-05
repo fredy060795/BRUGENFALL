@@ -98,10 +98,10 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0}){
  const redRoof=['armorer','smithy','brewery','tavern'].includes(k),roofMat=redRoof?[H.redRoof,H.shingle,H.redRoof,H.slate][V]:[H.shingle,H.thatch,H.shingle,H.redRoof][V];
  shell(w,d,h,H.plaster,2.2);framing(w,d,h,0,0,k==='tavern');roof(w,d,h,2,roofMat,0,0,H.wood);awning(w-1,1.8,2.3,0,d/2+.1,H.shingle);
  // Fenster-Varianten
- if(V===0)window(-w*.3,1.75,d/2+.02,0,.7,.9);
- else if(V===1){window(w*.3,1.75,d/2+.02,0,.7,.9);window(w/2+.02,1.75,0,Math.PI/2,.65,.85)}
- else if(V===2){window(-w*.35,1.75,d/2+.02,0,.6,.85);window(w*.25,1.75,d/2+.02,0,.6,.85)}
- else{window(0,1.8,d/2+.02,0,1.0,1.0);window(-w/2-.02,1.75,d*.2,-Math.PI/2,.6,.85)}
+ if(V===0)window(-w*.3,2.28,d/2+.02,0,.7,.9);
+ else if(V===1){window(w*.3,2.28,d/2+.02,0,.7,.9);window(w/2+.02,1.75,0,Math.PI/2,.65,.85)}
+ else if(V===2){window(-w*.35,2.28,d/2+.02,0,.6,.85);window(w*.25,2.28,d/2+.02,0,.6,.85)}
+ else{window(-w*.28,2.34,d/2+.02,0,.72,.92);window(w*.28,2.34,d/2+.02,0,.72,.92);window(-w/2-.02,1.75,d*.2,-Math.PI/2,.6,.85)}
  if(V&1)barrel(w*.4,d/2+.5);if(V===3)barrel(-w*.4,d/2+.45);
  furniture();
  if(k==='bakery'){box(1.4,1.4,1.3,-1.9,.7,-1.5,H.stone,true);box(.8,.5,.04,-1.9,.65,-.83,H.dark);chimney(-1.9,-1.5,2.4);table(1.4,1.6);for(let n=0;n<5;n++){const geo=new T.SphereGeometry(.16,8,6);geo.scale(1.4,.5,.65);geo.translate(.85+n*.27,1.03,1.6);staticMesh(geo,H.thatch)}}
