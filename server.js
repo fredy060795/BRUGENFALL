@@ -68,16 +68,24 @@ const hasRoom=(b,k)=>b.t==='keep'&&!!((b.ext||0)&(k==='dungeon'?1:2))&&(k!=='tor
 const jobsOf=b=>hasRoom(b,'torture')?{hangman:1}:BD[b.t].jobs;
 function migrateRooms(r){const keep=r.b.find(b=>b.t==='keep')||r.ru.find(b=>b.t==='keep');if(!keep)return;const old=r.b.filter(b=>['dungeon','torture'].includes(b.t));for(const b of old){keep.ext=(keep.ext||0)|(b.t==='dungeon'?1:2);if(b.t==='torture')keep.pendingTorture=true;for(const n of r.n)if(n.wb===b.id)n.wb=keep.id;}r.b=r.b.filter(b=>!old.includes(b));if(keep.pendingTorture&&keep.st<2){keep.ext&=~2;}else if(keep.pendingTorture){keep.ext|=2;delete keep.pendingTorture;}r.ru=r.ru.filter(b=>!['dungeon','torture'].includes(b.t));}
 const CAT={};for(const k in BD)CAT[k]={w:BD[k].w,d:BD[k].d,c:BD[k].c,n:BN[k],j:BD[k].jobs,p:BD[k].prod?{i:BD[k].prod.in,o:BD[k].prod.out,e:BD[k].prod.every,annual:!!BD[k].prod.annual,d:BD[k].prod.dest}:undefined};
-const TW=[{n:'Ostmark',x:125,z:30,k:'friend'},{n:'Eichenfurt',x:-110,z:-120,k:'friend'},{n:'Rabenstein',x:25,z:-145,k:'enemy'}];
+const DEFAULT_MAP=Rules.presetMaps()[0];
+const hashSeed=s=>{let h=2166136261>>>0;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+const makeRng=s=>{let x=(s>>>0)||1;return()=>((x=Math.imul(x,1664525)+1013904223>>>0)/4294967296)};
+const townsOf=r=>(r.map&&r.map.towns)||DEFAULT_MAP.towns,friendTowns=r=>townsOf(r).filter(t=>t.k==='friend'),enemyTown=r=>townsOf(r).find(t=>t.k==='enemy')||townsOf(r)[0]||{n:'Banditenlager',x:25,z:-145,k:'enemy'};
+const riverAt=(r,z)=>Rules.riverX(z,r.map||DEFAULT_MAP),inRiver=(r,x,z,m=0)=>Math.abs(x-riverAt(r,z))<6+m;
+function applyMap(r,map){r.map=Rules.sanitizeMap(map||DEFAULT_MAP);r.tw=r.map.towns.map(t=>({...t}));r.or=r.map.ores.map(o=>({id:uid++,k:o.k,x:o.x,z:o.z}));r.tr=[];r.rk=[];
+ const occupied=[];const free=(x,z,pad)=>Math.abs(x)<=155&&Math.abs(z)<=155&&!inRiver(r,x,z,8)&&!townsOf(r).some(t=>Math.hypot(t.x-x,t.z-z)<pad)&&!occupied.some(o=>Math.hypot(o.x-x,o.z-z)<1.6);
+ for(const f of r.map.forests){const rnd=makeRng(hashSeed('f:'+f.x+':'+f.z+':'+f.r+':'+f.d));for(let i=0;i<f.d;i++){const a=rnd()*6.283,d=Math.sqrt(rnd())*f.r,x=Math.round((f.x+Math.cos(a)*d)*100)/100,z=Math.round((f.z+Math.sin(a)*d)*100)/100;if(!free(x,z,18))continue;r.tr.push({id:uid++,x,z,hp:4,st:0});occupied.push({x,z})}}
+ for(const k of r.map.rocks){const rnd=makeRng(hashSeed('r:'+k.x+':'+k.z+':'+k.r+':'+k.d));for(let i=0;i<k.d;i++){const a=rnd()*6.283,d=Math.sqrt(rnd())*k.r,x=Math.round((k.x+Math.cos(a)*d)*100)/100,z=Math.round((k.z+Math.sin(a)*d)*100)/100;if(!free(x,z,12))continue;r.rk.push({id:uid++,x,z,hp:5});occupied.push({x,z})}}
+ r.dr=[];for(let i=0;i<14;i++)r.dr.push(newDeer(r));r.dt=true}
 const NT={sword:{cost:50,hp:100,dmg:12,rng:2.2,cd:1,spd:3.4},archer:{cost:60,hp:60,dmg:9,rng:16,cd:1.5,spd:3},peasant:{cost:0,hp:50,dmg:0,rng:0,cd:1,spd:2.6,job:1}};
 for(const j of JOBS)NT[j]={cost:0,hp:60,dmg:0,rng:0,cd:1,spd:2.8,job:1};
-const xr=z=>-58+9*Math.sin(z*.028)+5*Math.sin(z*.07),inRiver=(x,z,m=0)=>Math.abs(x-xr(z))<6+m;
 const PMAX=[1,5,3,8,3,1,13,13,3,3,2,5],cleanProf=a=>Array.isArray(a)&&a.length===12&&a.every((v,i)=>Number.isInteger(v)&&v>=0&&v<=PMAX[i])?a:[0,2,0,2,1,0,0,9,0,0,0,0];
 const rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z),r2=v=>Math.round(v*100)/100;
 const dims=(t,rot)=>rot&1?[BD[t].d,BD[t].w]:[BD[t].w,BD[t].d],reach=b=>Math.max(BD[b.t].w,BD[b.t].d)/2+1.5;
 const costStr=c=>Object.entries(c).map(([k,n])=>n+' '+GN[k]).join(', '),afford=(r,c)=>Object.entries(c).every(([k,n])=>r.inv[k]>=n),pay=(r,c)=>{for(const k in c)r.inv[k]-=c[k]};
 const frac=(c,f)=>Object.fromEntries(Object.entries(c).map(([k,n])=>[k,Math.max(1,Math.ceil(n*f))]));
-function canPlace(r,t,x,z,rot){const B=BD[t],[w,d]=dims(t,rot);if(['dungeon','torture'].includes(t))return'Als Erweiterung im Bergfried einrichten';if(Math.abs(x)>BUILD_LIMIT||Math.abs(z)>BUILD_LIMIT)return'Außerhalb der Karte';const wr=Math.abs(x-xr(z));
+function canPlace(r,t,x,z,rot){const B=BD[t],[w,d]=dims(t,rot);if(['dungeon','torture'].includes(t))return'Als Erweiterung im Bergfried einrichten';if(Math.abs(x)>BUILD_LIMIT||Math.abs(z)>BUILD_LIMIT)return'Außerhalb der Karte';const wr=Math.abs(x-riverAt(r,z));
  if(B.bridge){if(rot&1)return'Brücke nur quer zum Fluss';if(wr>4)return'Die Brücke muss den Fluss kreuzen'}
  else{if(wr<6+w/2)return'Im Wasser kann nicht gebaut werden';if(B.water&&(wr<9||wr>20))return'Fischerei muss am Flussufer stehen';if(B.harbor&&(wr<9.5||wr>13.5))return'Der Hafen muss direkt am Ufer stehen'}
  if(B.ore&&!r.or.some(o=>o.k===B.ore&&Math.hypot(o.x-x,o.z-z)<9))return'Kein '+(B.ore==='iron'?'Eisen':'Kupfer')+'-Vorkommen in der Nähe (siehe Karte)'
@@ -85,22 +93,14 @@ function canPlace(r,t,x,z,rot){const B=BD[t],[w,d]=dims(t,rot);if(['dungeon','to
  for(const o of r.tr)if(Math.abs(x-o.x)<w/2+.6&&Math.abs(z-o.z)<d/2+.6)return o.st?'Ein Wurzelstock steht im Weg – mit Axt oder Spitzhacke entfernen':'Ein Baum steht im Weg';
  if(t==='quarry'&&!r.rk.some(o=>{const [lx,lz]=Rules.local({x,z,r:rot},o.x,o.z);return Math.abs(lx)<=B.w/2&&Math.abs(lz)<=B.d/2}))return'Steinbruch muss auf einem Steinvorkommen stehen';
  for(const o of r.rk)if(t!=='quarry'&&(Math.abs(x-o.x)<w/2+1&&Math.abs(z-o.z)<d/2+1))return'Ein Fels steht im Weg';return null}
-function seed(r){let s=7;const q=()=>(s=s*16807%2147483647)/2147483647;
- const C=[];for(let i=0;i<9;i++){let x,z,t=0;do{const a=q()*6.283,d=40+q()*95;x=Math.cos(a)*d;z=Math.sin(a)*d;t++}while((inRiver(x,z,14)||TW.some(w=>Math.hypot(w.x-x,w.z-z)<30))&&t<40);C.push([x,z,13+q()*13])}
- for(let i=0;i<240;i++){let x,z,t=0;do{if(i<200){const c=C[i%9],a=q()*6.283,d=Math.abs(q()+q()+q()-1.5)*c[2]*1.4;x=c[0]+Math.cos(a)*d;z=c[1]+Math.sin(a)*d}else{const a=q()*6.283,d=24+q()*110;x=Math.cos(a)*d;z=Math.sin(a)*d}t++}
-  while((inRiver(x,z,8)||Math.hypot(x,z)<20||Math.abs(x)>155||Math.abs(z)>155||TW.some(w=>Math.hypot(w.x-x,w.z-z)<22)||canPlace({b:r.b,ru:[],tr:[],rk:[]},'bench',x,z,0)==='Hier ist kein Platz (anderes Gebäude oder Ruine)')&&t<14);r.tr.push({id:uid++,x,z,hp:4})}
- for(let c=0;c<3;c++){let x,z,t=0;do{const a=q()*6.283,d=50+q()*80;x=Math.cos(a)*d;z=Math.sin(a)*d;t++}while((inRiver(x,z,12)||TW.some(w=>Math.hypot(w.x-x,w.z-z)<28))&&t<40);
-  for(let i=0;i<12;i++){const a=q()*6.283,d=q()*10;r.rk.push({id:uid++,x:x+Math.cos(a)*d,z:z+Math.sin(a)*d,hp:5})}}
- for(let i=0;i<14;i++){const a=q()*6.283,d=30+q()*100,x=Math.cos(a)*d,z=Math.sin(a)*d;if(!inRiver(x,z,10))r.rk.push({id:uid++,x,z,hp:5})}
- for(const k of['iron','iron','iron','copper','copper','copper']){let x,z,t=0;do{const a=q()*6.283,d=45+q()*85;x=Math.cos(a)*d;z=Math.sin(a)*d;t++}while((inRiver(x,z,14)||TW.some(w=>Math.hypot(w.x-x,w.z-z)<30)||r.or.some(o=>Math.hypot(o.x-x,o.z-z)<25))&&t<40);r.or.push({id:uid++,k,x,z})}
- for(let i=0;i<14;i++)r.dr.push(newDeer())}
-function newDeer(){let x,z,t=0;do{const a=rnd(0,6.28),d=rnd(25,90);x=Math.cos(a)*d;z=Math.sin(a)*d;t++}while(inRiver(x,z,3)&&t<10);return{id:uid++,x,z,hp:2,ry:0,w:null}}
-function room(code){let r=rooms.get(code);if(!r){r={creative:false,paths:[],pathDirty:true,deerTimer:0,pl:new Map(),b:[],ru:[],n:[],e:[],w:[],co:[],gold:500,ar:[],an:[],pt:6,bt:40,bw:0,hr:+process.env.START_HOUR||8,dy:+process.env.START_DAY||0,wx:0,wt:60,tl:{axe:0,pick:0,hoe:0},
+function seed(r){applyMap(r,r.map)}
+function newDeer(r){let x,z,t=0;do{const a=rnd(0,6.28),d=rnd(25,90);x=Math.cos(a)*d;z=Math.sin(a)*d;t++}while(inRiver(r,x,z,3)&&t<10);return{id:uid++,x,z,hp:2,ry:0,w:null}}
+function room(code,map){let r=rooms.get(code);if(!r){r={creative:false,map:Rules.sanitizeMap(map||DEFAULT_MAP),tw:[],paths:[],pathDirty:true,deerTimer:0,pl:new Map(),b:[],ru:[],n:[],e:[],w:[],co:[],gold:500,ar:[],an:[],pt:6,bt:40,bw:0,hr:+process.env.START_HOUR||8,dy:+process.env.START_DAY||0,wx:0,wt:60,tl:{axe:0,pick:0,hoe:0},
   inv:{wood:260,stone:130,wheat:14,meat:3,bread:0,roast:0,flour:0,wool:0,cloth:0,gambeson:0,milk:0,cheese:0,fish:0,weapons:2,armor:0,potions:0,iron:6,copper:0,honey:0,hides:0,leather:0,apples:0,hops:0,beer:0,sausage:0,smoked:0},or:[],ev:{on:1,every:240,fire:1,sick:1,omen:1,rats:1,thieves:1,ambush:1,cyc:1,sl:4},et:200,fires:[],cv:[],tt:150,cq:0,campOn:false,cr:5,omen:0,sup:10,pr:0,fame:0,gr:0,hap:50,dr:[],tr:[],rk:[],dt:true,set:{interval:120,max:6,autosave:30},tax:1,ration:1,next:120,dirty:true,tk:0,lastSave:0};
-  rooms.set(code,r);seed(r)}return r}
+  rooms.set(code,r);applyMap(r,r.map)}return r}
 const tx=(r,s)=>r.pl.forEach(p=>{if(p.ws.readyState===1)p.ws.send(s)});
 const tell=(p,m)=>p.ws.send(JSON.stringify({t:'ev',m})),say=(r,m)=>tx(r,JSON.stringify({t:'ev',m}));
-function raid(r){if(r.set.max<1||r.cq>0)return;const sol=r.n.filter(n=>n.k==='sword'||n.k==='archer').length,det=r.det||0,cap=Math.max(2,Math.floor(1.5*sol)),lim=Math.max(1,Math.min(r.set.max,Math.ceil(cap*(1-.5*det)))),n=1+Math.floor(Math.random()*lim),en=TW.find(t=>t.k==='enemy'),a=rnd(0,6.28);r.warned=false;
+function raid(r){if(r.set.max<1||r.cq>0)return;const sol=r.n.filter(n=>n.k==='sword'||n.k==='archer').length,det=r.det||0,cap=Math.max(2,Math.floor(1.5*sol)),lim=Math.max(1,Math.min(r.set.max,Math.ceil(cap*(1-.5*det)))),n=1+Math.floor(Math.random()*lim),en=enemyTown(r),a=rnd(0,6.28);r.warned=false;
  for(let i=0;i<n;i++){const x=RD?Math.cos(a)*RD+rnd(-5,5):en.x+rnd(-8,8),z=RD?Math.sin(a)*RD+rnd(-5,5):en.z+rnd(-8,8);r.e.push({id:uid++,x,z,hp:70,cd:0,ry:0})}
  say(r,'⚠ Banditen aus '+en.n+' greifen an! ('+n+' Gegner, höchstens 1,5× deine Soldaten)');if(r.n.some(n=>n.m==='post'))say(r,'🔔 Wachposten sichten Banditen im Anmarsch!')}
 function mv(o,x,z,sp,dt){const dx=x-o.x,dz=z-o.z,d=Math.hypot(dx,dz);if(d>.05){const s=Math.min(d,sp*dt);o.x+=dx/d*s;o.z+=dz/d*s;o.ry=Math.atan2(dx,dz)}return d}
@@ -283,23 +283,23 @@ function sickTick(r,n,dt,stf){if(n.hp<=0)return;if(SICK_IMMUNE.has(n.k)){n.sk=0;
  if(pr){pr.cap--;n.sickTime=Math.max(0,n.sickTime-dt*.22);if(n.sk===1&&Math.random()<.012*dt)n.sickStage=Math.max(0,n.sickStage-dt*2)}
  if(healer&&r.inv.potions>0){healer.cap--;n.cu=(n.cu||0)+dt*(pr?1.25:1);if(n.cu>=10+n.sk*4){r.inv.potions--;n.cu=0;n.sickStage=0;if(n.sk>1){n.sk--;n.sickTime=Math.max(0,n.sickTime-90);say(r,'💊 Ein Bewohner wurde versorgt – der Zustand bessert sich')}else{n.sk=0;n.sickTime=0;n.hp=Math.min(NT[n.k].hp,n.hp+20);say(r,'💊 Ein Bewohner wurde zuhause mit Heiltrank geheilt')}}}
  else n.cu=0;}
-function spawnCamp(r){const en=TW.find(t=>t.k==='enemy');for(let i=0;i<10;i++){const x=en.x+rnd(-7,7),z=en.z+rnd(-7,7);r.e.push({id:uid++,x,z,hp:80,cd:0,ry:0,camp:1,hx:x,hz:z})}r.campOn=true}
-function campTick(r,dt){const en=TW.find(t=>t.k==='enemy');
- if(r.cq>0){r.cq-=dt;if(r.cq<=0){say(r,'⚔ Rabenstein hat sich neu formiert');r.cr=3}return}
+function spawnCamp(r){const en=enemyTown(r);for(let i=0;i<10;i++){const x=en.x+rnd(-7,7),z=en.z+rnd(-7,7);r.e.push({id:uid++,x,z,hp:80,cd:0,ry:0,camp:1,hx:x,hz:z})}r.campOn=true}
+function campTick(r,dt){const en=enemyTown(r);
+ if(r.cq>0){r.cq-=dt;if(r.cq<=0){say(r,'⚔ '+en.n+' hat sich neu formiert');r.cr=3}return}
  const alive=r.e.some(e=>e.camp);
  if(!alive&&!r.campOn){r.cr-=dt;if(r.cr<=0)spawnCamp(r);return}
  if(!alive&&r.campOn&&r.n.some(n=>n.m==='attack'&&Math.hypot(n.x-en.x,n.z-en.z)<18)){r.campOn=false;r.cq=600;r.gold+=300;r.fame+=5;r.inv.iron+=20;r.inv.copper+=10;r.inv.weapons+=3;
-  say(r,'🏴 Rabenstein wurde erobert! Beute: 300 Gold, Eisen, Kupfer, Waffen. Überfälle ruhen 10 Minuten.');for(const n of r.n)if(n.m==='attack'){n.m='follow'}}
+  say(r,'🏴 '+en.n+' wurde erobert! Beute: 300 Gold, Eisen, Kupfer, Waffen. Überfälle ruhen 10 Minuten.');for(const n of r.n)if(n.m==='attack'){n.m='follow'}}
  else if(!alive&&r.campOn){r.campOn=false;r.cr=30}}
 function tradeTick(r,dt){for(const c of r.cv){c.t-=dt;
   if(c.kind==='caravan'){const m=r.b.find(b=>b.t==='market');if(c.st==='go'){if(!m){c.st='leave'}else if(mv(c,m.x,m.z+BD.market.d/2+3.5,3.6,dt)<2){c.st='wait';c.t=75;say(r,'🛒 Handelskarawane aus '+c.from+' ist am Marktstand eingetroffen (75 s, bessere Preise)')}}
-   else if(c.st==='wait'&&c.t<=0)c.st='leave';else if(c.st==='leave'){const T0=TW.find(t=>t.n===c.from);if(mv(c,T0.x,T0.z,3.6,dt)<4)c.gone=1}}
-  else{const h=r.b.find(b=>b.t==='harbor');if(c.st==='go'){if(!h){c.st='leave'}else{c.z-=6*dt;c.x=xr(c.z);c.ry=Math.atan2(xr(c.z-1)-xr(c.z),-1);if(c.z<=h.z){c.st='wait';c.t=80;say(r,'⚓ Ein Handelsschiff aus '+c.from+' hat im Hafen angelegt (80 s, beste Preise)')}}}
-  else if(c.st==='wait'&&c.t<=0)c.st='leave';else if(c.st==='leave'){c.z+=6*dt;c.x=xr(c.z);c.ry=Math.atan2(xr(c.z+1)-xr(c.z),1);if(c.z>WORLD_HALF)c.gone=1}}}
+   else if(c.st==='wait'&&c.t<=0)c.st='leave';else if(c.st==='leave'){const T0=townsOf(r).find(t=>t.n===c.from)||friendTowns(r)[0]||enemyTown(r);if(mv(c,T0.x,T0.z,3.6,dt)<4)c.gone=1}}
+  else{const h=r.b.find(b=>b.t==='harbor');if(c.st==='go'){if(!h){c.st='leave'}else{c.z-=6*dt;c.x=riverAt(r,c.z);c.ry=Math.atan2(riverAt(r,c.z-1)-riverAt(r,c.z),-1);if(c.z<=h.z){c.st='wait';c.t=80;say(r,'⚓ Ein Handelsschiff aus '+c.from+' hat im Hafen angelegt (80 s, beste Preise)')}}}
+  else if(c.st==='wait'&&c.t<=0)c.st='leave';else if(c.st==='leave'){c.z+=6*dt;c.x=riverAt(r,c.z);c.ry=Math.atan2(riverAt(r,c.z+1)-riverAt(r,c.z),1);if(c.z>WORLD_HALF)c.gone=1}}}
  r.cv=r.cv.filter(c=>!c.gone);r.tt-=dt;
  if(r.tt<=0){r.tt=rnd(170,260);spawnTrade(r)}}
-function spawnTrade(r,force){const fr=TW.filter(t=>t.k==='friend'),f=fr[Math.random()*fr.length|0],h=r.b.find(b=>b.t==='harbor'),m=r.b.find(b=>b.t==='market');
- if(h&&(!m||Math.random()<.5||force==='ship')){r.cv.push({id:uid++,kind:'ship',x:xr(WORLD_HALF-20),z:WORLD_HALF-20,ry:0,st:'go',t:0,from:f.n});say(r,'⚓ Ein Handelsschiff aus '+f.n+' nähert sich dem Hafen')}
+function spawnTrade(r,force){const fr=friendTowns(r),f=fr[Math.random()*Math.max(1,fr.length)|0]||enemyTown(r),h=r.b.find(b=>b.t==='harbor'),m=r.b.find(b=>b.t==='market');
+ if(h&&(!m||Math.random()<.5||force==='ship')){r.cv.push({id:uid++,kind:'ship',x:riverAt(r,WORLD_HALF-20),z:WORLD_HALF-20,ry:0,st:'go',t:0,from:f.n});say(r,'⚓ Ein Handelsschiff aus '+f.n+' nähert sich dem Hafen')}
  else if(m){r.cv.push({id:uid++,kind:'caravan',x:f.x,z:f.z,ry:0,st:'go',t:0,from:f.n});say(r,'🛒 Eine Handelskarawane aus '+f.n+' ist unterwegs')}}
 function demolish(r,b,ruin){const B=BD[b.t],rf=Object.fromEntries(Object.entries(B.c).map(([k,n])=>[k,Math.floor(n*(ruin?.25:.5))]));for(const k in rf)r.inv[k]=Math.min(stockCap(r),r.inv[k]+rf[k]);
  if(ruin)r.ru=r.ru.filter(o=>o!==b);else{r.b=r.b.filter(o=>o!==b);for(const n of r.n){if(n.wb===b.id&&n.hp>0){n.hp=0;n.conv=1;const q=mkNpc(r,'peasant',n.x,n.z,n.o);q.ry=n.ry}if(n.hid===b.id)n.hid=0}}
@@ -308,7 +308,7 @@ const yearSec=r=>+process.env.YEAR_SEC||4*((r.ev&&r.ev.sl)||4)*1440;
 function regrow(r,secs){const k=secs/yearSec(r);let ch=false;for(const t of r.tr)if(t.st===1){t.rg=(t.rg||0)+k;if(t.rg>=1){t.st=0;t.rg=0;t.hp=4;ch=true}}
  for(const t of r.rk)if(t.ex){t.rg=(t.rg||0)+k;if(t.rg>=1){t.ex=0;t.rg=0;t.hp=5;ch=true}}if(ch)r.dt=true}
 function fieldGrow(r,secs){for(const b of r.b)if(b.t==='field'&&b.st>0&&b.st<3){b.pg=(b.pg||0)+secs*FG(r)/(((r.ev&&r.ev.sl)||4)*1440);const st=b.pg>=1?3:b.pg>=.5?2:1;if(st!==b.st){b.st=st;r.dirty=true}}}
-function tick(r,dt){const dayBefore=r.dy||0;r.tk++;
+function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.dy||0;r.tk++;
  const bm=new Map(r.b.map(b=>[b.id,b]));r.res={};for(const n of r.n)if(n.hid)r.res[n.hid]=(r.res[n.hid]||0)+1;
  const stf={};for(const n of r.n)if(n.wb&&n.hp>0&&!n.sk){const b=bm.get(n.wb);if(b&&!b.off&&(['farmer','wood','hunter','mason'].includes(n.k)||dist(n,workPoint(r,b,n))<1.5))stf[b.id]=(stf[b.id]||0)+1}
  // Produktion und Wirkung der Gebäude
@@ -349,8 +349,8 @@ function tick(r,dt){const dayBefore=r.dy||0;r.tk++;
  const fires=r.b.filter(b=>b.t==='fire'),safe=o=>o.torch||(o.home&&dist(o,o.home)<3)||fires.some(f=>dist(f,o)<8),ground=r.n.filter(n=>!n.el);
  for(const w of r.w){w.cd-=dt;const t=near(w,[...r.pl.values(),...ground].filter(o=>!safe(o)),22);if(!t)continue;if(dist(w,t)>1.6)mv(w,t.x,t.z,4.2,dt);else if(w.cd<=0){t.hp-=6;w.cd=1}}
  for(const d of r.dr)if(!d.w||mv(d,d.w.x,d.w.z,1.5,dt)<1)d.w={x:d.x+rnd(-15,15),z:d.z+rnd(-15,15)};
- r.deerTimer=(r.deerTimer||0)+dt;if(r.deerTimer>=60){r.deerTimer=0;if(r.dr.length<14){for(let attempt=0;attempt<30;attempt++){const d=newDeer();if(!r.b.some(b=>dist(d,b)<reach(b)+4)&&![...r.pl.values()].some(p=>dist(d,p)<18)){r.dr.push(d);break}}}}
- for(const d of r.dr){if(d.hp<2&&![...r.pl.values(),...r.n.filter(n=>n.k==='hunter')].some(p=>dist(p,d)<18)){d.rest=(d.rest||0)+dt;if(d.rest>=30){d.hp=2;d.rest=0}}else d.rest=0;d.x=Math.max(-DEER_LIMIT,Math.min(DEER_LIMIT,d.x));d.z=Math.max(-DEER_LIMIT,Math.min(DEER_LIMIT,d.z));if(inRiver(d.x,d.z,3)){d.w=null;d.x=xr(d.z)+(d.x<xr(d.z)?-10:10)}}
+ r.deerTimer=(r.deerTimer||0)+dt;if(r.deerTimer>=60){r.deerTimer=0;if(r.dr.length<14){for(let attempt=0;attempt<30;attempt++){const d=newDeer(r);if(!r.b.some(b=>dist(d,b)<reach(b)+4)&&![...r.pl.values()].some(p=>dist(d,p)<18)){r.dr.push(d);break}}}}
+ for(const d of r.dr){if(d.hp<2&&![...r.pl.values(),...r.n.filter(n=>n.k==='hunter')].some(p=>dist(p,d)<18)){d.rest=(d.rest||0)+dt;if(d.rest>=30){d.hp=2;d.rest=0}}else d.rest=0;d.x=Math.max(-DEER_LIMIT,Math.min(DEER_LIMIT,d.x));d.z=Math.max(-DEER_LIMIT,Math.min(DEER_LIMIT,d.z));if(inRiver(r,d.x,d.z,3)){d.w=null;const rx=riverAt(r,d.z);d.x=rx+(d.x<rx?-10:10)}}
  fieldGrow(r,dt);regrow(r,dt);
  if(kp0&&r.set.interval>0&&r.set.max>0){r.rt=(r.rt===undefined?240:r.rt)-dt;if(r.rt<=0&&Math.random()<dt/r.set.interval*(1-(r.det||0))){raid(r);r.rt=90}}
  for(const p of r.pl.values()){p.food=Math.max(0,p.food-(r.creative?0:dt/24)*(season(r)===3?1.3:1));if(p.sl&&!(r.hr>=19||r.hr<5))p.sl=false;p.hp=p.food>0?Math.min(100,p.hp+dt):p.hp-dt*2;if(p.hp<=0){p.hp=100;p.food=100;p.x=0;p.z=12;p.ws.send(JSON.stringify({t:'rs'}));say(r,p.name+' wurde niedergestreckt')}}
@@ -380,8 +380,8 @@ function tick(r,dt){const dayBefore=r.dy||0;r.tk++;
   const patrolCharge=(n.m==='patrol'&&(n.k==='sword'||n.k==='archer'));
   const rngE=T.rng+(n.el?8:0)+(patrolCharge?28:0),e=near(n,[...r.e,...r.w],rngE+(n.k==='sword'?10:0)+(patrolCharge?40:0));
   if(e){if(dist(n,e)>T.rng+(n.el?8:0)){if(!n.el)mv(n,e.x,e.z,T.spd*(patrolCharge?1.25:1),dt)}else{n.ry=Math.atan2(e.x-n.x,e.z-n.z);if(n.k==='archer')n.aim=Math.max(0,Math.min(1,1-n.cd/(T.cd-.25)));if(n.cd<=0){if(n.k==='archer')shoot(r,n,e,T.dmg);else e.hp-=T.dmg;n.cd=T.cd}}continue}
-  if(n.m==='attack'){const en=TW.find(t=>t.k==='enemy');mv(n,en.x,en.z+8,T.spd,dt);continue}
-  if(n.m==='post'){const b=bm.get(n.pb);if(!b||!BD[b.t].post){n.m='guard';n.el=0;n.p={x:n.x,z:n.z}}else{const pos=fp(b,b.t==='keep'&&(b.st|0)===0?4.1+((n.sl||1)%2?-.6:.6):((n.sl||1)%2?-.8:.8),b.t==='keep'&&(b.st|0)===0?-2.7:((n.sl||1)>2?.8:0)),px=pos.x;if(n.el){n.x=px;n.z=pos.z}else{const X=b.x,Z=b.z+BD[b.t].d/2+1.5;if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,T.spd,dt);else{n.x=px;n.z=pos.z;n.el=postY(b)+Rules.base(b.t,b.x,b.z,b.r,BD)-Rules.height(n.x,n.z)}}}continue}
+  if(n.m==='attack'){const en=enemyTown(r);mv(n,en.x,en.z+8,T.spd,dt);continue}
+  if(n.m==='post'){const b=bm.get(n.pb);if(!b||!BD[b.t].post){n.m='guard';n.el=0;n.p={x:n.x,z:n.z}}else{const pos=fp(b,b.t==='keep'&&(b.st|0)===0?4.1+((n.sl||1)%2?-.6:.6):((n.sl||1)%2?-.8:.8),b.t==='keep'&&(b.st|0)===0?-2.7:((n.sl||1)>2?.8:0)),px=pos.x;if(n.el){n.x=px;n.z=pos.z}else{const X=b.x,Z=b.z+BD[b.t].d/2+1.5;if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,T.spd,dt);else{n.x=px;n.z=pos.z;n.el=postY(b)+Rules.base(b.t,b.x,b.z,b.r,BD,r.map)-Rules.height(n.x,n.z,r.map)}}}continue}
   const o=r.pl.get(n.o);
   if(n.m==='follow'&&!o){n.m='guard';n.p={x:n.x,z:n.z}}
   if(n.m==='follow'){const X=o.x+Math.cos(n.i)*3,Z=o.z+Math.sin(n.i)*3;if(Math.hypot(X-n.x,Z-n.z)>1.2)mv(n,X,Z,T.spd*1.3,dt)}
@@ -398,7 +398,7 @@ function tick(r,dt){const dayBefore=r.dy||0;r.tk++;
  for(const b of r.b)if(b.hp<=0&&BD[b.t].hp>=150){r.ru.push({id:b.id,t:b.t,x:b.x,z:b.z,r:b.r,st:b.st|0,lv:b.lv||0,ext:b.ext||0,pendingTorture:!!b.pendingTorture});say(r,'💥 '+BN[b.t]+' wurde zerstört – mit dem Hammer reparieren')}
  for(const b of r.b)if(b.hp<=0)b.fire=0;const nb=r.b.length;r.b=r.b.filter(b=>b.hp>0);if(nb!==r.b.length)r.dirty=true;
  r.hpt=(r.hpt||0)-dt;if(r.under&&r.hpt<=0){r.dirty=true;r.under=false;r.hpt=1.5}
- for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT)+.1-Rules.height(n.x,n.z)):0;}}
+ for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT,r.map)+.1-Rules.height(n.x,n.z,r.map)):0;}}
  const actors=[...r.pl.values(),...r.n.filter(n=>n.hp>0),...r.e.filter(n=>n.hp>0),...r.dr,...r.w];const before=new Map([...r.pl.values()].map(p=>[p.id,[p.x,p.z]]));for(const actor of actors)actor.radius=actor.mt?.75:(r.dr.includes(actor)||r.w.includes(actor))?.6:.42;Rules.separate(actors);for(const p of r.pl.values()){const q=before.get(p.id);p.push=[r2(p.x-q[0]),r2(p.z-q[1])]}
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0]),
   n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0]),
@@ -415,9 +415,9 @@ function tick(r,dt){const dayBefore=r.dy||0;r.tk++;
 // ---- Speichern (saves/welt.json, alle 30 s, bei Verlassen und beim Beenden) ----
 const SAVE=process.env.SAVE_FILE||path.join(__dirname,'saves','welt.json');
 let deletedAny=false;
-function save(){if(!rooms.size&&!deletedAny)return false;const o={};rooms.forEach((r,k)=>o[k]={creative:!!r.creative,paths:r.paths||[],deerTimer:r.deerTimer||0,foodShortage:r.foodShortage||0,heatShortage:r.heatShortage||0,nm:r.nm,sv:(r.sv=Date.now()),b:r.b,ru:r.ru,n:r.n,co:r.co,gold:r.gold,inv:r.inv,tl:r.tl,hr:r.hr,dy:r.dy,set:r.set,tax:r.tax??1,ration:r.ration??1,next:r.next,tr:r.tr,rk:r.rk,dr:r.dr,pr:r.pr,fame:r.fame,gr:r.gr,sup:r.sup||0,or:r.or,ev:r.ev,cq:r.cq});
+function save(){if(!rooms.size&&!deletedAny)return false;const o={};rooms.forEach((r,k)=>o[k]={creative:!!r.creative,map:r.map,paths:r.paths||[],deerTimer:r.deerTimer||0,foodShortage:r.foodShortage||0,heatShortage:r.heatShortage||0,nm:r.nm,sv:(r.sv=Date.now()),b:r.b,ru:r.ru,n:r.n,co:r.co,gold:r.gold,inv:r.inv,tl:r.tl,hr:r.hr,dy:r.dy,set:r.set,tax:r.tax??1,ration:r.ration??1,next:r.next,tr:r.tr,rk:r.rk,dr:r.dr,pr:r.pr,fame:r.fame,gr:r.gr,sup:r.sup||0,or:r.or,ev:r.ev,cq:r.cq});
  try{fs.mkdirSync(path.dirname(SAVE),{recursive:true});fs.writeFileSync(SAVE+'.tmp',JSON.stringify(o));fs.renameSync(SAVE+'.tmp',SAVE);return true}catch(e){console.log('Speichern fehlgeschlagen',e.message);return false}}
-try{const o=JSON.parse(fs.readFileSync(SAVE));for(const k in o){const r=o[k];Object.assign(r,{pl:new Map(),pathDirty:true,paths:r.paths||[],e:[],w:[],ar:[],an:[],pt:10,bt:40,bw:0,dirty:true,dt:true,hr:r.hr||8,dy:r.dy||0,wx:0,wt:60,tk:0,hap:50,ru:r.ru||[],co:r.co||[],pr:r.pr||0,fame:r.fame||0,gr:r.gr||0,sup:r.sup||10,tl:r.tl||{axe:0,pick:0,hoe:0},or:r.or||[],ev:r.ev||{on:1,every:240,fire:1,sick:1,omen:1,rats:1,thieves:1,ambush:1,cyc:1,sl:4},et:200,fires:[],cv:[],tt:150,cq:r.cq||0,campOn:false,cr:5,omen:0});if(r.set){r.set.autosave=r.set.autosave!==undefined?r.set.autosave:30}else r.set={interval:120,max:6,autosave:30};r.tax=r.tax??1;r.ration=r.ration??1;Object.assign(r.inv,{gambeson:r.inv.gambeson||0,armor:r.inv.armor||0,potions:r.inv.potions||0});if(!r.ev.rats&&r.ev.rats!==0)Object.assign(r.ev,{rats:1,thieves:1,ambush:1});if(!r.or.length){const q=()=>Math.random();for(const k of['iron','iron','copper','copper']){const a=q()*6.28,d=50+q()*70;r.or.push({id:uid+=1,k,x:Math.cos(a)*d,z:Math.sin(a)*d})}}
+try{const o=JSON.parse(fs.readFileSync(SAVE));for(const k in o){const r=o[k];Object.assign(r,{pl:new Map(),map:Rules.sanitizeMap(r.map||DEFAULT_MAP),tw:[],pathDirty:true,paths:r.paths||[],e:[],w:[],ar:[],an:[],pt:10,bt:40,bw:0,dirty:true,dt:true,hr:r.hr||8,dy:r.dy||0,wx:0,wt:60,tk:0,hap:50,ru:r.ru||[],co:r.co||[],pr:r.pr||0,fame:r.fame||0,gr:r.gr||0,sup:r.sup||10,tl:r.tl||{axe:0,pick:0,hoe:0},or:r.or||[],ev:r.ev||{on:1,every:240,fire:1,sick:1,omen:1,rats:1,thieves:1,ambush:1,cyc:1,sl:4},et:200,fires:[],cv:[],tt:150,cq:r.cq||0,campOn:false,cr:5,omen:0});r.tw=r.map.towns.map(t=>({...t}));if(r.set){r.set.autosave=r.set.autosave!==undefined?r.set.autosave:30}else r.set={interval:120,max:6,autosave:30};r.tax=r.tax??1;r.ration=r.ration??1;Object.assign(r.inv,{gambeson:r.inv.gambeson||0,armor:r.inv.armor||0,potions:r.inv.potions||0});if(!r.ev.rats&&r.ev.rats!==0)Object.assign(r.ev,{rats:1,thieves:1,ambush:1});if(!r.or.length){const q=()=>Math.random();for(const k of['iron','iron','copper','copper']){const a=q()*6.28,d=50+q()*70;r.or.push({id:uid+=1,k,x:Math.cos(a)*d,z:Math.sin(a)*d})}}
  migrateRooms(r);for(const b of r.b)if(b.lv===undefined&&['gate','portcullis','garrison'].includes(b.t))b.lv=1;for(const b of r.b)if(b.v===undefined)b.v=((b.id*7)^(Math.round(b.x*4)*3)^(Math.round(b.z*4)*5))&3;
  for(const s of STOCK)r.inv[s]=r.inv[s]||(s==='weapons'?4:0);for(const b of r.b)if(BD[b.t]&&BD[b.t].hp>BD[b.t].hp*1)b.hp=BD[b.t].hp;rooms.set(k,r);
  uid=Math.max(uid,1+Math.max(1,...[...r.b,...r.ru,...r.n,...r.tr,...r.rk,...r.dr,...r.co,...r.or].map(x=>x.id)))}console.log('Spielstand geladen:',rooms.size,'Welt(en)')}catch(e){}
@@ -440,21 +440,21 @@ wss.on('connection',ws=>{let r,p;
  ws.on('message',d=>{let m;try{m=JSON.parse(d)}catch{return}
   if(m.t==='join'){if(p)return;const code=String(m.code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)||'DEMO';
    if(!rooms.has(code)&&!m.create)return ws.send(JSON.stringify({t:'err',m:'Diese Welt gibt es nicht. Lade eine gespeicherte Welt aus der Liste oder gründe eine neue.'}));
-   r=room(code);if(m.wname&&!r.nm)r.nm=String(m.wname).slice(0,24);p={id:uid++,name:String(m.name||'Spieler').slice(0,16),x:0,z:0,ry:0,ws,hp:100,lt:0,food:100,tool:'sword',ch:cleanProf(m.ch)};r.pl.set(p.id,p);if(m.create)save();for(const n of r.n)if(!n.o)n.o=p.id;r.dirty=true;r.dt=true;r.pathDirty=true;
-   ws.send(JSON.stringify({t:'hi',id:p.id,code,bd:CAT,tw:TW,jn:JN,gn:GN}));say(r,p.name+' ist beigetreten');return}
+   r=room(code,m.map);if(m.wname&&!r.nm)r.nm=String(m.wname).slice(0,24);p={id:uid++,name:String(m.name||'Spieler').slice(0,16),x:0,z:0,ry:0,ws,hp:100,lt:0,food:100,tool:'sword',ch:cleanProf(m.ch)};r.pl.set(p.id,p);if(m.create)save();for(const n of r.n)if(!n.o)n.o=p.id;r.dirty=true;r.dt=true;r.pathDirty=true;
+   ws.send(JSON.stringify({t:'hi',id:p.id,code,bd:CAT,tw:townsOf(r),map:r.map,jn:JN,gn:GN}));say(r,p.name+' ist beigetreten');return}
   if(!p)return;
   if(m.t==='mv'){if(![m.x,m.z,m.ry].every(Number.isFinite))return;p.x=Math.max(-WORLD_HALF,Math.min(WORLD_HALF,m.x));p.z=Math.max(-WORLD_HALF,Math.min(WORLD_HALF,m.z));p.ry=m.ry;p.el=Math.max(0,Math.min(25,+m.el||0))}
   else if(m.t==='creative'){r.creative=!!m.on;say(r,r.creative?'Frei-Bau aktiviert: kostenlose Gebäude und Ressourcenpflanzung':'Survival-Bau aktiviert')}
   else if(m.t==='plant'){
    if(!r.creative)return tell(p,'Ressourcen pflanzen geht nur im Frei-Bau-Modus');
    const kinds=['tree','stump','rock','iron','copper','deer'];if(!kinds.includes(m.k)||![m.x,m.z].every(Number.isFinite))return;
-   const x=r2(m.x),z=r2(m.z);if(Math.abs(x)>RESOURCE_LIMIT||Math.abs(z)>RESOURCE_LIMIT||inRiver(x,z,8))return tell(p,'Hier kann nicht gepflanzt werden');
+   const x=r2(m.x),z=r2(m.z);if(Math.abs(x)>RESOURCE_LIMIT||Math.abs(z)>RESOURCE_LIMIT||inRiver(r,x,z,8))return tell(p,'Hier kann nicht gepflanzt werden');
    if(r.tr.length+r.rk.length+r.or.length+r.dr.length>=1600)return tell(p,'Ressourcenlimit erreicht');
    if(r.b.some(b=>{const [lx,lz]=Rules.local(b,x,z);return Math.abs(lx)<BD[b.t].w/2+1&&Math.abs(lz)<BD[b.t].d/2+1})||[...r.tr,...r.rk,...r.or,...r.dr].some(o=>Math.hypot(o.x-x,o.z-z)<1.5))return tell(p,'Zu nahe an einem Gebäude oder einer Ressource');
    const o={id:uid++,x,z};if(m.k==='tree'||m.k==='stump')r.tr.push({...o,hp:m.k==='stump'?3:4,st:m.k==='stump'?1:0,rg:0});else if(m.k==='rock')r.rk.push({...o,hp:5});else if(m.k==='deer')r.dr.push({...o,hp:2,ry:0,w:null});else r.or.push({...o,k:m.k});r.dt=true;
   }
   else if(m.t==='path'){
-   if(![m.x,m.z].every(Number.isFinite)||Math.abs(m.x)>RESOURCE_LIMIT||Math.abs(m.z)>RESOURCE_LIMIT||inRiver(m.x,m.z,8))return;
+   if(![m.x,m.z].every(Number.isFinite)||Math.abs(m.x)>RESOURCE_LIMIT||Math.abs(m.z)>RESOURCE_LIMIT||inRiver(r,m.x,m.z,8))return;
    if(!r.b.some(b=>b.t==='keep'))return tell(p,'Zuerst den Bergfried platzieren');
    if(Date.now()-(p.pathAt||0)<65)return;p.pathAt=Date.now();r.paths=r.paths||[];
    if(r.paths.length>=5000)return tell(p,'Wegelimit erreicht');const last=p.pathLast;
@@ -494,7 +494,7 @@ wss.on('connection',ws=>{let r,p;
   else if(m.t==='unpost'){for(const n of r.n)if(n.m==='post'&&n.o===p.id){n.m='guard';n.el=0;n.p={x:n.x,z:n.z}}}
   else if(m.t==='evset'){if(m.k==='on')r.ev.on=m.v?1:0;else if(m.k==='every')r.ev.every=Math.max(0,Math.min(1800,+m.v||0));else if(m.k==='cyc'){r.ev.cyc=m.v?1:0;if(!m.v)r.hr=12}else if(m.k==='sl')r.ev.sl=Math.max(1,Math.min(30,+m.v||4));else if(['fire','sick','omen','rats','thieves','ambush'].includes(m.k))r.ev[m.k]=m.v?1:0;r.et=Math.min(r.et,r.ev.every||1e9)}
   else if(m.t==='evnow'){if(m.k==='prisoner'){const dc=4*r.b.filter(b=>hasRoom(b,'dungeon')).length;if(!dc)tell(p,'Kein Kerker vorhanden');else r.pr=Math.min(dc,r.pr+1)}else if(m.k==='pray'){if(r.holy){r.pray=90;r.pd=r.dy;say(r,'🔔 Die Glocken läuten – alle Bewohner gehen zum Gebet')}else tell(p,'Kapelle/Kirche mit Priester nötig')}else if(['fire','sick','omen','rats','thieves','ambush'].includes(m.k))trigger(r,m.k);else if(m.k==='trade')spawnTrade(r,m.v)}
-  else if(m.t==='expedition'){const en=TW.find(t=>t.k==='enemy');if(m.c==='attack'){if(r.cq>0)return tell(p,'Rabenstein ist erobert – es gibt dort nichts mehr zu tun');const S=r.n.filter(n=>n.o===p.id&&(n.k==='sword'||n.k==='archer')&&n.m!=='post'&&!n.tr);if(S.length<4)return tell(p,'Zu wenige Soldaten für einen Feldzug (mindestens 4)');for(const n of S){n.m='attack';n.el=0}say(r,'⚔ Feldzug gegen '+en.n+' beginnt ('+S.length+' Soldaten)')}else for(const n of r.n)if(n.o===p.id&&n.m==='attack')n.m='follow'}
+  else if(m.t==='expedition'){const en=enemyTown(r);if(m.c==='attack'){if(r.cq>0)return tell(p,en.n+' ist erobert – es gibt dort nichts mehr zu tun');const S=r.n.filter(n=>n.o===p.id&&(n.k==='sword'||n.k==='archer')&&n.m!=='post'&&!n.tr);if(S.length<4)return tell(p,'Zu wenige Soldaten für einen Feldzug (mindestens 4)');for(const n of S){n.m='attack';n.el=0}say(r,'⚔ Feldzug gegen '+en.n+' beginnt ('+S.length+' Soldaten)')}else for(const n of r.n)if(n.o===p.id&&n.m==='attack')n.m='follow'}
   else if(m.t==='gate'){const g=r.b.filter(b=>(b.t==='gate'||b.t==='portcullis')&&dist(b,p)<12);if(!g.length)return tell(p,'Kein Torhaus in der Nähe (12 m)');for(const b of g)b.man=b.st?0:1;say(r,g[0].man?'🚪 Das Tor wurde verriegelt':'🚪 Das Tor wurde geöffnet')}
   else if(m.t==='interrogate'){if(!r.b.some(b=>hasRoom(b,'torture')))return tell(p,'Du brauchst eine Folterkammer');if(r.pr<1)return tell(p,'Keine Gefangenen');r.pr--;r.gold+=30;r.fame=Math.max(0,r.fame-1);const t=Math.round(r.next);say(r,'🗝 Der Gefangene verrät: Der nächste Überfall kommt in etwa '+t+' s (+30 Gold, Ansehen -1)')}
   else if(m.t==='order'){for(const n of r.n)if(n.o===p.id&&!NT[n.k].job){
