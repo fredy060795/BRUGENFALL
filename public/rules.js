@@ -2,13 +2,12 @@
 (function(root){
  const modular=['wall','battle','palisade','tower','gate','portcullis','stairs'];
  const WORLD_HALF=200,RIVER_Z=[-200,-100,0,100,200],MAP_LIMIT=165;
- const defaultMap=()=>sanitizeMap({name:'Talgrund',river:[-64,-72,-58,-46,-60],towns:[{n:'Ostmark',x:122,z:42,k:'friend'},{n:'Eichenfurt',x:-112,z:-118,k:'friend'},{n:'Rabenstein',x:36,z:-144,k:'enemy'}],ores:[{k:'iron',x:-24,z:88},{k:'iron',x:96,z:-32},{k:'iron',x:-102,z:34},{k:'copper',x:64,z:118},{k:'copper',x:-76,z:-54},{k:'copper',x:18,z:-96}],forests:[{x:-106,z:74,r:24,d:34},{x:-18,z:132,r:22,d:28},{x:108,z:86,r:20,d:26},{x:120,z:-28,r:20,d:24},{x:-126,z:-22,r:22,d:28},{x:-38,z:-108,r:24,d:32},{x:54,z:-124,r:22,d:30},{x:38,z:32,r:18,d:18}],rocks:[{x:-82,z:102,r:10,d:11},{x:84,z:58,r:9,d:10},{x:-36,z:-58,r:11,d:12},{x:58,z:-88,r:9,d:10}]});
- let worldConfig=defaultMap();
+ const BASE_MAP={name:'Talgrund',river:[-64,-72,-58,-46,-60],towns:[{n:'Ostmark',x:122,z:42,k:'friend'},{n:'Eichenfurt',x:-112,z:-118,k:'friend'},{n:'Rabenstein',x:36,z:-144,k:'enemy'}],ores:[{k:'iron',x:-24,z:88},{k:'iron',x:96,z:-32},{k:'iron',x:-102,z:34},{k:'copper',x:64,z:118},{k:'copper',x:-76,z:-54},{k:'copper',x:18,z:-96}],forests:[{x:-106,z:74,r:24,d:34},{x:-18,z:132,r:22,d:28},{x:108,z:86,r:20,d:26},{x:120,z:-28,r:20,d:24},{x:-126,z:-22,r:22,d:28},{x:-38,z:-108,r:24,d:32},{x:54,z:-124,r:22,d:30},{x:38,z:32,r:18,d:18}],rocks:[{x:-82,z:102,r:10,d:11},{x:84,z:58,r:9,d:10},{x:-36,z:-58,r:11,d:12},{x:58,z:-88,r:9,d:10}]};
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const smooth=(x,a,b)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
  const hashSeed=s=>{let h=2166136261>>>0;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
  const makeRng=s=>{let x=(s>>>0)||1;return()=>((x=Math.imul(x,1664525)+1013904223>>>0)/4294967296)};
- function lerpRiver(points,z){const p=(Array.isArray(points)&&points.length===5?points:defaultMap().river).map(v=>clamp(+v||0,-140,140));const t=clamp((z+WORLD_HALF)/(WORLD_HALF*2),0,1)*(p.length-1),i=Math.min(p.length-2,Math.floor(t)),f=t-i,s=smooth(f,0,1);return p[i]+(p[i+1]-p[i])*s}
+ function lerpRiver(points,z){const p=(Array.isArray(points)&&points.length===5?points:BASE_MAP.river).map(v=>clamp(+v||0,-140,140));const t=clamp((z+WORLD_HALF)/(WORLD_HALF*2),0,1)*(p.length-1),i=Math.min(p.length-2,Math.floor(t)),f=t-i,s=smooth(f,0,1);return p[i]+(p[i+1]-p[i])*s}
  function riverX(z,map){return lerpRiver((map&&map.river)||worldConfig.river,z)}
  function height(x,z,map){let h=smooth(Math.hypot(x,z),24,70)*(Math.sin(x*.042)*Math.cos(z*.037)*2.5+Math.sin(z*.077+x*.023)*1.1);const d=Math.abs(x-riverX(z,map));return h*smooth(d,6,22)-(1-smooth(d,3,7.5))*2.6}
  const local=(b,x,z)=>{const a=(b.r||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a),dx=x-b.x,dz=z-b.z;return [dx*c-dz*s,dx*s+dz*c]};
@@ -44,7 +43,7 @@
  }
  function presetMaps(){return [generatePreset('northvale','Nordtal'),generatePreset('meadowreach','Wiesenfurt'),generatePreset('ironpass','Eisenfurt'),generatePreset('redmoor','Rotmoor')]}
  function sanitizeMap(raw){
-  const baseMap=defaultMap(),src=raw&&typeof raw==='object'?raw:{};
+  const baseMap=BASE_MAP,src=raw&&typeof raw==='object'?raw:{};
   const map={name:String(src.name||baseMap.name||'Karte').slice(0,32),river:(Array.isArray(src.river)?src.river:baseMap.river).slice(0,5),towns:[],ores:[],forests:[],rocks:[]};
   while(map.river.length<5)map.river.push(baseMap.river[map.river.length]||0);
   map.river=map.river.map((v,i)=>clamp(Number.isFinite(+v)?+v:baseMap.river[i],-140,140));
@@ -64,6 +63,8 @@
   return JSON.parse(JSON.stringify(map))
  }
  const cloneMap=map=>sanitizeMap(map);
+ const defaultMap=()=>cloneMap(BASE_MAP);
+ let worldConfig=defaultMap();
  const setWorldConfig=map=>worldConfig=sanitizeMap(map);
  const getWorldConfig=()=>cloneMap(worldConfig);
  const api={WORLD_HALF,RIVER_Z,modular,passOverlap,height,riverX,local,world,base,snapPlacement,drawbridge,separate,defaultMap,presetMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
