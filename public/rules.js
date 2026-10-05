@@ -44,29 +44,31 @@
  function presetMaps(){return [generatePreset('northvale','Nordtal'),generatePreset('meadowreach','Wiesenfurt'),generatePreset('ironpass','Eisenfurt'),generatePreset('redmoor','Rotmoor')]}
  function sanitizeMap(raw){
   const baseMap=BASE_MAP,src=raw&&typeof raw==='object'?raw:{};
-  const map={name:String(src.name||baseMap.name||'Karte').slice(0,32),river:(Array.isArray(src.river)?src.river:baseMap.river).slice(0,5),towns:[],ores:[],forests:[],rocks:[]};
-  while(map.river.length<5)map.river.push(baseMap.river[map.river.length]||0);
-  map.river=map.river.map((v,i)=>clamp(Number.isFinite(+v)?+v:baseMap.river[i],-140,140));
-  const fixPoint=(o,r=16)=>({x:clamp(Math.round(+o.x||0),-MAP_LIMIT,MAP_LIMIT),z:clamp(Math.round(+o.z||0),-MAP_LIMIT,MAP_LIMIT),r:clamp(Math.round(+o.r||r),8,34),d:clamp(Math.round(+o.d||24),8,48)});
-  for(const t of Array.isArray(src.towns)?src.towns:baseMap.towns){if(!t)continue;map.towns.push({n:String(t.n||((t.k==='enemy')?'Banditenlager':'Dorf')).slice(0,24),x:clamp(Math.round(+t.x||0),-MAP_LIMIT,MAP_LIMIT),z:clamp(Math.round(+t.z||0),-MAP_LIMIT,MAP_LIMIT),k:t.k==='enemy'?'enemy':'friend'})}
-  for(const o of Array.isArray(src.ores)?src.ores:baseMap.ores){if(!o)continue;map.ores.push({k:o.k==='copper'?'copper':'iron',x:clamp(Math.round(+o.x||0),-MAP_LIMIT,MAP_LIMIT),z:clamp(Math.round(+o.z||0),-MAP_LIMIT,MAP_LIMIT)})}
-  for(const f of Array.isArray(src.forests)?src.forests:baseMap.forests){if(f)map.forests.push(fixPoint(f,20))}
-  for(const r of Array.isArray(src.rocks)?src.rocks:baseMap.rocks){if(r)map.rocks.push(fixPoint(r,10))}
-  const counts={friend:0,enemy:0};for(const t of map.towns)counts[t.k]++;
-  if(!map.towns.length)map.towns=baseMap.towns.map(t=>({...t}));
-  if(counts.friend<2)for(const t of baseMap.towns.filter(t=>t.k==='friend'))if(counts.friend<2){map.towns.push({...t});counts.friend++}
-  if(counts.enemy<1)map.towns.push({...baseMap.towns.find(t=>t.k==='enemy')});
-  if(map.ores.filter(o=>o.k==='iron').length<2)map.ores.push(...baseMap.ores.filter(o=>o.k==='iron').slice(0,2-map.ores.filter(o=>o.k==='iron').length).map(o=>({...o})));
-  if(map.ores.filter(o=>o.k==='copper').length<2)map.ores.push(...baseMap.ores.filter(o=>o.k==='copper').slice(0,2-map.ores.filter(o=>o.k==='copper').length).map(o=>({...o})));
-  if(!map.forests.length)map.forests=baseMap.forests.map(f=>({...f}));
-  if(!map.rocks.length)map.rocks=baseMap.rocks.map(r=>({...r}));
-  return JSON.parse(JSON.stringify(map))
+ const hasTowns=Array.isArray(src.towns),hasOres=Array.isArray(src.ores),hasForests=Array.isArray(src.forests),hasRocks=Array.isArray(src.rocks);
+ const map={name:String(src.name||baseMap.name||'Karte').slice(0,32),river:(Array.isArray(src.river)?src.river:baseMap.river).slice(0,5),towns:[],ores:[],forests:[],rocks:[]};
+ while(map.river.length<5)map.river.push(baseMap.river[map.river.length]||0);
+ map.river=map.river.map((v,i)=>clamp(Number.isFinite(+v)?+v:baseMap.river[i],-140,140));
+ const fixPoint=(o,r=16)=>({x:clamp(Math.round(+o.x||0),-MAP_LIMIT,MAP_LIMIT),z:clamp(Math.round(+o.z||0),-MAP_LIMIT,MAP_LIMIT),r:clamp(Math.round(+o.r||r),8,34),d:clamp(Math.round(+o.d||24),8,48)});
+ for(const t of hasTowns?src.towns:baseMap.towns){if(!t)continue;map.towns.push({n:String(t.n||((t.k==='enemy')?'Banditenlager':'Dorf')).slice(0,24),x:clamp(Math.round(+t.x||0),-MAP_LIMIT,MAP_LIMIT),z:clamp(Math.round(+t.z||0),-MAP_LIMIT,MAP_LIMIT),k:t.k==='enemy'?'enemy':'friend'})}
+ for(const o of hasOres?src.ores:baseMap.ores){if(!o)continue;map.ores.push({k:o.k==='copper'?'copper':'iron',x:clamp(Math.round(+o.x||0),-MAP_LIMIT,MAP_LIMIT),z:clamp(Math.round(+o.z||0),-MAP_LIMIT,MAP_LIMIT)})}
+ for(const f of hasForests?src.forests:baseMap.forests){if(f)map.forests.push(fixPoint(f,20))}
+ for(const r of hasRocks?src.rocks:baseMap.rocks){if(r)map.rocks.push(fixPoint(r,10))}
+ const counts={friend:0,enemy:0};for(const t of map.towns)counts[t.k]++;
+ if(!hasTowns&& !map.towns.length)map.towns=baseMap.towns.map(t=>({...t}));
+ if(!hasTowns&&counts.friend<2)for(const t of baseMap.towns.filter(t=>t.k==='friend'))if(counts.friend<2){map.towns.push({...t});counts.friend++}
+ if(!hasTowns&&counts.enemy<1)map.towns.push({...baseMap.towns.find(t=>t.k==='enemy')});
+ if(!hasOres&&map.ores.filter(o=>o.k==='iron').length<2)map.ores.push(...baseMap.ores.filter(o=>o.k==='iron').slice(0,2-map.ores.filter(o=>o.k==='iron').length).map(o=>({...o})));
+ if(!hasOres&&map.ores.filter(o=>o.k==='copper').length<2)map.ores.push(...baseMap.ores.filter(o=>o.k==='copper').slice(0,2-map.ores.filter(o=>o.k==='copper').length).map(o=>({...o})));
+ if(!hasForests&& !map.forests.length)map.forests=baseMap.forests.map(f=>({...f}));
+ if(!hasRocks&& !map.rocks.length)map.rocks=baseMap.rocks.map(r=>({...r}));
+ return JSON.parse(JSON.stringify(map))
  }
+ const blankMap=(name='Eigene Karte')=>sanitizeMap({name,river:[...BASE_MAP.river],towns:[],ores:[],forests:[],rocks:[]});
  const cloneMap=map=>sanitizeMap(map);
  const defaultMap=()=>cloneMap(BASE_MAP);
  let worldConfig=defaultMap();
  const setWorldConfig=map=>worldConfig=sanitizeMap(map);
  const getWorldConfig=()=>cloneMap(worldConfig);
- const api={WORLD_HALF,RIVER_Z,modular,passOverlap,height,riverX,local,world,base,snapPlacement,drawbridge,separate,defaultMap,presetMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ const api={WORLD_HALF,RIVER_Z,modular,passOverlap,height,riverX,local,world,base,snapPlacement,drawbridge,separate,blankMap,defaultMap,presetMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
