@@ -439,7 +439,9 @@ wss.on('connection',ws=>{let r,p;
    r.paths.push({x:point.x,z:point.z,ax:!m.start&&last&&dist(last,point)<12?last.x:point.x,az:!m.start&&last&&dist(last,point)<12?last.z:point.z});p.pathLast=point;r.pathDirty=true;
   }
   else if(m.t==='pathUndo'){if(r.paths&&r.paths.length){r.paths.pop();r.pathDirty=true;p.pathLast=null}}
-  else if(m.t==='build'){const B=BD[m.k];if(!B)return;const x=Math.round(Number(m.x)*4)/4,z=Math.round(Number(m.z)*4)/4,rot=m.r&3;if(!Number.isFinite(x)||!Number.isFinite(z))return;const why=canPlace(r,m.k,x,z,rot);if(why)return tell(p,why);
+  else if(m.t==='build'){const B=BD[m.k];if(!B)return;let x=Math.round(Number(m.x)*4)/4,z=Math.round(Number(m.z)*4)/4;const rot=m.r&3;if(!Number.isFinite(x)||!Number.isFinite(z))return;
+   if(Rules.modular.includes(m.k)||m.k==='moat'){const snapped=Rules.snapPlacement(m.k,x,z,rot,r.b,BD,1.8);x=Math.round(snapped.x*4)/4;z=Math.round(snapped.z*4)/4}
+   const why=canPlace(r,m.k,x,z,rot);if(why)return tell(p,why);
    if(m.k==='keep'&&(r.b.some(b=>b.t==='keep')||r.ru.some(b=>b.t==='keep')))return tell(p,'Es kann nur einen Bergfried geben');
    if(m.k!=='keep'&&!r.b.some(b=>b.t==='keep'))return tell(p,'Zuerst den Bergfried platzieren – er ist das Herz deiner Siedlung');
    if(r.b.length>=600)return tell(p,'Zu viele Gebäude');if(!r.creative&&!afford(r,B.c))return tell(p,'Zu wenig Material: '+costStr(B.c));if(!r.creative)pay(r,B.c);r.b.push({id:uid++,t:m.k,x,z,r:rot,hp:m.k==='keep'?1200:B.hp,st:0,lv:0,v:(Math.random()*4)|0,tm:0});r.dirty=true;
