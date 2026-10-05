@@ -117,7 +117,7 @@ const season=r=>Math.floor((r.dy||0)/((r.ev&&r.ev.sl)||4))%4,FG=r=>[1,1.2,.8,0][
 const BASEP={flour:25,wood:15,stone:25,wheat:20,bread:40,meat:30,cheese:50,wool:30,cloth:70,gambeson:95,fish:25,weapons:90,armor:140,potions:85,iron:35,copper:45,honey:40,leather:60,apples:15,beer:30,sausage:45,smoked:45};
 const priceOf=(r,k)=>BASEP[k]*(['wheat','bread','meat','cheese','fish','apples','sausage','smoked','honey'].includes(k)?[1,.95,.85,1.35][season(r)]:k==='wood'?[1,1,1,1.3][season(r)]:1)*(1+.08*Math.sin((r.dy||0)*1.7+k.length*2.1));
 const used=(r,b)=>r.n.filter(n=>n.wb===b.id&&n.hp>0).length;
-const priestCap=b=>({chapel:6,church:12,cathedral:18}[b.t]||0);
+const priestCap=b=>({chapel:6,church:12,cathedral:18}[b.t]||0),SICK_IMMUNE=new Set(['gravedigger','healer']);
 const sickLimit=n=>[0,780,600,450][Math.max(1,Math.min(3,n.sk|0))]||600;
 function diseaseName(n){return ['','leicht','mittelschwer','schwer'][Math.max(1,Math.min(3,n.sk|0))]}
 function freeSlot(r,job,at){let best=null,bd=1e9;for(const b of r.b){const s=jobsOf(b)&&jobsOf(b)[job];if(!s||b.off||b.manual||used(r,b)>=s)continue;const d=at?dist(b,at):0;if(d<bd){bd=d;best=b}}return best}
@@ -157,6 +157,35 @@ function armorerRecipe(r){
  if(needGambeson)return {name:'Gambeson',every:34,in:{cloth:2},out:{gambeson:1},dest:'armory'};
  return {name:'Rüstung',every:52,in:{gambeson:1,leather:1,iron:2},out:{armor:1},dest:'armory'};
 }
+function omenChoice(r){
+ const hasPyre=r.b.some(b=>b.t==='pyre'),hasGal=r.b.some(b=>b.t==='gallows');
+ let mode=hasPyre?'burn':hasGal?'hang':(Math.random()<.5?'burn':'hang');
+ if(mode==='burn'&&!hasPyre&&hasGal)mode='hang';if(mode==='hang'&&!hasGal&&hasPyre)mode='burn';
+ return mode;
+}
+function omenTargets(r){return r.n.filter(n=>n.hp>0&&n.om&&(NT[n.k].job||n.k==='peasant'))}
+function triggerOmenVictim(r){
+ const victims=omenTargets(r).filter(n=>n.k==='peasant'||n.k==='farmer'||n.k==='wood'||n.k==='mason'||n.k==='hunter');
+ if(!victims.length)return false;
+ const v=victims[Math.random()*victims.length|0],mode=omenChoice(r);
+ v.hp=0;v.conv=1;v.om=0;v.omT=0;r.omenVictims=(r.omenVictims||0)+1;r.omen=Math.min(240,Math.max(r.omen||0,60)+30);r.sup=Math.min(100,(r.sup||0)+10);
+ r.plazaEvent=mode;r.plazaEventT=Math.max(r.plazaEventT||0,45);
+ if(mode==='burn')say(r,'🔥 Aberglaube eskaliert! '+(v.k==='peasant'?'Ein Dorfbewohner':'Ein Bewohner')+' wird auf dem Scheiterhaufen geopfert.');
+ else say(r,'🪢 Aberglaube eskaliert! '+(v.k==='peasant'?'Ein Dorfbewohner':'Ein Bewohner')+' wird am Galgen geopfert.');
+ return true;
+}
+function omenPriestCycle(r,n,dt){
+ const targets=omenTargets(r).filter(o=>o.id!==n.id);
+ if(!targets.length){n.omc=0;return false}
+ let target=targets[0],best=1e9;
+ for(const o of targets){const h=homeOf(r,o)||r.b.find(b=>b.t==='keep')||o,d=dist(n,h);if(d<best){best=d;target=o}}
+ const home=homeOf(r,target)||r.b.find(b=>b.t==='keep');if(!home)return false;
+ const old=r.b.find(b=>b.id===n.insideId&&b.id!==home.id);if(old&&!exitBuilding(n,old,dt))return true;
+ const door=fp(home,0,BD[home.t].d/2+.8);if(dist(n,door)>1.2){mv(n,door.x,door.z,3,dt);return true}
+ n.ry=Math.atan2(home.x-n.x,home.z-n.z);n.pr=1;n.omc=(n.omc||0)+dt;
+ if(n.omc>=8){n.omc=0;let soothed=0;for(const o of r.n){if(!o.om||o.hp<=0)continue;if(o.hid===home.id||o.home===home||o.insideId===home.id){o.om=0;o.omT=0;soothed++;if(soothed>=2)break}}if(soothed){r.omen=Math.max(0,(r.omen||0)-18);r.sup=Math.max(0,(r.sup||0)-4);say(r,'🙏 Ein Priester besucht ein Haus und beruhigt verängstigte Bewohner.')}}
+ return true;
+}
 function armorerCycle(r,n,wb,dt,X,Z){
  const c=n.cy||(n.cy={st:'fetch',t:0,recipe:null});
  const P=c.recipe&&c.st!=='fetch'?c.recipe:(c.recipe=armorerRecipe(r)),MAT=Object.keys(P.in||{});
@@ -184,7 +213,7 @@ function woodCycle(r,n,wb,B,dt,X,Z){const c=n.cy||(n.cy={st:'seek'}),blk=fp(wb,-
  if(c.st==='haul'){n.cr='logs';const P=fp(wb,1.4,B.d/2+1.2);if(dist(n,P)>1.4){mv(n,P.x,P.z,2.6,dt);return}wb.lg=(wb.lg||0)+c.n;c.k=c.n;c.st='split';c.t2=0;n.cr=0}
  if(c.st==='split'){wb.act=r.tk;if(dist(n,blk)>1.2){mv(n,blk.x,blk.z,2.8,dt);return}n.ry=Math.PI;n.work=2;c.t2+=dt;if(c.t2%1.1<dt)n.cd=1;if(c.t2>=2*c.k){wb.lg=Math.max(0,(wb.lg||0)-c.k);c.o=c.k;c.st='deliver'}return}
  if(c.st==='deliver'){n.cr='wood';const D=storeAt(r,wb);if(dist(n,D)>1.6){mv(n,D.x,D.z,3,dt);return}r.inv.wood=Math.min(stockCap(r),r.inv.wood+c.o);n.cr=0;c.st='seek'}}
-function work(r,n,dt){const eve=r.hr>=18||r.hr<6||(r.omen>0&&!r.holy);
+function work(r,n,dt){const eve=r.hr>=18||r.hr<6||(r.omen>0&&n.k!=='priest');
  if(eve){const old=r.b.find(b=>b.id===n.insideId);if(old&&old.id!==n.hid&&!exitBuilding(n,old,dt))return;const h=homeOf(r,n)||r.b.find(b=>b.t==='keep')||{x:0,z:6};n.home=h;if(h.id)enterBuilding(n,h,fp(h,0,-.5),dt);else mv(n,h.x,h.z,3.2,dt);return}n.home=null;
  if(n.tr){const g=near(n,r.b.filter(b=>b.t==='garrison'),1e9);if(!g){n.tr=null;return}
   const X=g.x,Z=g.z+5.5;if(dist(n,{x:X,z:Z})>1.2){mv(n,X,Z,2.8,dt);return}
@@ -194,6 +223,7 @@ function work(r,n,dt){const eve=r.hr>=18||r.hr<6||(r.omen>0&&!r.holy);
  if(n.k==='peasant')return idle(r,n,dt);
  let wb=n.wb&&r.b.find(b=>b.id===n.wb);if(!wb){n.wb=0;const f=freeSlot(r,n.k,n);if(f){n.wb=f.id;wb=f}}
  if(!wb)return idle(r,n,dt);if(n.k==='hangman'&&!hasRoom(wb,'torture')){n.wb=0;return idle(r,n,dt);}
+ if(n.k==='priest'&&r.omen>0&&omenPriestCycle(r,n,dt))return;
  const old=r.b.find(b=>b.id===n.insideId&&b.id!==wb.id);if(old&&!exitBuilding(n,old,dt))return;const B=BD[wb.t],F0=workPoint(r,wb,n),X=F0.x,Z=F0.z;
  if(n.k==='gravedigger'){const c=near(n,r.co,1e9);if(!c){if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,2.8,dt);return}
   if(dist(n,c)>1.4){mv(n,c.x,c.z,3,dt);return}n.bt=(n.bt||0)+dt;if(n.bt%1.2<dt)n.cd=1;
@@ -215,7 +245,10 @@ function work(r,n,dt){const eve=r.hr>=18||r.hr<6||(r.omen>0&&!r.holy);
 const FLAM=b=>!['wall','battle','tower','gate','portcullis','keep','cathedral','garrison','dungeon','torture','well','bridge','moat','chapel','quarry','ironmine','coppermine'].includes(b.t);
 function ignite(r,b,why){if(b.fire>0||!FLAM(b))return false;b.fire=100;b.sp=0;r.dirty=true;say(r,'🔥 '+(why||'Feuer!')+' '+BN[b.t]+' brennt!'+(r.wells>0?'':' – ohne Brunnen kann niemand löschen'));return true}
 function events(r,dt,bm,stf){r.wells=r.b.filter(b=>b.t==='well').length;r.fires=r.b.filter(b=>b.fire>0);
- if(r.omen>0){r.omen-=dt;if(r.omen<=0)say(r,'Die Menschen beruhigen sich wieder')}
+ if(r.omen>0){r.omen-=dt;const targets=omenTargets(r);for(const n of targets)n.omT=(n.omT||0)+dt;
+  if(r.omen<=0){for(const n of r.n){n.om=0;n.omT=0}r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}
+  else if(targets.length){r.omenRise=(r.omenRise||0)+dt*(r.holy?.45:1);if(r.omenRise>=30){r.omenRise=0;triggerOmenVictim(r)}}
+  else{r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}}
  for(const b of r.fires){b.hp-=5*dt;r.under=true;
   // Regen bremst nur leicht – löschen geht NUR mit Brunnen (Eimerkette / Hammer)
   if(r.wx===1)b.fire-=(r.wells>0?4:0.4)*dt;
@@ -234,24 +267,15 @@ function events(r,dt,bm,stf){r.wells=r.b.filter(b=>b.t==='well').length;r.fires=
  }
 }
 function trigger(r,k){if(k==='fire'){const L=r.b.filter(FLAM);if(L.length)ignite(r,L[Math.random()*L.length|0],'Ein Funke!')}
- else if(k==='sick'){const L=r.n.filter(n=>!n.sk);if(!L.length)return;const c=Math.max(1,Math.floor(L.length*.25));for(let i=0;i<c&&L.length;i++){const n=L.splice(Math.random()*L.length|0,1)[0];n.sk=1+(Math.random()<Math.max(.15,(r.sup||0)/160)?1:0);n.sickStage=0}say(r,'🤒 Krankheit! '+c+' Bewohner sind erkrankt'+(r.b.some(b=>b.t==='apothecary')?'':' – eine Apotheke mit Heiler fehlt'))}
+ else if(k==='sick'){const L=r.n.filter(n=>!n.sk&&!SICK_IMMUNE.has(n.k));if(!L.length)return;const c=Math.max(1,Math.floor(L.length*.25));for(let i=0;i<c&&L.length;i++){const n=L.splice(Math.random()*L.length|0,1)[0];n.sk=1+(Math.random()<Math.max(.15,(r.sup||0)/160)?1:0);n.sickStage=0}say(r,'🤒 Krankheit! '+c+' Bewohner sind erkrankt'+(r.b.some(b=>b.t==='apothecary')?'':' – eine Apotheke mit Heiler fehlt'))}
  else if(k==='rats'){const pool=['wheat','bread','cheese','sausage','smoked','apples'].filter(g=>r.inv[g]>0);if(!pool.length)return;const protectedStore=r.b.some(b=>b.t==='granary'||b.t==='storage');say(r,'🐀 Ratten im Vorratslager! '+(protectedStore?'Das Lagerhaus begrenzt den Schaden.':'Ein Teil der Nahrung wird verdorben.'));for(let i=0;i<Math.min(2,pool.length);i++){const g=pool[i],loss=Math.min(r.inv[g],(protectedStore?1:3)+Math.ceil((r.sup||0)/24));r.inv[g]-=loss}r.dirty=true}
  else if(k==='thieves'){const guard=r.n.filter(n=>['sword','archer'].includes(n.k)).length+r.b.filter(b=>b.t==='watchpost'||b.t==='garrison').length,loss=Math.max(12,30-guard*3);r.gold=Math.max(0,r.gold-loss);say(r,'🕵️ Diebe in Schatzkammer und Lager! '+loss+' Gold fehlen.');}
  else if(k==='ambush'){const c=r.cv.find(c=>c.kind==='caravan'&&c.st!=='leave')||r.cv.find(c=>c.kind==='ship'&&c.st!=='leave');if(c){c.st='leave';c.t=0;const goods=['honey','cloth','potions','weapons','armor'].find(g=>r.inv[g]>0);if(goods)r.inv[goods]=Math.max(0,r.inv[goods]-1);say(r,'⚔ Handelsroute überfallen – '+c.from+' kehrt um und der Handel stockt.')}else{r.tt+=80;say(r,'⚔ Räuber bedrohen die Handelsroute – die nächsten Händler verspäten sich.')}} 
- else if(k==='omen'){r.omen=120;const holy=r.b.some(b=>(b.t==='chapel'||b.t==='church'||b.t==='cathedral')&&!b.off);
-  if(holy){say(r,'👻 Aberglaube: Böse Vorzeichen! Der Priester beruhigt die Menschen.')}
-  else{
-    const victims=r.n.filter(n=>n.hp>0&&!n.sk&&n.k==='peasant');
-    if((r.sup||0)<35||!victims.length){say(r,'👻 Aberglaube: Böse Vorzeichen! Niemand traut sich aus dem Haus – eine Kapelle gibt Sicherheit.');return}
-    const v=victims[Math.random()*victims.length|0],hasPyre=r.b.some(b=>b.t==='pyre'),hasGal=r.b.some(b=>b.t==='gallows');
-    let mode=hasPyre?'burn':hasGal?'hang':(Math.random()<.5?'burn':'hang');
-    if(mode==='burn'&&!hasPyre&&hasGal)mode='hang';if(mode==='hang'&&!hasGal&&hasPyre)mode='burn';
-    v.hp=0;v.conv=0;
-    if(mode==='burn'){say(r,'🔥 Aberglaube eskaliert! Eine Dorfbewohnerin wird auf dem Scheiterhaufen verbrannt – baue eine Kapelle oder Kirche!')}
-    else{say(r,'🪢 Aberglaube eskaliert! Ein Dorfbewohner wird am Galgen gehängt – baue eine Kapelle oder Kirche!')}
-    r.plazaEvent=mode;r.plazaEventT=40;
-  }}}
-function sickTick(r,n,dt,stf){if(!n.sk||n.hp<=0)return;n.sk=Math.max(1,Math.min(3,n.sk|0));n.sickTime=(n.sickTime||0)+dt;n.sickStage=(n.sickStage||0)+dt;
+ else if(k==='omen'){const holy=r.b.some(b=>(b.t==='chapel'||b.t==='church'||b.t==='cathedral')&&!b.off),crowd=r.n.filter(n=>n.hp>0&&!n.sk&&!['priest','healer'].includes(n.k)&&(NT[n.k].job||n.k==='peasant'));
+  if(!crowd.length)return;for(const n of crowd){n.om=1;n.omT=0}r.omen=Math.max(r.omen||0,120);r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;
+  if(holy)say(r,'👻 Aberglaube: Böse Vorzeichen! Die Bewohner verstecken sich zuhause, Priester gehen von Haus zu Haus.');
+  else say(r,'👻 Aberglaube: Böse Vorzeichen! Die Bewohner verstecken sich zuhause – ohne Priester eskaliert der Wahn.')}} 
+function sickTick(r,n,dt,stf){if(n.hp<=0)return;if(SICK_IMMUNE.has(n.k)){n.sk=0;n.sickTime=0;n.sickStage=0;n.cu=0;return}if(!n.sk)return;n.sk=Math.max(1,Math.min(3,n.sk|0));n.sickTime=(n.sickTime||0)+dt;n.sickStage=(n.sickStage||0)+dt;
  if(n.sickStage>=110&&n.sk<3){n.sickStage=0;n.sk++;say(r,'🤢 Eine Krankheit verschlimmert sich zu '+diseaseName(n)+'em Verlauf')}
  if(n.sickTime>=sickLimit(n)){n.hp=0;n.work=0;n.cr=0;say(r,'⚰ Ein Bewohner ist an einer '+diseaseName(n)+'en Krankheit gestorben');return;}
  n.work=0;n.cr=0;n.aim=0;n.cd=0;n.vis=null;n.pr=0;n.el=0;const home=homeOf(r,n)||r.b.find(b=>b.t==='keep');if(!home)return;const old=r.b.find(b=>b.id===n.insideId&&b.id!==home.id);if(old&&!exitBuilding(n,old,dt))return;n.home=home;const slot=r.n.filter(o=>o.hid===home.id&&o.hp>0).findIndex(o=>o.id===n.id),target=fp(home,((Math.max(0,slot)%3)-1)*.85,-.5-Math.floor(Math.max(0,slot)/3)*.7);if(!enterBuilding(n,home,target,dt))return;

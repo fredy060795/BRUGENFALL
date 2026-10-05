@@ -55,6 +55,7 @@ function solve(a,target,q){const start=a.shoulder.position.clone(),delta=target.
 
 export function createCharacter(color=0x756952,kind='sword',opts={}){
  const g=new T.Group();g.name='ArticulatedCharacter';g.isCharacter=true;
+ g.role=opts.person?.role||kind;
  const P=opts.person;g.eyeHeight=P?1.6758:1.68;const cloth=surfaceMaterial('linen',P?P.cloth:color,[2,2]);const skin=new T.MeshStandardMaterial({color:P?P.skin:0xb98d70,roughness:.92});
  lathe(g,cloth,[[.18,.82],[.165,1.02],[.2,1.28],[.23,1.39],[.115,1.46]],[1,1,.67],[0,0,0]);
  lathe(g,cloth,[[.235,.71],[.225,.78],[.18,1.02]],[1,1,.73],[0,0,0]);
@@ -128,6 +129,15 @@ const kindOf=t=>t==='pickaxe'?'pick':(SWK[t]?t:'sword'),FW=V(0,0,1);
 function swingPose(kind,u){const K=SWK[kind];let i=1;while(i<K.length-1&&u>K[i][0])i++;const a=K[i-1],b=K[i],s=Math.max(0,Math.min(1,(u-a[0])/(b[0]-a[0]))),e=b[11]==='in'?s*s:b[11]==='out'?1-(1-s)*(1-s):s*s*(3-2*s),m=j=>a[j]+(b[j]-a[j])*e;
  return{h:V(m(1),m(2),m(3)),d:V(m(4),m(5),m(6)).normalize(),lean:m(7),tw:m(8),pz:m(9),pd:m(10)}}
 function toolQ(d,hint){const y=d.clone().normalize(),x=hint.clone().addScaledVector(y,-hint.dot(y));if(x.lengthSq()<1e-4)x.set(1,0,0).addScaledVector(y,-y.x);x.normalize();const z=new T.Vector3().crossVectors(x,y);return new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(x,y,z))}
+function workPose(role,t,type){
+ const s=Math.sin(t*6),c=Math.cos(t*5);
+ if(role==='smith')return{R:V(.18,1.18,.35+.06*s),Lh:V(.03,1.02,.18-.03*s),q:Eu(.55,.1,-.28),ux:.28,uy:-.08,py:.02};
+ if(role==='weaver')return{R:V(.3,1.03,.38+.09*s),Lh:V(-.32,.98,.28-.07*s),q:Eu(.02,.08,.04),ux:.16,uy:.03*s,py:0};
+ if(role==='healer')return{R:V(.16,1.06,.34+.03*s),Lh:V(-.12,.95,.24-.04*c),q:Eu(.22,-.12,.18),ux:.19,uy:.05,py:-.03};
+ if(role==='keeper')return{R:V(.18,1.08,.38+.05*s),Lh:V(-.22,.96,.26),q:Eu(.34,.08,-.18),ux:.17,uy:-.02,py:.02};
+ if(role==='miner')return{R:V(.14,1.46,.18+.04*c),Lh:V(.12,1.22,-.02),q:toolQ(V(.18,-.95,-.24),V(.7,0,.2)),ux:.34,uy:-.18,py:.08};
+ return null
+}
 export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  const pel=g.pelvis,up=g.upper;if(!pel)return;
  g.t+=dt;g.sp+=(speed-g.sp)*(1-Math.exp(-dt*9));
@@ -146,7 +156,7 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  let R=V(.29,.9+.012*br,.09+sw0*f0[0]*carry),Lh=V(-.29,.9+.012*br,.09+sw0*f1[0]),q=Eu(none?.05:.22,0,none?-.08:-.12),qL=null;
  if(fx.carry){R=V(.2,1.05,.4);Lh=V(-.2,1.05,.4);q=Eu(0,0,0)}
  else if(fx.pray){R=V(.1,1,.38);Lh=V(-.1,1,.38);q=Eu(0,0,0);ux+=.3}
- else if(fx.work===1||fx.work===3){const k2=Math.sin(g.t*(fx.work===3?3:7));R=V(.16,1,.42+.07*k2);Lh=V(-.16,1,.42-.07*k2);q=Eu(0,0,0);ux+=.18}
+ else if(fx.work===1||fx.work===3){const pose=workPose(g.role,g.t*(fx.work===3?.65:1),type),k2=Math.sin(g.t*(fx.work===3?3:7));if(pose){R=pose.R;Lh=pose.Lh;q=pose.q;ux+=pose.ux||0;uy+=pose.uy||0;py+=pose.py||0}else{R=V(.16,1,.42+.07*k2);Lh=V(-.16,1,.42-.07*k2);q=Eu(0,0,0);ux+=.18}}
  else if(bow){let draw;const a=fx.aim;
   if(a!==undefined){g.dr=(g.dr||0)+(a-(g.dr||0))*(1-Math.exp(-dt*12));draw=g.dr;if(attacking&&!g.wa)g.rl=.28;g.wa=attacking;if(g.rl>0){g.rl-=dt;draw=0;g.dr=0}}
   else draw=u>=0?(u<.62?ease(u/.58):0):0;

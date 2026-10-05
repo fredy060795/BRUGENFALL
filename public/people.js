@@ -28,8 +28,8 @@ export function look(id,role,prof){if(role==='player'&&prof)return playerLook(id
  const o={seed:id*31+7,role,female,skin:pick(r,SKIN),hair:pick(r,HAIR),eye:pick(r,EYE),nose:.7+r()*.6,chin:r(),
   hairStyle:female?pick(r,['long','braid','bun']):pick(r,['short','short','bald','long']),beard:female?'none':pick(r,['none','stubble','stubble','short','full']),
   cloth:pick(r,WOOL),over:pick(r,DYE),outfit:'tunic',head:'none',cloak:0,apron:false,mask:false,bag:r()<.45,rolled:true,tool:'sword'};
- if(role==='sword'){Object.assign(o,{outfit:'gambeson',head:'helmet',over:pick(r,[0x7a2a2a,0x2f4a6a,0x8a7a5a]),rolled:false,beard:pick(r,['none','stubble','short']),hairStyle:'short'})}
- if(role==='archer'){Object.assign(o,{tool:'bow',outfit:'jerkin',head:'hood',cloth:0x4d5a3a,over:0x5a3d22,cloak:0x3d5a35})}
+ if(role==='sword'){Object.assign(o,{outfit:'gambeson',head:'helmet',over:pick(r,[0x7a2a2a,0x2f4a6a,0x8a7a5a]),rolled:false,beard:pick(r,['none','stubble','short']),hairStyle:'short',rank:pick(r,['militia','guard','veteran'])})}
+ if(role==='archer'){Object.assign(o,{tool:'bow',outfit:'jerkin',head:'hood',cloth:0x4d5a3a,over:0x5a3d22,cloak:0x3d5a35,rank:pick(r,['scout','marksman'])})}
  if(role==='bandit'){Object.assign(o,{outfit:'jerkin',head:'hood',mask:true,cloth:0x3a3430,over:0x2a2420,cloak:0x2b2622,beard:'stubble'})}
  if(role==='peasant'){o.tool='none';o.outfit=female?'dress':'tunic';o.head=female?pick(r,['scarf','none','none']):pick(r,['none','cap','none'])}
  if(role==='farmer'){o.head=female?'scarf':'strawhat';o.outfit=female?'dress':'tunic';o.tool='hoe';if(female)o.cloth=pick(r,[0x7b4b32,0x6b5a45,0x7a6a50,0x5a4a3a])}
@@ -113,18 +113,34 @@ export function gear(g,o,M){const R=o.role,st=M.steel,lea=M.leather,wd=new T.Mes
  const dagger=(x,z,rz=.06)=>{const d=new T.Group();d.position.set(x,.88,z);d.rotation.z=rz;g.add(d);cy(d,lea,.014,.014,.09,[0,.045,0]);mesh(new T.BoxGeometry(.065,.012,.02),st,d,[0,-.002,0]);mesh(new T.BoxGeometry(.028,.17,.007),st,d,[0,-.09,0])};
  const quiver=()=>{cy(g,lea,.062,.05,.5,[-.1,1.12,-.19],[0,0,.22]);for(let i=0;i<6;i++){const x=-.156+(i-2.5)*.011,z=-.19+((i%3)-1)*.018;cy(g,wd,.006,.006,.26,[x,1.46,z],[0,0,.22],5);mesh(new T.BoxGeometry(.03,.07,.004),new T.MeshStandardMaterial({color:i%2?0xf0ecd8:0xb83a2a}),g,[x-.012,1.57,z]).rotation.z=.22}};
  const hammer=(x,z)=>{const h=new T.Group();h.position.set(x,.84,z);h.rotation.z=-.08;g.add(h);cy(h,wd,.014,.014,.3,[0,0,0]);mesh(new T.BoxGeometry(.11,.06,.055),st,h,[0,.15,0])};
+ const belt=(col=o.over)=>{const bm=new T.MeshStandardMaterial({color:col,roughness:1});mesh(new T.TorusGeometry(.2,.018,6,22),bm,g,[0,.94,.015]).rotation.x=Math.PI/2;bx(.06,.05,.02,st,[0,.94,.16])};
+ const hipBag=(x,col=0x6a4a2a)=>bx(.12,.16,.07,new T.MeshStandardMaterial({color:col,roughness:1}),[x,.83,.1],[0,0,x<0?.18:-.18]);
+ const shoulders=(mat=lea,wide=.11)=>{for(const s of[-1,1]){const pad=mesh(new T.SphereGeometry(1,12,8,0,6.283,0,1.45),mat,g,[s*.24,1.44,.02],[wide,.08,.12]);pad.rotation.z=-s*.28}}
+ const gloves=(mat=lea)=>{for(const arm of[g.right.wrist,g.left.wrist])cy(arm,mat,.03,.026,.09,[0,.015,-.005])};
+ const boots=(mat=lea,high=false)=>{for(const{knee}of g.legs){cy(knee,mat,.06,.055,high?.18:.1,[0,-.28,.02]);if(high)mesh(new T.TorusGeometry(.058,.01,5,14),mat,knee,[0,-.2,.01]).rotation.x=Math.PI/2}};
+ const flask=(x,y,z,col=0x6fb6d9)=>{const fm=new T.MeshStandardMaterial({color:col,roughness:.35,transparent:true,opacity:.85});cy(g,fm,.05,.04,.16,[x,y,z]);cy(g,st,.015,.015,.04,[x,y+.1,z])};
+ const coil=(x,y,z)=>mesh(new T.TorusGeometry(.08,.016,6,18),lea,g,[x,y,z],[1,.8,1]).rotation.x=Math.PI/2;
+ belt();boots(lea,R==='sword'||R==='archer'||R==='hunter');
  if(R==='sword'){for(const s of[-1,1]){const pd=mesh(new T.SphereGeometry(1,14,8,0,6.283,0,1.5),st,g,[s*.275,1.44,0],[.115,.08,.125]);pd.rotation.z=-s*.25}
   const tab=o.over;for(const z of[.222,-.2]){bx(.27,.4,.016,cl(tab),[0,.79,z]);bx(.045,.4,.018,cl(0xece6d6),[0,.79,z+Math.sign(z)*.002])}
   mesh(new T.TorusGeometry(.12,.03,8,16),st,g,[0,1.41,0],[1,1,.8]).rotation.x=Math.PI/2;
   for(const e of[g.right.elbow,g.left.elbow])cy(e,st,.052,.046,.2,[0,-.17,0]);
-  for(const{knee}of g.legs){cy(knee,st,.066,.053,.3,[0,-.2,0]);mesh(new T.SphereGeometry(.07,10,8),st,knee,[0,-.005,.05])}}
- if(R==='archer'){quiver();cy(g.left.elbow,lea,.054,.05,.13,[0,-.2,0]);dagger(-.22,.05)}
+  for(const{knee}of g.legs){cy(knee,st,.066,.053,.3,[0,-.2,0]);mesh(new T.SphereGeometry(.07,10,8),st,knee,[0,-.005,.05])}
+  shoulders(st,o.rank==='veteran'?.14:.11);gloves(st);if(o.rank!=='militia'){const sh=mesh(new T.CylinderGeometry(.18,.24,.1,18,1,true),cl(o.rank==='guard'?0x7a2a2a:0x2f4a6a),g,[-.33,1.03,.07],[1.05,1,.18]);sh.rotation.z=Math.PI/2;mesh(new T.TorusGeometry(.19,.018,5,18),st,g,[-.38,1.03,.07]).rotation.y=Math.PI/2}}
+ if(R==='archer'){quiver();cy(g.left.elbow,lea,.054,.05,.13,[0,-.2,0]);dagger(-.22,.05);shoulders(lea,.09);if(o.rank==='marksman')hipBag(.22,0x4d5a3a)}
  if(R==='bandit'){for(let i=0;i<5;i++){const L=.18+((i*37)%10)/55;bx(.07,L,.012,cl(i%2?0x2b2622:0x4a3a30),[-.17+i*.085,.88-L/2+.02,.215],[0,0,(i-2)*.05])}dagger(.22,.03,-.08);mesh(new T.SphereGeometry(.15,10,8),cl(0x6a5a46),g,[.07,1.08,-.2],[1,1.15,.7]);cy(g,lea,.012,.012,.2,[.07,1.28,-.2],[0,0,.9])}
  if(R==='farmer'){const s=new T.Group();s.position.set(-.22,.9,.03);s.rotation.z=.1;g.add(s);cy(s,wd,.013,.013,.12,[0,.06,0]);const bl=mesh(new T.TorusGeometry(.085,.009,6,16,Math.PI*1.25),st,s,[.05,-.05,0]);bl.rotation.z=1.6;
   mesh(new T.CylinderGeometry(.15,.11,.2,14,1,true),new T.MeshStandardMaterial({color:0x9a7a42,roughness:1,side:T.DoubleSide}),g,[0,1.06,-.2]);for(let i=0;i<7;i++)cy(g,new T.MeshStandardMaterial({color:0xd9b84a}),.006,.006,.28,[-.08+i*.027,1.27,-.2+((i%2)-.5)*.04],[(i%3-1)*.12,0,(i-3)*.06],4);
   if(o.outfit==='dress')bx(.33,.62,.02,cl(0xece6d6),[0,.62,.215],[-.2,0,0])}
- if(R==='wood'){const v=lathe(g,lea,[[.2,.88],[.19,1.02],[.222,1.28],[.245,1.37]],[1,1,.7]);v.scale.z=.71;mesh(new T.TorusGeometry(.13,.025,8,18),new T.MeshStandardMaterial({color:0xb09a68,roughness:1}),g,[-.19,1.4,.02],[1,1,1]).rotation.set(1.2,0,.3);
+ if(R==='wood'){const v=lathe(g,lea,[[.2,.88],[.19,1.02],[.222,1.28],[.245,1.37]],[1,1,.7]);v.scale.z=.71;mesh(new T.TorusGeometry(.13,.025,8,18),new T.MeshStandardMaterial({color:0xb09a68,roughness:1}),g,[-.19,1.4,.02],[1,1,1]).rotation.set(1.2,0,.3);coil(.22,.96,-.05);
   const h=new T.Group();h.position.set(.23,.84,.0);h.rotation.z=-.1;g.add(h);cy(h,wd,.014,.014,.3,[0,0,0]);mesh(new T.BoxGeometry(.11,.075,.018),st,h,[.04,.13,0]);dagger(-.22,.03)}
  if(R==='hunter'){quiver();mesh(new T.TorusGeometry(.19,.065,8,18),new T.MeshStandardMaterial({color:0x6a5236,roughness:1}),g,[0,1.4,0],[1,1,.85]).rotation.x=Math.PI/2;
   const hn=mesh(new T.TorusGeometry(.085,.021,8,16,Math.PI),new T.MeshStandardMaterial({color:0xe6dcc0,roughness:.5}),g,[.22,.9,.05]);hn.rotation.set(0,1.2,0);dagger(-.22,.05)}
- if(R==='mason'){hammer(.23,.02);bx(.016,.17,.012,st,[-.2,.82,.1],[0,0,.1]);bx(.1,.13,.05,lea,[-.23,.85,0])}}
+ if(R==='mason'){hammer(.23,.02);bx(.016,.17,.012,st,[-.2,.82,.1],[0,0,.1]);bx(.1,.13,.05,lea,[-.23,.85,0]);hipBag(.22,0x8a8a84)}
+ if(R==='smith'){gloves(st);shoulders(lea,.085);hammer(.23,.03);hipBag(-.22,0x4a403a)}
+ if(R==='miner'){gloves(st);shoulders(lea,.08);hipBag(.22,0x555555);mesh(new T.CylinderGeometry(.09,.07,.16,12),new T.MeshStandardMaterial({color:0xf3c55a,emissive:0xffd36a,emissiveIntensity:.2}),g,[.2,1.0,-.16])}
+ if(R==='healer'){hipBag(.23,0x6a7a4a);flask(.18,1.08,-.16);flask(.08,1.02,-.18,0xb08a4c);mesh(new T.TorusGeometry(.09,.014,5,16),new T.MeshStandardMaterial({color:0x5a7a3a,roughness:1}),g,[.2,1.2,-.08]).rotation.x=.8}
+ if(R==='weaver'){hipBag(-.2,0x7a6a50);for(const x of[-.1,.02,.14])mesh(new T.SphereGeometry(.045,10,8),new T.MeshStandardMaterial({color:x<0?0xeeeeee:0xd8cfb8,roughness:1}),g,[x,1.02,-.18])}
+ if(R==='keeper'){hipBag(-.22,0x6a4a2a);cy(g,new T.MeshStandardMaterial({color:0xb19650,metalness:.35,roughness:.45}),.04,.05,.12,[.2,.98,.18]);mesh(new T.TorusGeometry(.05,.008,5,14),st,g,[.2,1.03,.18]).rotation.x=Math.PI/2}
+ if(R==='trader'){hipBag(-.22,0x6a2a2a);hipBag(.22,0x6a4a2a)}
+ if(R==='gravedigger'){bx(.12,.42,.02,cl(0x2b2622),[0,.82,-.18],[-.18,0,0])}}
