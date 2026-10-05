@@ -1,0 +1,14 @@
+{
+  "name": "burgenfall",
+  "version": "8.7.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/server-regression.cjs && node --experimental-vm-modules tests/client-regression.cjs && node tests/network-regression.cjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "three": "^0.170.0"
+  },
+  "description": "Burgenfall Mittelalter Edition – Texturen und Spielstart"
+}

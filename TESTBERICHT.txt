@@ -1,0 +1,47 @@
+BURGENFALL 8.7 – KIRCHENARCHITEKTUR
+
+Bestanden: freie Spitzbogenöffnung gegen reale Meshes geprüft, vier
+Fensterwände am Kirchturm, ein Dom-Hauptdach und feines Buntglas beidseitig.
+Server-/Netzwerktests bestanden. Modellübersicht softwaregerendert.
+Kein visueller Browser-/GPU-Test.
+
+BURGENFALL 8.6 – TÜREN
+
+Zusätzlich geprüft: Türen an den geschlossenen Gebäuden, rechteckige und
+gotische Profile, freie geöffnete Eingänge, automatisches Öffnen/Schließen.
+Modellübersicht 8.6 softwaregerendert; kein Browser-/GPU-Test.
+
+BURGENFALL 8.5 – 05.10.2026
+
+Zusätzlich bestanden: Krankheit zuhause, Heilung, 600-Sekunden-Todesfrist,
+gedrehter Innenarbeitsplatz, Jahresertrag, Nahrung und Winterholz, manuelle
+Arbeiterzuweisung und Freistellung, Friedhof ohne Platte sowie tatsächlicher
+Serverneustart mit gespeichertem Arbeiter und manuellem Gebäudemodus.
+Keine visuelle Browser-/GPU-Prüfung.
+
+Vorheriger Prüfstand:
+BURGENFALL 8.4 – PRÜFBERICHT, 04.10.2026
+
+BESTANDEN
+Server: vorhandene Spielregeln sowie Steinbruch-Vorkommen, abgewiesener
+Einzelbau von Kerker/Folterkammer, Erweiterungskosten im Frei-Bau,
+Folterkammer-Freigabe ab Stufe 3 und Migration älterer Gebäude.
+Client: echte Three.js-Geometrien aller überarbeiteten Modelle, freie Türen
+mittels Raycasts, vollständige große Tischplatte, Buntglas innen/außen,
+Grabenvorschau, durchgehender Aufstieg über alle 60 Wendeltreppenstufen,
+Naturboden für Tierhaltung, Imkerei, Obstplantage und Bauernhof,
+Geländehöhe der Tiere, verstecktes Gitter bei offenem Tor und bisherige Regeln.
+Netzwerk: echter HTTP-/WebSocket-Server, Bauen/Pflanzen/Wege, Tor-Ausbaustufe,
+Bergfried-Kerker, Schreiben, Prozessneustart und Wiederherstellen.
+Archiv: ZIP-Inhaltsprüfung vor Auslieferung.
+
+GRAFIKPRÜFUNG
+MODELLVORSCHAU_8_4.png wurde aus den realen Meshes und Texturen softwaregerendert
+und angesehen. Sie ist kein Screenshot des laufenden Browsers.
+DOM und WebGLRenderer werden im Client-Test simuliert. Keine Browser-/GPU-
+Darstellung, Bildrate oder Windows-Spielgefühl verifiziert.
+Ältere beiliegende PNGs sind Referenzmaterial der Ausgangsversion.
+
+WIEDERHOLEN
+npm test
+Die Node-ExperimentalWarning für --experimental-vm-modules ist erwartet.

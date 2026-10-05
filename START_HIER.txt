@@ -1,0 +1,92 @@
+BURGENFALL 8.7 – KORRIGIERTE KIRCHENARCHITEKTUR
+
+START UNTER WINDOWS
+1. ZIP vollständig in einen eigenen Ordner entpacken.
+2. Node.js muss installiert sein.
+3. start.bat doppelklicken und das Serverfenster offen lassen.
+4. Im Browser http://localhost:5035 öffnen, falls es nicht automatisch öffnet.
+5. Vorhandene Welt laden oder neue Welt gründen.
+
+UPDATE VON 8.1 BIS 8.6
+Alten Server zuerst mit Strg+C beenden. Den bisherigen Ordner saves in den
+neuen burgenfall-Ordner kopieren. Vorher eine Kopie des Spielstands behalten.
+Gebäudedarstellung wird auch in geladenen Welten aktualisiert. Bestehende
+Positionen bleiben erhalten. Größere Torhäuser und Bauernhöfe können daher
+in sehr eng bebauten alten Siedlungen mit Nachbargebäuden überlappen.
+Bei einer bereits geöffneten Browserseite mit Strg+F5 neu laden.
+
+NEU IN 8.7
+Saubere gotische Torbögen, geschlossener Kirchturm mit Fenstern,
+durchgehendes Domdach und zehnmal feinere Buntglasfelder.
+
+NEU IN 8.6
+Gebäudetüren öffnen bei Annäherung und schließen danach automatisch.
+Gotische Türen für Kapelle/Kirche/Kathedrale, rechteckige für Wohnhäuser.
+
+NEU IN 8.5
+E am Produktionsgebäude: automatische/manuelle Zuweisung, Arbeiter wählen
+oder freistellen. Kranke bleiben zuhause; besetzte Apotheke zur Heilung nötig.
+Ohne Heilung sterben sie nach zehn Minuten laufender Spielzeit.
+Einwohner verbrauchen täglich Nahrung und im Winter Heizholz.
+Schweinestall: acht Fleisch einmal im Spieljahr. Friedhof ohne Steinboden.
+
+NEU IN 8.4
+E am Bergfried: Kerker einrichten oder Folterkammer einrichten.
+Folterkammer ab Stufe 3 (Steinbergfried); keine separaten Gebäude mehr.
+Steinbruch muss auf einem Steinvorkommen stehen. Eisen-/Kupferminen
+verwenden jetzt ebenfalls das mittelalterliche Fördergerüst.
+Tierhaltung, Imkerei und Obstplantage stehen auf natürlichem Gelände.
+
+NEU BEDIENEN
+M > Bauen > Landschaft & Frei-Bau:
+- Frei-Bau AN: Gebäude ohne Materialkosten; Hunger pausiert.
+- Ressourcen pflanzen: Baum, Wurzelstock, Fels, Eisenerz, Kupfererz, Reh.
+  Ressource auswählen, Boden anvisieren, Linksklick zum Setzen.
+- Wege zeichnen: linke Maustaste halten, Blick über den Boden bewegen.
+  Wenn die Maus noch nicht im Spiel gefangen ist, zuerst einmal klicken.
+- B beendet das Landschaftswerkzeug und wechselt zum Gebäudebau.
+- Letztes Wegstück entfernen: entfernt einen Pinselabschnitt.
+Der Frei-Bau-Schalter gilt für die gesamte Mehrspielerwelt.
+
+BAUTEILE
+Torhaus: zwei 4x4-Module nebeneinander, insgesamt 8x4 Meter, Wehrgang in 4 m.
+Ein Wassergraben vor der Front (+Z vor dem Drehen) aktiviert automatisch die
+Zugbrücke. Ohne Graben verwendet das Torhaus ein Fallgitter. E beim Gebäude
+> Tor schließen/öffnen, oder M > Dorf > Posten & Tore.
+Manuelle Torstellung bleibt erhalten; ohne manuelle Vorgabe reagieren Tore
+wie bisher auf Angriffe. Mauern, Türme und Treppen dürfen sich überlappen.
+Q/E dreht. Verteidigungsbauteile und Gräben rasten in 25-cm-Schritten.
+Treppen mit dem hohen Ende an den Wehrgang anschließen.
+Überlappende Gräben bilden eine gemeinsame Wasserfläche. Keine Innenränder.
+Gebäude erhalten Fundamente am Hang. Das Gelände außerhalb der Grundfläche
+bleibt erhalten. Automatische Zufahrtswege und Rampen sind entfernt.
+Bei steilen Grundstücken die Erreichbarkeit des Eingangs prüfen.
+
+GEBÄUDE
+Kirche: Eingang an der rechten Längswand, Kirchenbänke zum Altar, gotische
+Fenster, Strebepfeiler, Portal und bewegliche Glocke im offenen Glockenstuhl.
+Kathedrale: Dachkreuz sitzt auf dem korrigierten Dachfirst; Turmspitzen
+leuchten nachts von 19 bis 6 Uhr.
+Bauernhof: eingerichtetes Wohnhaus, Scheune, Kräuterbeete, dekoratives kleines
+Getreidefeld mit Strohpuppe und umlaufender Zaun mit Zugang.
+Das kleine Hoffeld ist Dekoration. Produktive Felder weiterhin separat bauen.
+
+SPIELEN
+V: Ego-/Außenansicht. In Egoansicht sind animierte Arme und Werkzeuge sichtbar.
+H: Pferd kaufen/aufsitzen. Pferd bleibt in Egoansicht sichtbar, mit Reitbewegung.
+1 Schwert, 2 Axt, 3 Spitzhacke, 4 Hacke, 5 Bogen, 6 Hammer.
+Wurzelstöcke lassen sich mit Axt oder Spitzhacke entfernen.
+Hunger sinkt im Survival um 75 Prozent langsamer (auch beim Schlafen).
+Rehbestand erholt sich bis zu 14 Tieren: höchstens ein neues Reh pro Minute,
+nur an einem freien Ort mit Abstand zu Spielern. Verwundete Rehe heilen nach
+30 Sekunden ohne Spieler/Jäger in 18 m Nähe. Tierbewegung bleibt aktiv.
+Figuren und Tiere werden bei Berührung räumlich getrennt.
+
+PRÜFSTATUS
+Serverlogik, echte Netzwerkverbindung, Speichern/Neustart/Laden, reale
+Three.js-Geometrie und Client-Ablauf wurden automatisiert geprüft.
+Keine visuelle Browserprüfung: Der Testbrowser ließ sich in der Arbeitsumgebung
+nicht installieren. Animationen sind prozedural; keine Motion-Capture-Assets.
+MODELLVORSCHAU_8_7.png zeigt die neuen Modelle als Software-Rendering.
+Die übrigen PNG-Referenzbilder stammen aus der vorherigen Version.
+Details: AENDERUNGEN_8_7.md und TESTBERICHT.txt.
