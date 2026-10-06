@@ -15,15 +15,16 @@ export function heightAt(x,z){return Rules.height(x,z)}
 // Keine vorgegebene Straße mehr – Wege zeichnet der Spieler selbst (Wegewerkzeug)
 export function roadAt(x,z){return 99}
 // Gelände in Kacheln: nur in Sichtweite vorhanden, nah fein, fern grob (große Karten bis 5x)
+const smooth01=(v,a,b)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t)};
 export function makeTerrain(material){const TILE=64,SEG=[48,24,10],g=new T.Group();g.name='TerrainTiles';g.hmod=null;const N=Math.ceil(TERRAIN_SIZE/TILE),off=-N*TILE/2,tiles=[];
  for(let i=0;i<N;i++)for(let j=0;j<N;j++)tiles.push({cx:off+(i+.5)*TILE,cz:off+(j+.5)*TILE,lod:-1,mesh:null,geo:[null,null,null]});
  const H=(x,z)=>g.hmod?g.hmod(x,z):heightAt(x,z);
- function build(t,seg){const n=seg+1,S=n+2,step=TILE/seg,x0=t.cx-TILE/2,z0=t.cz-TILE/2,pos=new Float32Array(S*S*3),nor=new Float32Array(S*S*3),col=new Float32Array(S*S*3),e=Math.max(.6,step*.5);
+ function build(t,seg){const n=seg+1,S=n+2,step=TILE/seg,x0=t.cx-TILE/2,z0=t.cz-TILE/2,pos=new Float32Array(S*S*3),nor=new Float32Array(S*S*3),col=new Float32Array(S*S*3),gt=new Float32Array(S*S*4),e=Math.max(.6,step*.5);
   for(let jj=0;jj<S;jj++)for(let ii=0;ii<S;ii++){const ci=Math.min(n-1,Math.max(0,ii-1)),cj=Math.min(n-1,Math.max(0,jj-1)),x=x0+ci*step,z=z0+cj*step,ring=ii===0||jj===0||ii===S-1||jj===S-1,h=H(x,z),k=(jj*S+ii)*3;
    pos[k]=x;pos[k+1]=ring?h-3:h;pos[k+2]=z;let nx=H(x-e,z)-H(x+e,z),nz=H(x,z-e)-H(x,z+e),ny=2*e;const l=Math.hypot(nx,ny,nz);nor[k]=nx/l;nor[k+1]=ny/l;nor[k+2]=nz/l;
-   const nn=.8+.16*Math.sin(x*.19)*Math.sin(z*.15),wv=Math.max(0,Math.min(1,-h/1.4));col[k]=nn*(1-.45*wv);col[k+1]=nn*(1-.5*wv);col[k+2]=nn*(.92-.55*wv)}
+   const nn=.8+.16*Math.sin(x*.19)*Math.sin(z*.15),wv=Math.max(0,Math.min(1,-h/1.4));col[k]=nn*(1-.45*wv);col[k+1]=nn*(1-.5*wv);col[k+2]=nn*(.92-.55*wv);const G=Rules.groundAt(x,z),q4=(jj*S+ii)*4,shore=1-smooth01(Rules.riverDist(x,z),7,12);gt[q4]=G.lush;gt[q4+1]=G.dry;gt[q4+2]=Math.max(G.sand,shore*.55*(1-G.lush));gt[q4+3]=G.rock}
   const idx=[];for(let jj=0;jj<S-1;jj++)for(let ii=0;ii<S-1;ii++){const a=jj*S+ii,b=a+1,c=a+S,d=c+1;idx.push(a,c,b,b,c,d)}
-  const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(pos,3));geo.setAttribute('normal',new T.BufferAttribute(nor,3));geo.setAttribute('color',new T.BufferAttribute(col,3));geo.setIndex(idx);geo.computeBoundingSphere();return geo}
+  const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(pos,3));geo.setAttribute('normal',new T.BufferAttribute(nor,3));geo.setAttribute('color',new T.BufferAttribute(col,3));geo.setAttribute('gt',new T.BufferAttribute(gt,4));geo.setIndex(idx);geo.computeBoundingSphere();return geo}
  g.update=(px,pz,budget=6)=>{for(const t of tiles){const d=Math.max(Math.abs(px-t.cx),Math.abs(pz-t.cz))-TILE/2,lod=d>330?-1:d<110?0:d<210?1:2;
    if(lod===-1&&d>460){for(let q=0;q<3;q++)if(t.geo[q]){t.geo[q].dispose();t.geo[q]=null}}
    if(lod===t.lod)continue;if(lod>=0&&!t.geo[lod]){if(budget<=0)continue;budget--;t.geo[lod]=build(t,SEG[lod])}
@@ -33,10 +34,18 @@ export function makeTerrain(material){const TILE=64,SEG=[48,24,10],g=new T.Group
  const up=g.update;g.update=(px,pz,b)=>{g.lx=px;g.lz=pz;up(px,pz,b)};
  material.vertexColors=true;material.color.setHex(0xa9ac7b);
  const grassTex=new T.TextureLoader().load('/textures/Grass_BaseColor.png');grassTex.wrapS=grassTex.wrapT=T.RepeatWrapping;grassTex.colorSpace=T.SRGBColorSpace;grassTex.anisotropy=8;material.map=null;
- material.onBeforeCompile=shader=>{shader.uniforms.grassMap={value:grassTex};shader.uniforms.soilMap={value:surfaceTexture('soil')};shader.uniforms.roadMap={value:surfaceTexture('road')};shader.vertexShader='varying vec3 vTerrain;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvTerrain=position;');shader.fragmentShader='uniform sampler2D grassMap; uniform sampler2D soilMap; uniform sampler2D roadMap; varying vec3 vTerrain;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+ material.onBeforeCompile=shader=>{shader.uniforms.grassMap={value:grassTex};shader.uniforms.soilMap={value:surfaceTexture('soil')};shader.uniforms.roadMap={value:surfaceTexture('road')};shader.vertexShader='attribute vec4 gt;varying vec4 vGT;varying vec3 vTerrain;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvTerrain=position;vGT=gt;');shader.fragmentShader='varying vec4 vGT;uniform sampler2D grassMap; uniform sampler2D soilMap; uniform sampler2D roadMap; varying vec3 vTerrain;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
  { vec2 wp=vTerrain.xz; vec3 g1=texture2D(grassMap,wp/3.6).rgb; vec3 g2=texture2D(grassMap,mat2(.8,-.6,.6,.8)*wp/9.7+vec2(.37,.11)).rgb;
    float big=texture2D(grassMap,wp/173.).g; vec3 av=textureLod(grassMap,vec2(.5),12.).rgb; float al=max(.02,dot(av,vec3(.3,.5,.2)));
-   vec3 gc=mix(g1,g2,.35+.3*smoothstep(.2,.6,big))/al; gc=mix(gc,gc*vec3(.92,1.08,.85),.5); diffuseColor.rgb*=clamp(gc,0.,2.2)*.9; }
+   vec3 gc=mix(g1,g2,.25+.25*smoothstep(.2,.6,big))/al;gc=mix(vec3(dot(gc,vec3(.33))),gc,1.15); gc=mix(gc,gc*vec3(.92,1.08,.85),.5);
+   float l1=dot(g1,vec3(.3,.5,.2))/al, l2=dot(texture2D(grassMap,wp/1.7+vec2(.5,.2)).rgb,vec3(.3,.5,.2))/al, lb=dot(g2,vec3(.3,.5,.2))/al;
+   vec3 dryc=vec3(.5+.5*l1)*vec3(1.42,1.18,.62)*mix(.9,1.1,big);
+   vec3 lushc=gc*vec3(.78,1.18,.68);
+   vec3 sandc=vec3(1.5,1.3,.94)*(.86+.14*l2)*(.92+.08*lb);
+   vec3 rockc=vec3(.95,.93,.88)*(.55+.45*l2)*mix(.75,1.15,smoothstep(.6,1.4,lb));
+   vec4 w=clamp(vGT,0.,1.); float sw=w.x+w.y+w.z+w.w; if(sw>1.){w/=sw;sw=1.;}
+   vec3 base=gc*(1.-sw)+lushc*w.x+dryc*w.y+sandc*w.z+rockc*w.w;
+   diffuseColor.rgb*=clamp(base,0.,2.6)*1.3; }
  // Standardstraße entfernt
  `)};g.update(0,0,1e9);return g}
 let seed=931;const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
@@ -53,8 +62,13 @@ export function forestTree(bark){if(!prototypes.length)for(let style=0;style<4;s
  const o=prototypes[Math.floor(rnd()*prototypes.length)].clone();const scale=.8+rnd()*.5;o.scale.setScalar(scale);o.rotation.y=rnd()*6.28;return o}
 export function decorate(scene){const group=new T.Group();group.name='Meadow';scene.add(group);
  const sky=new T.Mesh(new T.SphereGeometry(280,24,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{k:{value:1}},vertexShader:'varying vec3 dir;void main(){dir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform float k;varying vec3 dir;void main(){vec3 d=normalize(dir);float h=max(0.,d.y);vec3 c=mix(vec3(.68,.73,.71),vec3(.24,.43,.57),pow(h,.55));float sun=pow(max(0.,dot(d,normalize(vec3(.45,.8,.3)))),180.);c+=vec3(.4,.29,.13)*sun;c=mix(vec3(.012,.018,.045)+vec3(.02,.03,.06)*pow(h,.5),c*(.4+.6*k),k);gl_FragColor=vec4(c,1.);}'}));sky.renderOrder=-2;scene.add(sky);
- const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute([-.08,0,0,.08,0,0,.03,.48,0,0,0,-.08,0,0,.08,0,.38,.02],3));geo.computeVertexNormals();const mat=new T.MeshStandardMaterial({color:0x7a8050,side:T.DoubleSide,roughness:1});const grass=new T.InstancedMesh(geo,mat,3600);const d=new T.Object3D();
- grass.around=(cx,cz)=>{let count=0;for(let i=0;i<8400&&count<3600;i++){const x=cx+(rnd()-.5)*240,z=cz+(rnd()-.5)*240;if(Math.abs(x)>WORLD_HALF_SIZE+40||Math.abs(z)>WORLD_HALF_SIZE+40)continue;const h=heightAt(x,z);if(h<-.6)continue;d.position.set(x,h,z);d.rotation.y=rnd()*6.28;d.scale.setScalar(.5+rnd());d.updateMatrix();grass.setMatrixAt(count++,d.matrix)}grass.count=count;grass.instanceMatrix.needsUpdate=true;grass.cx=cx;grass.cz=cz};grass.around(0,0);group.add(grass);
+ // Grasbüschel aus 11 schmalen, gebogenen Halmen (unten dunkel, Spitze hell)
+ const geo=(()=>{const P=[],Cc=[],r=()=>Math.random();for(let q=0;q<11;q++){const a=q*2.4+r(),rr=.02+r()*.09,x=Math.cos(a)*rr,z=Math.sin(a)*rr,h=.22+r()*.34,w=.012+r()*.012,lean=.06+r()*.12,lx=Math.cos(a)*lean,lz=Math.sin(a)*lean,px=-Math.sin(a)*w,pz=Math.cos(a)*w,mx=x+lx*.4,mz=z+lz*.4;
+  P.push(x-px,0,z-pz,x+px,0,z+pz,mx+px*.7,h*.55,mz+pz*.7, x-px,0,z-pz,mx+px*.7,h*.55,mz+pz*.7,mx-px*.7,h*.55,mz-pz*.7, mx-px*.7,h*.55,mz-pz*.7,mx+px*.7,h*.55,mz+pz*.7,x+lx,h,z+lz);
+  const b=.45,m=.75,t=1.05;Cc.push(b,b,b,b,b,b,m,m,m, b,b,b,m,m,m,m,m,m, m,m,m,m,m,m,t,t,t)}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setAttribute('color',new T.Float32BufferAttribute(Cc,3));g.computeVertexNormals();const n=g.attributes.normal;for(let i=0;i<n.count;i++)n.setXYZ(i,n.getX(i)*.3,1,n.getZ(i)*.3);n.needsUpdate=true;g.normalizeNormals&&0;return g})();
+ const mat=new T.MeshStandardMaterial({color:0xffffff,vertexColors:true,side:T.DoubleSide,roughness:1});const grass=new T.InstancedMesh(geo,mat,16000);const d=new T.Object3D(),gcol=new T.Color(),GC={base:new T.Color(0x9aa860),lush:new T.Color(0x6a9a40),dry:new T.Color(0xd0b860),sand:new T.Color(0xbcae70),rock:new T.Color(0x86866a)};
+ grass.around=(cx,cz)=>{let count=0;for(let i=0;i<34000&&count<16000;i++){const x=cx+(rnd()-.5)*140,z=cz+(rnd()-.5)*140;if(Math.abs(x)>WORLD_HALF_SIZE+40||Math.abs(z)>WORLD_HALF_SIZE+40)continue;const h=heightAt(x,z);if(h<-.6)continue;const G=Rules.groundAt(x,z);if(rnd()<G.sand*.92||rnd()<G.rock*.8)continue;gcol.copy(GC.base).lerp(GC.lush,G.lush).lerp(GC.dry,G.dry).lerp(GC.sand,G.sand).lerp(GC.rock,G.rock).multiplyScalar(.85+rnd()*.3);d.position.set(x,h,z);d.rotation.y=rnd()*6.28;d.scale.setScalar(.5+rnd());d.updateMatrix();grass.setColorAt(count,gcol);grass.setMatrixAt(count++,d.matrix)}grass.count=count;grass.instanceMatrix.needsUpdate=true;if(grass.instanceColor)grass.instanceColor.needsUpdate=true;grass.cx=cx;grass.cz=cz};grass.around(0,0);group.add(grass);
  const ridge=new T.Group();const mountain=new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0});mountain.onBeforeCompile=sh=>{sh.vertexShader='varying float vMH;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvMH=position.y;');sh.fragmentShader='varying float vMH;\n'+sh.fragmentShader.replace('#include <fog_fragment>','#ifdef USE_FOG\n float mdd=length(vViewPosition),mfd=max(smoothstep(80.,900.,mdd)*.8,(1.-smoothstep(0.,55.,vMH))*smoothstep(fogNear,fogFar,mdd));gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,mfd);\n#endif')};ridge.place=()=>{ridge.clear();
   // Gebirgskette rund um die Karte: zusammenhängendes Höhenfeld mit Graten, Fels an Steilhängen, Schneegipfeln, grünen Vorbergen
   const R0=WORLD_HALF_SIZE+45,R1=WORLD_HALF_SIZE+330,NA=Math.round(260*Math.max(1,WORLD_HALF_SIZE/200)),NR=34,F=[];let sw=0;for(let k=0;k<10;k++){const w=.55/(1+k*.55);sw+=w;F.push([2+Math.floor(rnd()*(5+k*7)),rnd()*6.283,(rnd()-.5)*4,w])}
@@ -71,5 +85,6 @@ export function decorate(scene){const group=new T.Group();group.name='Meadow';sc
 }
 export function contactShadow(material,size=1){const m=new T.Mesh(new T.PlaneGeometry(size,size),material);m.rotation.x=-Math.PI/2;m.position.y=.025;m.renderOrder=1;return m}
 export function makeWater(){const pts=[],S=Rules.riverSamples();if(S)for(let i=0;i<S.length;i++){const a=S[Math.max(0,i-1)],b=S[Math.min(S.length-1,i+1)],dx=b.x-a.x,dz=b.z-a.z,l=Math.hypot(dx,dz)||1,nx=-dz/l*7.2*S[i].w,nz=dx/l*7.2*S[i].w,p=S[i];pts.push(p.x+nx,-.35,p.z+nz,p.x-nx,-.35,p.z-nz)}const idx=[];for(let i=0;i<pts.length/6-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}
+ for(const L of Rules.getWorldConfig().lakes||[]){const c0=pts.length/3,N=64;pts.push(L.x,-.35,L.z);for(let q=0;q<N;q++){const an=q/N*Math.PI*2,r=Rules.lakeR(L,an)+2.2;pts.push(L.x+Math.cos(an)*r,-.35,L.z+Math.sin(an)*r);idx.push(c0,c0+1+(q+1)%N,c0+1+q)}}
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pts,3));g.setIndex(idx);g.computeVertexNormals();
  const m=new T.Mesh(g,new T.MeshStandardMaterial({color:0x4a7f95,transparent:true,opacity:.8,roughness:.12,metalness:.25,side:T.DoubleSide}));m.renderOrder=1;return m}

@@ -148,7 +148,7 @@ const rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z),r
 const dims=(t,rot)=>Rules.dims(BD,t,rot),reach=b=>Math.max(BD[b.t].w,BD[b.t].d)/2+1.5;
 const costStr=c=>Object.entries(c).map(([k,n])=>n+' '+GN[k]).join(', '),afford=(r,c)=>Object.entries(c).every(([k,n])=>r.inv[k]>=n),pay=(r,c)=>{for(const k in c)r.inv[k]-=c[k]};
 const frac=(c,f)=>Object.fromEntries(Object.entries(c).map(([k,n])=>[k,Math.max(1,Math.ceil(n*f))]));
-function canPlace(r,t,x,z,rot){const B=BD[t],[w,d]=dims(t,rot);if(['dungeon','torture'].includes(t))return'Als Erweiterung im Bergfried einrichten';if(Math.abs(x)>BUILD_LIMIT_(r)||Math.abs(z)>BUILD_LIMIT_(r))return'Außerhalb der Karte';const wr=Rules.riverDist(x,z,r.map||DEFAULT_MAP);
+function canPlace(r,t,x,z,rot){const B=BD[t],[w,d]=dims(t,rot);if(['dungeon','torture'].includes(t))return'Als Erweiterung im Bergfried einrichten';if(Math.abs(x)>BUILD_LIMIT_(r)||Math.abs(z)>BUILD_LIMIT_(r))return'Außerhalb der Karte';const wr=Rules.riverDist(x,z,r.map||DEFAULT_MAP);if(Rules.FARMS.includes(t)){const G=Rules.groundAt(x,z,r.map||DEFAULT_MAP);if(G.sand>.5||G.rock>.5)return'Auf Sand und Fels wächst nichts – auf Wiese anlegen'}
  if(B.bridge){if(Math.abs(Math.sin(rot*Math.PI/2))>.02)return'Brücke nur quer zum Fluss';if(wr>4)return'Die Brücke muss den Fluss kreuzen'}
  else{if(wr<6+w/2)return'Im Wasser kann nicht gebaut werden';if(B.water&&(wr<9||wr>20))return'Fischerei muss am Flussufer stehen';if(B.harbor&&(wr<9.5||wr>13.5))return'Der Hafen muss direkt am Ufer stehen'}
  if(B.ore&&!r.or.some(o=>o.k===B.ore&&Math.hypot(o.x-x,o.z-z)<9))return'Kein '+(B.ore==='iron'?'Eisen':'Kupfer')+'-Vorkommen in der Nähe (siehe Karte)'

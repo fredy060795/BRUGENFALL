@@ -83,3 +83,45 @@
   Maibaum (Frühling), Jahrmarkt/Zirkus (Sommer), Weihnachtsbaum (Winter); Jubel nur dann am Marktplatz.
 - **Wappenschild als Standard**: geviert in Fraktionsfarbe und Silber, goldene Kreuzbänder und Rand mit Nieten,
   Löwen, Burgen und Doppeladler. Schwertkämpfer/Ritter tragen ihn automatisch; Spieler starten damit (angelegt).
+
+# Burgenfall 8.29 – Kriegerklassen, Wappen, Stadtbuch, Stronghold-Karten
+
+## Startmenü & Karten
+- **Startmenü im Stronghold-Stil**: Hauptbildschirm mit Burg-Silhouette und Medaillon-Schaltflächen
+  (Neue Welt, Spiel laden, Mehrspieler, Karteneditor, Herrscher & Wappen); Unterseiten auf einem Holztisch mit
+  Banner und Pergament-Tafeln.
+- **Herrscher & Wappen**: Name, Fraktionsfarbe (färbt Kleidung, Ausrüstung und Schilde) und eines von 8 Wappen.
+  „🎲 Zufällig“ würfelt ein Aussehen (auch im Kleiderschrank).
+- **Bodenarten** wie in Stronghold: saftige Wiese, trockenes Gras, Sand, Felsboden – im 3D-Boden, auf der Karte (K),
+  der Minikarte und in den Kartenvorschauen. Felder, Obstplantagen, Hopfen und Bienen nur auf Wiese, nicht auf Sand/Fels.
+- **Seen** (unregelmäßige Ufer) zusätzlich zu Flüssen.
+- **6 neue Basiskarten**: Flussschleife, Seenkette, Flussgabel, Grünes Tal, Wüstenrand, Seenland.
+- **Karteneditor**: Pinsel für Wiese, trockenes Gras, Sand, Felsboden und Seen (klein/mittel/groß; Rechtsklick
+  entfernt), Werkzeug „Startpunkt“ für den eigenen Spawn.
+- Echter Grasboden (Foto-Textur ohne sichtbare Kachelung) mit dichten Grasbüscheln aus einzelnen Halmen;
+  fernes Gebirge als zusammenhängende Bergkette mit Fels, Schneegipfeln und Dunst.
+
+## Garnison & Wappen
+- Neue Klassen: **Lanzenträger** (Speer + Wappenschild), **Armbrustschütze**, **Ritter zu Pferd** mit Lanze
+  (braucht Rüstung), dazu der **Nachtwächter**, der nachts mit Fackel durch die Stadt patrouilliert.
+- Wappenschilde zeigen das gewählte Wappen in der eigenen Farbe.
+
+## Siedlung
+- **Stadtbuch (Taste Z)** wie in Stronghold: Gold, letzte Steuer, Steuersatz, Rationen, Beliebtheit mit allen
+  Einzelfaktoren und Trend, Einwohner, Grund für ausbleibenden Zuzug, Nahrung, Lager. Auch im Bergfried-Menü.
+- Beliebtheit pendelt mit der Zeit auf ihren Zielwert zurück; Zuzug startet wieder, sobald Wohnraum, Nahrung und
+  Beliebtheit (≥ 30 %) stimmen – der Grund steht im Stadtbuch.
+- Unbestattete Leichen verschwinden nicht mehr von selbst und lösen nach einiger Zeit Seuchen aus.
+- Arbeitslose sammeln tagsüber Stöcke, Steine und Kräuter; mehr Fundstücke auf der Karte.
+- **Bergfried abreißbar** (Menü oder Hammer), um ihn neu zu platzieren.
+- Häuser haben nachts **beleuchtete Fenster**. Zunftschilder zeigen ihr Symbol auf beiden Seiten.
+
+## Handwerk & Inventar
+- **Werkbank** (4 Stöcke + 2 Steine): Werkzeuge, Schilde und Holzschindeln werden dort hergestellt (E an der
+  Werkbank), Eisenwerkzeuge und Wappenschild an der Schmiede; im Inventar nur noch der Holzhammer von Hand.
+- Abgelegte Gegenstände bleiben am Boden liegen bzw. wandern ins Lagerhaus, wenn eines existiert.
+- Echte Trage-Objekte statt gelber Würfel: Holzfäller tragen Stämme, dazu Steinkörbe, Strohballen, Schindeln,
+  Stockbündel, Kräuterkörbe, Fässer, Helme, Kleidung und Säcke. Stöcke sind natürliche Äste; die Stammenden
+  schweben nicht mehr in der Luft.
+- Neue zivile Kopfbedeckungen (Strohhut, Jägerhut, Chaperon, Federhut, Haube, Kopftuch). Pferdemähne sichtbar.
+- **Neue Anzeige** für Leben, Hunger und Energie als Ringe (wie Medieval Dynasty); Meldungen überdecken sie nicht mehr.
