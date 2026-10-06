@@ -86,8 +86,8 @@ export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook
   cloth:pick(r,WOOL),over:pick(r,DYE),outfit:'tunic',head:'none',cloak:0,apron:false,mask:false,bag:r()<.45,rolled:true,tool:'sword'};
  if(role==='sword'){Object.assign(o,{outfit:'gambeson',head:'helmet',over:pick(r,[0x7a2a2a,0x2f4a6a,0x8a7a5a]),rolled:false,beard:pick(r,['none','stubble','short']),hairStyle:'short',rank:pick(r,['militia','guard','veteran'])});
   const lv=o.rank==='militia'?0:o.rank==='guard'?1:2;Object.assign(o,{head:lv?'bascinet':'helmet',breast:true,arms:lv,legs:lv,hands:lv===2?'hour':'lea',bag:false})}
- if(role==='archer'){Object.assign(o,{tool:'bow',outfit:'jerkin',head:'nasal',cloth:0x4d5a3a,over:0x5a3d22,cloak:0x3d5a35,rank:pick(r,['scout','marksman'])});o.mailHood=o.rank==='marksman'}
- if(role==='spear'){Object.assign(o,{tool:'spear',outfit:'gambeson',head:pick(r,['helmet','nasal']),breast:pick(r,[true,false]),arms:1,legs:0,hands:'lea',bag:false,rolled:false,hairStyle:'short',beard:pick(r,['none','stubble','short'])})}
+ if(role==='archer'){Object.assign(o,{tool:'bow',outfit:'jerkin',head:'helmet',cloth:0x4d5a3a,over:0x5a3d22,cloak:0x3d5a35,rank:pick(r,['scout','marksman'])});o.mailHood=o.rank==='marksman';o.noCoif=o.rank!=='marksman'}
+ if(role==='spear'){Object.assign(o,{tool:'spear',outfit:'gambeson',head:'helmet',breast:pick(r,[true,false]),arms:1,legs:0,hands:'lea',bag:false,rolled:false,hairStyle:'short',beard:pick(r,['none','stubble','short'])})}
  if(role==='crossbow'){Object.assign(o,{tool:'crossbow',outfit:'gambeson',head:pick(r,['helmet','sallet']),cloak:0x4a4030,arms:0,legs:0,hands:'lea',bag:true,rolled:false,hairStyle:'short'})}
  if(role==='knight'){Object.assign(o,{tool:'lance',outfit:'gambeson',head:pick(r,['visored','bascinet','visored','sallet']),breast:true,arms:2,legs:2,hands:'hour',bag:false,rolled:false,hairStyle:'short',beard:'short',cloak:pick(r,[0x6a2a2a,0,0]),tabard:r()<.55,mailShirt:r()<.4})}
  if(role==='bandit'){Object.assign(o,{outfit:'jerkin',head:'hood',mask:true,cloth:0x3a3430,over:0x2a2420,cloak:0x2b2622,beard:'stubble'})}
