@@ -329,7 +329,11 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    for(let zb=-3.5;zb<=9.01;zb+=2.5){cylinder(.36,6.5,a*3,3.25,zb,st,12);g.colliders.push([a*3,zb,.38,.38,6.5,0]);cylinder(.08,5.4,a*2.72,9.2,zb,st,6)}   // Pfeiler + Dienste
    wallX(-3.5,9,a*3,6.5,12,false);for(let zb=-2.25;zb<9;zb+=2.5)gothic(a*(3+t/2+.03),zb,a*Math.PI/2,9.1,1.1,2.5)}
   box(6,.2,12.5,0,12,2.75,H.floor);
-  // Kreuzrippengewölbe im Mittelschiff
+  // Kreuzrippengewölbe im Mittelschiff – mit verputzten Gewölbekappen zwischen den Rippen (Kreuzgratgewölbe: max zweier Tonnen)
+  const vaultM=COLM.get('vault')||(COLM.set('vault',(()=>{const m=(H.plaster||st).clone();m.side=T.DoubleSide;return m})()),COLM.get('vault'));
+  const webs=(x0,hw,zc,hz)=>{const N=22,P=[],U=[],I=[];for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const u=i/N*2-1,v=j/N*2-1,y=9.6+2.18*Math.max(Math.sqrt(Math.max(0,1-u*u)),Math.sqrt(Math.max(0,1-v*v)));P.push(x0+u*hw,y,zc+v*hz);U.push(u*hw/2,v*hz/2)}
+   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const a=j*(N+1)+i,b=a+1,c=a+N+1,d=c+1;I.push(a,c,b,b,c,d)}const q=new T.BufferGeometry();q.setAttribute('position',new T.Float32BufferAttribute(P,3));q.setAttribute('uv',new T.Float32BufferAttribute(U,2));q.setIndex(I);q.computeVertexNormals();staticMesh(q,vaultM)};
+  for(let zb=-3.5;zb<9;zb+=2.5)webs(0,2.72,zb+1.25,1.25);webs(0,2.72,-5.5,2);
   const rib=(pts,r=.1)=>staticMesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts.map(p=>new T.Vector3(...p))),20,r,6,false),st);
   for(let zb=-3.5;zb<9;zb+=2.5){const z1=zb+2.5,zm=zb+1.25;rib([[-2.72,9.6,zb],[0,11.75,zb],[2.72,9.6,zb]],.13);rib([[-2.72,9.6,zb],[-1.3,11.3,zb+.6],[0,11.85,zm],[1.3,11.3,z1-.6],[2.72,9.6,z1]]);rib([[2.72,9.6,zb],[1.3,11.3,zb+.6],[0,11.85,zm],[-1.3,11.3,z1-.6],[-2.72,9.6,z1]]);staticMesh((()=>{const q=new T.SphereGeometry(.2,10,8);q.translate(0,11.82,zm);return q})(),gold)}
   // Querhaus (16 m breit) mit Rosen-/Lanzettfenstern an den Stirnseiten
@@ -352,6 +356,19 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    for(const [fx,fz,ry]of[[0,1.78,0],[a*1.78,0,a*Math.PI/2],[0,-1.78,Math.PI]]){window(tx+fx,15.6,tz+fz,ry,.5,2.4,true);window(tx+fx,19.5,tz+fz,ry,.9,2.2,true)}
    for(const cx of[-1,1])for(const cz of[-1,1]){cylinder(.3,3.2,tx+cx*1.6,22.6,tz+cz*1.6,st,6);cone(.42,2.4,tx+cx*1.6,25.4,tz+cz*1.6,st,6)}       // Ecktürmchen der Türme
    crown(3.5,3.5,21,st,tx,tz);cone(1.9,10,tx,26,tz);staticMesh((()=>{const q=new T.SphereGeometry(.22,10,8);q.translate(tx,31.1,tz);return q})(),gold);crossT(tx,31.6,tz,1.3)}
+  // Gefasste Heiligenfigur (bemalter Stein): gefaltetes Gewand, Mantel, Kopf mit Schleier/Haar, Hände mit Buch bzw. Schlüssel
+  const cm=(k,c,o={})=>COLM.get(k)||(COLM.set(k,new T.MeshStandardMaterial({color:c,roughness:.85,...o})),COLM.get(k));
+  const saint=(x,y0,z,v)=>{const robe=cm('sRobe'+v,v?0x7a2a24:0x2e3f6e),mant=cm('sMant'+v,v?0x2f4a32:0x8a2a22),skin=cm('sSkin',0xc9a081),hair=cm('sHair'+v,v?0x6a6056:0xe6e0d0),gd=cm('sGold',0xc9a84a,{metalness:.6,roughness:.4});
+   const lathe=(pts,seg,ps,pl,mat,fold)=>{const q=new T.LatheGeometry(pts.map(([r,y])=>new T.Vector2(r,y)),seg,ps,pl),P=q.attributes.position;for(let i=0;i<P.count;i++){const px=P.getX(i),py=P.getY(i),pz=P.getZ(i),a=Math.atan2(px,pz),f=1+fold*Math.sin(a*9)*Math.max(0,1-py/1.35);P.setXYZ(i,px*f,py,pz*f)}q.computeVertexNormals();q.translate(x,y0,z);staticMesh(q,mat)};
+   lathe([[0,0],[.29,0],[.3,.05],[.27,.35],[.23,.75],[.2,1.05],[.19,1.2],[.16,1.32],[.1,1.4],[.07,1.46],[0,1.47]],24,0,Math.PI*2,robe,.08);          // Gewand mit Falten
+   lathe([[.31,.32],[.27,.7],[.24,1.0],[.22,1.18],[.19,1.33],[.12,1.42]],20,Math.PI*.55,Math.PI*.9,mant,.05);                                        // Mantel über dem Rücken
+   {const q=new T.TorusGeometry(.3,.02,5,24);q.rotateX(Math.PI/2);q.translate(x,y0+.06,z);staticMesh(q,gd)}                                          // Goldsaum
+   {const q=new T.SphereGeometry(.13,14,10);q.scale(.95,1.12,1);q.translate(x,y0+1.62,z+.02);staticMesh(q,skin)}                                       // Kopf
+   {const q=new T.SphereGeometry(.145,14,10,Math.PI*.6,Math.PI*1.8,0,Math.PI*.62);q.scale(1,1.2,1);q.translate(x,y0+1.64,z);staticMesh(q,hair)}        // Schleier bzw. Haar
+   if(v){const q=new T.SphereGeometry(.1,10,8,0,Math.PI*2,Math.PI*.45,Math.PI*.4);q.translate(x,y0+1.52,z+.06);staticMesh(q,hair)}                     // Bart
+   for(const sd of[-1,1]){const q=new T.CylinderGeometry(.055,.06,.36,8);q.rotateX(Math.PI/2-.3);q.rotateY(sd*.35);q.translate(x+sd*.13,y0+1.05,z+.15);staticMesh(q,robe);const h=new T.SphereGeometry(.05,8,6);h.translate(x+sd*.07,y0+1.0,z+.3);staticMesh(h,skin)}
+   if(v){const q=new T.BoxGeometry(.05,.28,.03);q.translate(x+.03,y0+1.08,z+.33);staticMesh(q,gd);const b=new T.TorusGeometry(.06,.015,5,12);b.translate(x+.03,y0+1.26,z+.33);staticMesh(b,gd)}   // Petrus: Schlüssel
+   else{const q=new T.BoxGeometry(.2,.26,.06);q.rotateX(-.35);q.translate(x,y0+1.04,z+.32);staticMesh(q,cm('sBook',0x6a1e1a));const e=new T.BoxGeometry(.18,.24,.065);e.rotateX(-.35);e.translate(x,y0+1.04,z+.322);staticMesh(e,cm('sPage',0xe8e0c8))}};   // Maria/Heilige: Buch
   // Westwerk zwischen den Türmen: Portalwand mit Spitzbogenportal, Archivolten, Rosette, Wimperg
   {const outer=3.32,dh=4.6,sh=new T.Shape();sh.moveTo(-3,0);sh.lineTo(3,0);sh.lineTo(3,15);sh.lineTo(-3,15);sh.closePath();const ho=new T.Path();ho.moveTo(outer/2,0);for(let q=0;q<=32;q++){const xx=outer/2-outer*q/32;ho.lineTo(xx,.08+doorTop(xx,outer,dh+.08,true))}ho.lineTo(-outer/2,0);ho.closePath();sh.holes.push(ho);
    const rose=new T.Path();rose.absarc(0,10.2,1.75,0,Math.PI*2,true);sh.holes.push(rose);const q=new T.ExtrudeGeometry(sh,{depth:.5,bevelEnabled:false,curveSegments:24});q.translate(0,0,FR-.5);staticMesh(q,st);
@@ -359,7 +376,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    for(let r=0;r<3;r++){const q2=new T.TorusGeometry(1.85+r*.0,.16-r*.03,8,40);q2.translate(0,10.2,FR+.05+r*.02);staticMesh(q2,st)}for(let q2=0;q2<12;q2++){const a=q2/12*Math.PI*2;beam([Math.cos(a)*.45,10.2+Math.sin(a)*.45,FR+.06],[Math.cos(a)*1.7,10.2+Math.sin(a)*1.7,FR+.06],.06,st)}
    for(let r=0;r<3;r++)arch(0,0,FR+.12+r*.1,outer+.5+r*.5,dh+.55+r*.45);
    {const sh2=new T.Shape();sh2.moveTo(-2.6,0);sh2.lineTo(2.6,0);sh2.lineTo(0,2.6);sh2.closePath();const w2=new T.ExtrudeGeometry(sh2,{depth:.3,bevelEnabled:false});w2.translate(0,5.6,FR);staticMesh(w2,st);cone(.2,1,0,8.7,FR+.15,st,4)}   // Wimperg
-   for(const x of[-2.35,2.35]){box(.8,.7,.6,x,.35,FR+.35,st,true);cylinder(.26,1.5,x,1.45,FR+.35,COLM.get('robe1')||(COLM.set('robe1',new T.MeshStandardMaterial({color:0x8a7a6a,roughness:1})),COLM.get('robe1')),10);staticMesh((()=>{const q=new T.SphereGeometry(.17,10,8);q.translate(x,2.38,FR+.35);return q})(),st);staticMesh((()=>{const q=new T.TorusGeometry(.2,.025,5,16);q.translate(x,2.5,FR+.25);return q})(),gold);box(.9,.12,.55,x,2.9,FR+.38,st)}
+   for(const x of[-2.35,2.35]){box(.8,.7,.6,x,.35,FR+.35,st,true);saint(x,.7,FR+.38,x<0?0:1);staticMesh((()=>{const q=new T.TorusGeometry(.2,.025,5,16);q.translate(x,2.42,FR+.22);return q})(),gold);box(.9,.12,.55,x,2.9,FR+.38,st)}
    gable(-3.4,3.4,FR-.2,15,3.4);crossT(0,18.9,FR-.2,1.2);
    addDoor(g,H,{x:0,z:FR-.25,y:.08,width:3,height:dh,gothic:true,style:'gothic',double:true});(g._doors=g._doors||[]).push({x:0,z:FR,w:3,h:dh})}
   // ===== Innenraum: Altar, Kruzifix, Retabel, Heiligenbilder, Kerzen, Kanzel, Bänke =====
