@@ -176,3 +176,7 @@
 - Marktgeräusche nur, wenn Menschen am Platz sind; Jubel nur beim Jahrmarkt.
 - Wohnhaus-Ausbau mit Strohdach kostet Stroh statt Schindeln; fehlendes Material wird markiert.
 - Armbrust mit Stahlbogen am Schaftende, Spannbügel, Nuss und Abzugsbügel; Bogenschützen und Lanzenträger tragen Eisenhut.
+- **Jahrmarkt**: Statt waagerechter Tafeln hängen jetzt rot-weiße **Wimpelketten** an durchhängenden Leinen zwischen
+  den Pfosten und flattern im Wind; die großen Festbanner hängen senkrecht mit Wimpelsaum.
+- **Ferne Berge bei Nacht**: Berge werden mit dem Tageslicht dunkler und verschwimmen im Nachtdunst; der helle
+  Horizontstreifen (Farbraum-Unterschied zwischen Nebel und Himmel) ist behoben – nachts nur noch dunkle Silhouetten.
