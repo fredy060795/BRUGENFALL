@@ -176,9 +176,13 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  if(ps&&!g._props){g._props=1;const wd=new T.MeshStandardMaterial({color:0x7a5230,roughness:.9}),hoop=new T.MeshStandardMaterial({color:0x444444,metalness:.5,roughness:.5});
   g._mug=new T.Group();const m=new T.Mesh(new T.CylinderGeometry(.045,.05,.13,10),wd);m.position.set(0,-.07,.05);g._mug.add(m);const fo=new T.Mesh(new T.CylinderGeometry(.04,.04,.01,10),new T.MeshStandardMaterial({color:0xf0e6c8,roughness:1}));fo.position.set(0,-.005,.05);g._mug.add(fo);const hd=new T.Mesh(new T.TorusGeometry(.035,.009,4,8,Math.PI),hoop);hd.rotation.z=-Math.PI/2;hd.position.set(.05,-.07,.05);g._mug.add(hd);g.right.wrist.add(g._mug);
   g._bowl=new T.Mesh(new T.SphereGeometry(.09,12,6,0,Math.PI*2,Math.PI/2,Math.PI/2),wd);g._bowl.material=wd.clone();g._bowl.material.side=T.DoubleSide;g._bowl.position.set(0,-.06,.06);g.left.wrist.add(g._bowl);
-  g._spoon=new T.Mesh(new T.BoxGeometry(.015,.16,.012),wd);g._spoon.position.set(0,-.1,.04);g.right.wrist.add(g._spoon)}
- if(g._props){g._mug.visible=ps===3||ps===7;g._bowl.visible=ps===4;g._spoon.visible=ps===4}
- if(g.tool)g.tool.visible=!(ps>=1&&ps<=7&&ps!==6);
+  g._spoon=new T.Mesh(new T.BoxGeometry(.015,.16,.012),wd);g._spoon.position.set(0,-.1,.04);g.right.wrist.add(g._spoon);
+  // Brotschieber mit Laiben, Hackbeil
+  g._peel=new T.Group();const pr=new T.Mesh(new T.CylinderGeometry(.015,.015,1.5,6),wd);pr.position.y=.55;g._peel.add(pr);const pb=new T.Mesh(new T.BoxGeometry(.32,.3,.02),wd);pb.position.y=1.42;g._peel.add(pb);
+  g._loaves=new T.Group();for(const dx of[-.08,.08]){const l=new T.Mesh(new T.SphereGeometry(.07,10,7),new T.MeshStandardMaterial({color:0xb07838,roughness:.9}));l.scale.set(1,1.3,.6);l.position.set(dx,1.42,.04);g._loaves.add(l)}g._peel.add(g._loaves);g._peel.position.set(0,-.06,.03);g.right.wrist.add(g._peel);
+  g._clv=new T.Group();const ch=new T.Mesh(new T.CylinderGeometry(.014,.016,.16,6),wd);ch.position.y=-.04;g._clv.add(ch);const cb=new T.Mesh(new T.BoxGeometry(.11,.09,.008),hoop);cb.position.set(.04,.07,0);g._clv.add(cb);g._clv.position.set(0,-.06,.03);g.right.wrist.add(g._clv)}
+ if(g._props){g._mug.visible=ps===3||ps===7||ps===8;g._bowl.visible=ps===4;g._spoon.visible=ps===4;g._peel.visible=ps===9||ps===11;g._loaves.visible=ps===9||ps===11;g._clv.visible=ps===10}
+ if(g.tool)g.tool.visible=!(ps>=1&&ps<=11&&ps!==6);
  const br=Math.sin(g.t*1.7)*(1-k);
  let ux=.03+.08*run+.025*k+.006*br,uy=-.12*k*Math.cos(g.phase),uz=.012*Math.sin(g.t*.9)*(1-k),py=.06*k*Math.cos(g.phase),yawA=0;
  const none=type==='none',carry=type==='sword'||bow?.6:1,sw0=mounted?0:.65;
@@ -190,6 +194,9 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  else if(ps===5){R=V(.06,1.12,.32);Lh=V(-.06,1.12,.32);q=Eu(0,0,0);ux+=.1}
  else if(ps===6){const w=Math.sin(g.t*6);R=V(.28,1.75+.05*w,.12);Lh=V(-.28,1.75-.05*w,.12);q=Eu(0,0,0)}
  else if(ps===7){const ph=g.t*.7,tl=Math.max(0,Math.sin(ph));R=V(.18,1.12,.42);q=Eu(0,0,-1.1*tl);Lh=V(-.12,.98,.46)}
+ else if(ps===8){R=V(.16,1.12,.4);q=Eu(0,0,0);Lh=V(-.2,.95,.3)}
+ else if(ps===9||ps===11){const ph=(g.t*(ps===9?1.2:.9))%1,push=ps===9?Math.sin(ph*Math.PI):1-Math.sin(ph*Math.PI);R=V(.14,1.0,.35+.25*push);Lh=V(-.04,1.06,.12+.25*push);q=Eu(Math.PI/2-.12,0,0);ux+=.1+.12*push}
+ else if(ps===10){const ch=Math.pow(Math.abs(Math.sin(g.t*4.2)),.6);R=V(.14,1.0+.38*ch,.42-.1*ch);q=Eu(.9-1.4*ch,0,0);Lh=V(-.16,.99,.46);ux+=.2}
  else if(fx.carry){R=V(.2,1.05,.4);Lh=V(-.2,1.05,.4);q=Eu(0,0,0)}
  else if(fx.pray){R=V(.1,1,.38);Lh=V(-.1,1,.38);q=Eu(0,0,0);ux+=.3}
  else if(fx.work===1||fx.work===3){const pose=workPose(g.role,g.t*(fx.work===3?.65:1),type),k2=Math.sin(g.t*(fx.work===3?3:7));if(pose){R=pose.R;Lh=pose.Lh;q=pose.q;ux+=pose.ux||0;uy+=pose.uy||0;py+=pose.py||0}else{R=V(.16,1,.42+.07*k2);Lh=V(-.16,1,.42-.07*k2);q=Eu(0,0,0);ux+=.18}}

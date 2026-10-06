@@ -283,7 +283,11 @@ function cycle(r,n,wb,B,dt,X,Z){if(n.k==='hangman')return torment(r,n,wb,B,dt,X,
  if(c.st==='fetch'){n.cr=0;if(!MAT.length){c.st='work';c.t=0}else{
   if(!Object.entries(P.in).every(([k,q])=>r.inv[k]>=q)){if(wb.t==='apothecary'&&herbGather(r,n,wb,dt))return;wb.msg='wartet auf '+MAT.filter(k=>r.inv[k]<P.in[k]).map(k=>GN[k]).join(' / ');if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,2.8,dt);return}
   if(!exitBuilding(n,wb,dt))return;const S=storeAt(r,wb);if(dist(n,S)>1.6){mv(n,S.x,S.z,3,dt);return}for(const k in P.in)r.inv[k]-=P.in[k];c.st='work';c.t=0;c.carry=MAT[0]}}
- if(c.st==='work'){wb.act=r.tk;if(!enterBuilding(n,wb,target,dt)){n.cr=c.carry||0;return}n.ry=target.ry;n.cr=0;c.carry=0;wb.msg='stellt '+Object.keys(P.out||{}).map(k=>GN[k]).join(' / ');n.work=WK[n.k]||1;c.t+=dt;if(n.work===2&&c.t%1.1<dt)n.cd=1;if(c.t>=P.every){c.st='deliver';c.out=Object.keys(P.out)[0]}return}
+ if(c.st==='work'){wb.act=r.tk;let tg=target,pose=0;const rr=(wb.r||0)*Math.PI/2;
+  // Bäcker: Teig kneten → Brote mit dem Schieber in den Ofen → warten → fertige Brote herausholen → zum Tisch
+  if(wb.t==='bakery'){const f=c.t/P.every,at=(x,z,ry)=>({...fp(wb,x,z),ry:ry+rr});if(f<.3)tg=at(1.4,.95,0);else if(f<.42){tg=at(-1.75,-.12,Math.PI);pose=9}else if(f<.78)tg=at(-.8,-.3,Math.PI);else if(f<.9){tg=at(-1.75,-.12,Math.PI);pose=11}else{tg=at(1.4,.95,0);pose=11}}
+  if(wb.t==='butcher'&&c.rc==='carc')pose=10;   // Metzger zerteilt das Reh auf dem Tisch
+  if(!enterBuilding(n,wb,tg,dt)){n.cr=c.carry||0;if(pose===11)n.ps=11;return}n.ry=tg.ry;n.cr=0;c.carry=0;wb.msg='stellt '+Object.keys(P.out||{}).map(k=>GN[k]).join(' / ');n.work=pose?0:(WK[n.k]||1);n.ps=pose||n.ps;if(wb.t==='bakery'&&c.t/P.every>=.3&&c.t/P.every<.78&&!pose)n.work=0;c.t+=dt;if(n.work===2&&c.t%1.1<dt)n.cd=1;if(c.t>=P.every){c.st='deliver';c.out=Object.keys(P.out)[0]}return}
  if(c.st==='deliver'){n.cr=c.out;if(!exitBuilding(n,wb,dt))return;const g=P.dest==='garrison'?near(n,r.b.filter(b=>b.t==='garrison'),1e9):null,D=g?fp(g,0,BD.garrison.d/2+1.8):storeAt(r,wb);
   if(dist(n,D)>1.6){mv(n,D.x,D.z,3,dt);return}for(const k in P.out)r.inv[k]=Math.min(stockCap(r),r.inv[k]+P.out[k]);wb.msg='liefert '+Object.keys(P.out||{}).map(k=>GN[k]).join(' / ');n.cr=0;c.st='fetch'}}
 function autoAssign(r){const peas=r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk&&!n.manualIdle),kp=r.b.find(b=>b.t==='keep');let avail=peas.length-(r.b.some(b=>b.t==='garrison')?1:0);if(avail<=0||!kp)return;
@@ -320,7 +324,10 @@ function lifeTick(r,n,dt){if(SOLDIER.includes(n.k)||['watch','trader','hangman',
  if(!sleep&&!eve){if(n.slp)return wakeUp(r,n,dt);return false}
  if(!(T.job||n.k==='peasant'||n.k==='child'))return false;
  const tvs=r.b.filter(b=>b.t==='tavern');
- if(n.k==='keeper'&&eve){const tv=r.b.find(b=>b.id===n.wb&&b.t==='tavern');if(tv){const I=Rules.interior('tavern'),P=fp(tv,I.tap[0],I.tap[1]);if(enterBuilding(n,tv,{...P,ry:(tv.r||0)*Math.PI/2},dt)){n.ps=7;n.work=1}return true}}
+ if(n.k==='keeper'&&eve){const tv=r.b.find(b=>b.id===n.wb&&b.t==='tavern');if(tv){const I=Rules.interior('tavern'),rr=(tv.r||0)*Math.PI/2,kc=n.kc||(n.kc={s:'tap',t:0});
+   // Wirt: am Fass zapfen → Krug zum Gast tragen → abstellen → zurück
+   if(kc.s==='tap'){const P=fp(tv,-1.1,-2.05);if(enterBuilding(n,tv,{...P,ry:Math.PI+rr},dt)){n.ps=7;kc.t+=dt;if(kc.t>3.5){const g=r.n.filter(o=>o.evp==='tav'&&o.ps&&o.insideId===tv.id);if(g.length){const o=g[Math.random()*g.length|0],[lx,lz]=Rules.local(tv,o.x,o.z),T=I.tables.reduce((a,t)=>Math.hypot(t[0]-lx,t[1]-lz)<Math.hypot(a[0]-lx,a[1]-lz)?t:a);kc.s='go';kc.to=[T[0]-Math.sign(T[0]||1)*1.05,T[1]];kc.tb=T;kc.t=0}else kc.t=0}}return true}
+   const P=fp(tv,kc.to[0],kc.to[1]);n.ps=8;if(dist(n,P)>.15){mv(n,P.x,P.z,1.8,dt);return true}{const Tw=fp(tv,kc.tb[0],kc.tb[1]);n.ry=Math.atan2(Tw.x-n.x,Tw.z-n.z)}kc.t+=dt;if(kc.t>2){kc.s='tap';kc.t=0;if(r.inv.beer>0&&Math.random()<.5){r.inv.beer--;r.gold+=2}}return true}}
  if(eve&&n.k!=='child'&&tvs.length){if(n.evd!==r.dy){n.evd=r.dy;n.evp=Math.random()<.55?'tav':'home'}
   if(n.evp==='tav'){const tv=near(n,tvs,1e9),I=Rules.interior('tavern'),g=r.n.filter(o=>o.evp==='tav'&&o.evd===r.dy&&o.hp>0&&!o.sk).sort((a,b)=>a.id-b.id),i=g.indexOf(n);
    if(i>=0&&i<I.seats.length){const S=I.seats[i],P=fp(tv,S[0],S[1]);if(n.insideId&&n.insideId!==tv.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true}
