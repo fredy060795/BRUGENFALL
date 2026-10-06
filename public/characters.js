@@ -182,14 +182,39 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
 
 // Schilde für die linke Hand: Rundschild, Wappenschild, Normannenschild (Fläche zeigt nach vorn, +z)
 const SHM=new Map();function shm(c,o={}){const k=c+JSON.stringify(o);if(!SHM.has(k))SHM.set(k,new T.MeshStandardMaterial({color:c,roughness:.75,side:T.DoubleSide,...o}));return SHM.get(k)}
-export function shieldMesh(kind,col=0x8a2a22){const g=new T.Group();g.name='Shield:'+kind;const wood=shm(0x7a5a3a),iron=shm(0x55595c,{metalness:.6,roughness:.45}),paint=shm(col),light=shm(0xe8dcc0);
+// Wappenschild: geviert in Fraktionsfarbe und Silber, goldene Kreuzbänder mit Nieten, Löwen, Burgen und Doppeladler
+const HERALD=new Map();
+function heraldTex(col){const key=col;if(HERALD.has(key))return HERALD.get(key);const W=256,H=340,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),hex='#'+new T.Color(col).getHexString(),dk='#'+new T.Color(col).multiplyScalar(.7).getHexString();
+ const grain=(c1,c2,x0,y0,w,h)=>{x.fillStyle=c1;x.fillRect(x0,y0,w,h);for(let i=0;i<500;i++){x.fillStyle=Math.random()<.5?c2:'rgba(255,255,255,.08)';x.fillRect(x0+Math.random()*w,y0+Math.random()*h,2,2)}};
+ grain('#e4e2dc','#c8c6c0',0,0,W/2,H*.45);grain(hex,dk,W/2,0,W/2,H*.45);grain(hex,dk,0,H*.45,W/2,H*.55);grain('#e4e2dc','#c8c6c0',W/2,H*.45,W/2,H*.55);
+ const lion=(cx,cy,s)=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle='#5a5a58';x.strokeStyle='#2a2a28';x.lineWidth=2;x.beginPath();
+  x.moveTo(-14,26);x.lineTo(-10,6);x.lineTo(-20,-4);x.lineTo(-12,-8);x.lineTo(-6,-24);x.lineTo(4,-30);x.lineTo(12,-24);x.lineTo(8,-16);x.lineTo(16,-12);x.lineTo(8,-6);x.lineTo(14,4);x.lineTo(22,0);x.lineTo(18,12);x.lineTo(8,10);x.lineTo(10,26);x.lineTo(2,26);x.lineTo(0,12);x.lineTo(-6,26);x.closePath();x.fill();x.stroke();
+  x.beginPath();x.moveTo(-14,10);x.quadraticCurveTo(-30,0,-22,-14);x.stroke();x.restore()};
+ const castle=(cx,cy,s)=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle='#7a7468';x.strokeStyle='#2a2a28';x.lineWidth=2;x.fillRect(-22,-4,44,30);x.strokeRect(-22,-4,44,30);x.fillRect(-10,-26,20,22);x.strokeRect(-10,-26,20,22);
+  for(const[bx,by,bw]of[[-22,-10,8],[-8,-10,8],[14,-10,8],[-10,-32,6],[4,-32,6]]){x.fillRect(bx,by,bw,6);x.strokeRect(bx,by,bw,6)}x.fillStyle='#2a2420';x.beginPath();x.moveTo(-6,26);x.lineTo(-6,12);x.arc(0,12,6,Math.PI,0);x.lineTo(6,26);x.fill();x.restore()};
+ lion(W*.27,H*.24,1.6);castle(W*.73,H*.24,1.5);castle(W*.27,H*.72,1.5);lion(W*.73,H*.72,1.6);
+ // goldene Kreuzbänder
+ const gold=x.createLinearGradient(0,0,W,0);gold.addColorStop(0,'#a07818');gold.addColorStop(.5,'#f0d070');gold.addColorStop(1,'#a07818');x.fillStyle=gold;x.fillRect(W/2-9,0,18,H);x.fillRect(0,H*.45-9,W,18);
+ x.fillStyle='#fff2b0';for(let y=12;y<H;y+=26){x.beginPath();x.arc(W/2,y,2.6,0,7);x.fill()}for(let X=12;X<W;X+=26){x.beginPath();x.arc(X,H*.45,2.6,0,7);x.fill()}
+ // Doppeladler in der Mitte
+ x.save();x.translate(W/2,H*.45);x.fillStyle='#4a4a48';x.strokeStyle='#1a1a18';x.lineWidth=2;for(const sd of[-1,1]){x.beginPath();x.moveTo(0,-6);x.lineTo(sd*34,-26);x.lineTo(sd*30,-14);x.lineTo(sd*40,-12);x.lineTo(sd*30,-2);x.lineTo(sd*36,4);x.lineTo(sd*16,6);x.closePath();x.fill();x.stroke();x.beginPath();x.arc(sd*9,-24,6,0,7);x.fill();x.stroke()}
+ x.beginPath();x.ellipse(0,4,12,20,0,0,7);x.fill();x.stroke();x.fillStyle='#d8c070';x.beginPath();x.moveTo(-7,-36);x.lineTo(7,-36);x.lineTo(5,-30);x.lineTo(-5,-30);x.closePath();x.fill();x.fillStyle='#e8e4dc';x.beginPath();x.arc(0,4,7,0,7);x.fill();x.fillStyle=hex;x.fillRect(-1.5,-2,3,12);x.fillRect(-5,3,10,3);x.restore();
+ const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;const m=new T.MeshStandardMaterial({map:t,roughness:.55,metalness:.15});HERALD.set(key,m);return m}
+export function shieldMesh(kind,col=0x8a2a22){const g=new T.Group();g.name='Shield:'+kind;
+ if(kind==='heater'){const sh=new T.Shape();sh.moveTo(-.31,.42);sh.quadraticCurveTo(0,.34,.31,.42);sh.lineTo(.3,.06);sh.quadraticCurveTo(.27,-.28,0,-.46);sh.quadraticCurveTo(-.27,-.28,-.3,.06);sh.closePath();
+  const back=new T.ExtrudeGeometry(sh,{depth:.035,bevelEnabled:false});back.translate(0,0,-.035);mesh(back,shm(0x5a4028),g);
+  const face=new T.ShapeGeometry(sh,24),uv=face.attributes.uv,pp=face.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,(pp.getX(i)+.31)/.62,(pp.getY(i)+.46)/.88);mesh(face,heraldTex(col),g,[0,0,.002]);
+  const goldM=shm(0xc8a040,{metalness:.75,roughness:.3}),pts=sh.getPoints(48).map(p=>V(p.x,p.y,.004));mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts,true),80,.016,6,true),goldM,g);
+  for(let i=0;i<pts.length;i+=3){const p=pts[i];mesh(new T.SphereGeometry(.009,6,4),goldM,g,[p.x*.94,p.y*.95,.012])}
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
+const wood=shm(0x7a5a3a),iron=shm(0x55595c,{metalness:.6,roughness:.45}),paint=shm(col),light=shm(0xe8dcc0);
  if(kind==='round'){const d=mesh(new T.CylinderGeometry(.34,.34,.035,28),wood,g);d.rotation.x=Math.PI/2;for(let i=0;i<6;i++){const s=mesh(new T.BoxGeometry(.025,.66,.01),i%2?paint:wood,g,[-.28+i*.112,0,.02]);s.scale.y=Math.sqrt(Math.max(.05,1-((-.28+i*.112)/.34)**2))}
   const rim=mesh(new T.TorusGeometry(.34,.016,6,32),iron,g,[0,0,.012]);const boss=mesh(new T.SphereGeometry(.075,14,8,0,Math.PI*2,0,Math.PI/2),iron,g,[0,0,.02]);boss.rotation.x=Math.PI/2}
  else{const sh=new T.Shape();if(kind==='heater'){sh.moveTo(-.27,.3);sh.lineTo(.27,.3);sh.lineTo(.27,.05);sh.quadraticCurveTo(.25,-.22,0,-.38);sh.quadraticCurveTo(-.25,-.22,-.27,.05);sh.closePath()}
   else{sh.moveTo(0,.42);sh.quadraticCurveTo(.27,.4,.27,.2);sh.quadraticCurveTo(.22,-.3,0,-.62);sh.quadraticCurveTo(-.22,-.3,-.27,.2);sh.quadraticCurveTo(-.27,.4,0,.42)}
   const geo=new T.ExtrudeGeometry(sh,{depth:.03,bevelEnabled:true,bevelThickness:.008,bevelSize:.012,bevelSegments:1});geo.translate(0,0,-.015);mesh(geo,paint,g);
   const pts=sh.getPoints(40).map(p=>V(p.x,p.y,.025));mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts,true),60,.012,5,true),iron,g);
-  if(kind==='heater'){mesh(new T.BoxGeometry(.07,.6,.012),light,g,[0,-.04,.027]);mesh(new T.BoxGeometry(.5,.07,.012),light,g,[0,.12,.027])}
-  else{for(const a of[0,1,2,3]){const b=mesh(new T.BoxGeometry(.03,.42,.01),light,g,[0,-.05,.028]);b.rotation.z=a*Math.PI/4}mesh(new T.SphereGeometry(.05,10,6),iron,g,[0,-.05,.03])}}
+
+  {for(const a of[0,1,2,3]){const b=mesh(new T.BoxGeometry(.03,.42,.01),light,g,[0,-.05,.028]);b.rotation.z=a*Math.PI/4}mesh(new T.SphereGeometry(.05,10,6),iron,g,[0,-.05,.03])}}
  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
 export function setShield(c,kind,col){if(!c.isCharacter)return;if(c.shieldKind===kind&&c.shieldCol===col)return;if(c.shield){c.shield.removeFromParent();c.shield=null}c.shieldKind=kind;c.shieldCol=col;if(!kind)return;c.shield=shieldMesh(kind,col);c.shield.position.set(-.02,-.05,.07);c.left.wrist.add(c.shield)}

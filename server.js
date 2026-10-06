@@ -559,7 +559,7 @@ const TOOLR={hammer_wood:{tool:'hammer',m:'wood',in:{stick:3},at:null,n:'Holzham
  shingles:{good:'shingles',out:8,in:{wood:2},at:'bench',n:'Holzschindeln spalten'}};
 const toolEff=p=>{const t=p.tools[p.tool];return t?EFF[t.m]:1};
 function wear(r,p){const t=p.tools[p.tool];if(!t||r.set.wear===0)return;t.d-=1;p.bd=1;if(t.d<=0){delete p.tools[p.tool];tell(p,'💥 '+MATN[t.m]+'-'+TOOLN[p.tool]+' ist zerbrochen – stelle ein neues Werkzeug her');p.tool='none'}else if(t.d===10)tell(p,'⚠ '+TOOLN[p.tool]+' ist fast abgenutzt')}
-function startKit(r){if(r.surv)return{bag:{},tools:{hoe:{m:'stone',d:DUR.stone}},shields:{}};const T={};for(const k of['sword','axe','pickaxe','hoe','hammer'])T[k]={m:'iron',d:DUR.iron};T.bow={m:'wood',d:DUR.wood*2};return{bag:{},tools:T,shields:{round:1}}}
+function startKit(r){if(r.surv)return{bag:{},tools:{hoe:{m:'stone',d:DUR.stone}},shields:{}};const T={};for(const k of['sword','axe','pickaxe','hoe','hammer'])T[k]={m:'iron',d:DUR.iron};T.bow={m:'wood',d:DUR.wood*2};return{bag:{},tools:T,shields:{heater:1,round:1},sh:'heater'}}
 function sendMe(p){try{p.ws.send(JSON.stringify({t:'me',bag:p.bag,w:Math.round(bagW(p)*10)/10,max:BAG_MAX,tools:p.tools,shields:p.shields,sh:p.sh||'',tool:p.tool,sk:p.sk|0}))}catch(e){}p.bd=0}
 // ---- Bodenfunde (Stöcke, Steine) und Stroh am Fluss ----
 function seedLoose(r){r.lo=[];r.sw=[];const rnd0=makeRng(hashSeed('lo:'+(r.map&&r.map.name)+':'+SC(r)));

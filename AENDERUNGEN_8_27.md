@@ -81,3 +81,5 @@
 - Hafen: Tretradkran mit beiden Radkränzen auf einer Achse, Böcken und Mast mit Ausleger.
 - Jahrmarkt-Zelte ohne abstehende Stangen (Wimpel an der Spitze). Feste nur **einmal im Jahr**:
   Maibaum (Frühling), Jahrmarkt/Zirkus (Sommer), Weihnachtsbaum (Winter); Jubel nur dann am Marktplatz.
+- **Wappenschild als Standard**: geviert in Fraktionsfarbe und Silber, goldene Kreuzbänder und Rand mit Nieten,
+  Löwen, Burgen und Doppeladler. Schwertkämpfer/Ritter tragen ihn automatisch; Spieler starten damit (angelegt).
