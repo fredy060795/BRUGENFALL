@@ -27,20 +27,22 @@
  // läuft der Fluss durchgehend von Süd nach Nord? (nur dann fahren Handelsschiffe)
  function riverNS(map){const S=riverSamples(map);if(!S||S.open[0]||S.open[1])return false;for(let i=1;i<S.length;i++)if(S[i].z<=S[i-1].z)return false;return true}
  function riverX(z,map){const S=riverSamples(map);if(!S)return 1e6;let bx=S[0].x,bd=1e9;for(let i=0;i<S.length-1;i++){const a=S[i],b=S[i+1];if((z-a.z)*(z-b.z)<=0&&a.z!==b.z){const t=(z-a.z)/(b.z-a.z);return a.x+(b.x-a.x)*t}const d=Math.abs(a.z-z);if(d<bd){bd=d;bx=a.x}}return bx}
- function height(x,z,map){let h=smooth(Math.hypot(x,z),24,70)*(Math.sin(x*.042)*Math.cos(z*.037)*2.5+Math.sin(z*.077+x*.023)*1.1);const d=riverDist(x,z,map);return h*smooth(d,6,22)-(1-smooth(d,3,7.5))*2.6}
+ // Flaches Land ohne Hügel (Hügel störten Bauen und Wegfindung) – nur das Flussbett ist eingetieft
+ function height(x,z,map){const d=riverDist(x,z,map);return -(1-smooth(d,3,7.5))*2.6}
  const local=(b,x,z)=>{const a=(b.r||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a),dx=x-b.x,dz=z-b.z;return [dx*c-dz*s,dx*s+dz*c]};
  const world=(b,x,z)=>{const a=(b.r||0)*Math.PI/2,c=Math.cos(a),s=Math.sin(a);return [b.x+x*c+z*s,b.z-x*s+z*c]};
  function base(t,x,z,r,catalog,map){if(t==='bridge')return 0;if(t==='moat')return height(x,z,map);const d=catalog[t]||catalog;if(!d)return height(x,z,map);let h=-Infinity;const b={x,z,r};for(let i=0;i<=4;i++)for(let j=0;j<=4;j++){const p=world(b,(i/4-.5)*d.w,(j/4-.5)*d.d);h=Math.max(h,height(...p,map))}return h+.02}
  const NOSNAP=['field','hopfield','orchard','moat','bridge','fire','bed','road','path'];
  // Häuserzeilen: gleich ausgerichtete Gebäude rasten bündig aneinander (Front an Front ausgerichtet) oder Rücken an Rücken
- function snapTown(t,x,z,r,buildings,catalog,maxDist){const own=catalog[t];if(!own)return null;const[w,d]=dims(catalog,t,r);let best=null,bd=maxDist;
-  for(const b of buildings||[]){if(!b||!b.t||modular.includes(b.t)||NOSNAP.includes(b.t)||((b.r||0)&3)!==(r&3))continue;const other=catalog[b.t];if(!other)continue;const[w2,d2]=dims(catalog,b.t,b.r||0);
+ function snapTown(t,x,z,r,buildings,catalog,maxDist){const own=catalog[t];if(!own||!isRight(r))return null;r=Math.round(r);const[w,d]=dims(catalog,t,r);let best=null,bd=maxDist;
+  for(const b of buildings||[]){if(!b||!b.t||modular.includes(b.t)||NOSNAP.includes(b.t)||!isRight(b.r||0)||(Math.round(b.r||0)&3)!==(r&3))continue;const other=catalog[b.t];if(!other)continue;const[w2,d2]=dims(catalog,b.t,b.r||0);
    const rr=r&3,fx=rr===1?1:rr===3?-1:0,fz=rr===0?1:rr===2?-1:0,c=[];
    if(fz){const zf=b.z+fz*(d2-d)/2;c.push({x:b.x+(w+w2)/2,z:zf},{x:b.x-(w+w2)/2,z:zf},{x:b.x,z:b.z-fz*(d+d2)/2})}
    else{const xf=b.x+fx*(w2-w)/2;c.push({x:xf,z:b.z+(d+d2)/2},{x:xf,z:b.z-(d+d2)/2},{x:b.x-fx*(w+w2)/2,z:b.z})}
    for(const q of c){const dd=Math.hypot(q.x-x,q.z-z);if(dd<bd){bd=dd;best=q}}}
   return best?{x:best.x,z:best.z,snapped:true}:null}
  function snapPlacement(t,x,z,r,buildings,catalog,maxDist=1.6){
+  if(!isRight(r))return{x,z,snapped:false};
   if(!(modular.includes(t)||t==='moat')){if(NOSNAP.includes(t))return{x,z,snapped:false};return snapTown(t,x,z,r,buildings,catalog,Math.max(maxDist,2.4))||{x,z,snapped:false}}
   const own=catalog[t];if(!own)return{x,z,snapped:false};const [w,d]=dims(catalog,t,r);let best=null,bd=maxDist;
   for(const b of buildings||[]){
@@ -57,7 +59,11 @@
   return best?{x:best.x,z:best.z,snapped:true}:{x,z,snapped:false};
  }
  const passOverlap=(a,b)=>(modular.includes(a)&&modular.includes(b))||(a==='moat'&&['moat','gate','portcullis','bridge'].includes(b))||(b==='moat'&&['gate','portcullis','bridge'].includes(a));
- const dims=(catalog,t,r)=>{const d=catalog[t]||catalog;return (r&1)?[d.d,d.w]:[d.w,d.d]};
+ // Drehung r in Vierteldrehungen (frei: beliebige Bruchteile). Achsparallele Hüllmaße des gedrehten Grundrisses.
+ const isRight=r=>Math.abs((+r||0)-Math.round(+r||0))<1e-3;
+ const dims=(catalog,t,r)=>{const d=catalog[t]||catalog;r=+r||0;if(isRight(r))return (Math.round(r)&1)?[d.d,d.w]:[d.w,d.d];const a=r*Math.PI/2,c=Math.abs(Math.cos(a)),s=Math.abs(Math.sin(a));return[d.w*c+d.d*s,d.w*s+d.d*c]};
+ // Fester Startpunkt: nahe der Mitte, sicher abseits von Fluss und Orten
+ function spawnPoint(map){const m=map||worldConfig,H=half(m);for(let ring=0;ring<60;ring++){const R=ring*4,n=Math.max(1,ring*6);for(let i=0;i<n;i++){const a=i/n*Math.PI*2,x=Math.round(Math.cos(a)*R),z=Math.round(12+Math.sin(a)*R);if(Math.abs(x)>H-20||Math.abs(z)>H-20)continue;if(riverDist(x,z,m)<26)continue;if((m.towns||[]).some(t=>Math.hypot(t.x-x,t.z-z)<40))continue;return{x,z}}}return{x:0,z:12}}
  const drawbridge=(b,buildings)=>buildings.some(m=>{if(m.t!=='moat')return false;const [x,z]=local(b,m.x,m.z);return Math.abs(x)<3.5&&z>=0&&z<8});
  function separate(actors,passes=8){const size=2.5;for(let pass=0;pass<passes;pass++){const grid=new Map();for(const a of actors){const key=Math.floor(a.x/size)+','+Math.floor(a.z/size);if(!grid.has(key))grid.set(key,[]);grid.get(key).push(a)}for(const a of actors){const ix=Math.floor(a.x/size),iz=Math.floor(a.z/size);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(const b of grid.get((ix+dx)+','+(iz+dz))||[]){if(a.id>=b.id||Math.abs((a.el||0)-(b.el||0))>1.5)continue;let x=b.x-a.x,z=b.z-a.z,d=Math.hypot(x,z),r=(a.radius||.42)+(b.radius||.42);if(d>=r)continue;if(d<1e-7){const angle=(a.id*2.399+b.id*1.618)%6.283;x=Math.cos(angle);z=Math.sin(angle);d=1e-7}const l=Math.hypot(x,z);x/=l;z/=l;const push=(r-d)/2;a.x-=x*push;a.z-=z*push;b.x+=x*push;b.z+=z*push}}}}
  
@@ -97,6 +103,7 @@
   }else if(!allowEmpty){
     for(const r of baseMap.rocks){if(r)map.rocks.push(fixPoint(r,10))}
   }
+  if(src.spawn&&Number.isFinite(+src.spawn.x)&&Number.isFinite(+src.spawn.z))map.spawn={x:clamp(Math.round(+src.spawn.x),-ML,ML),z:clamp(Math.round(+src.spawn.z),-ML,ML)};
   // Mindest-Füllung nur wenn allowEmpty=false
   if(!allowEmpty){
     // Dörfer und Banditenlager sind optional – nichts mehr nachfüllen
@@ -105,6 +112,7 @@
     if(!map.forests.length)map.forests=baseMap.forests.map(f=>({...f}));
     if(!map.rocks.length)map.rocks=baseMap.rocks.map(r=>({...r}));
   }
+  if(!map.spawn||riverDist(map.spawn.x,map.spawn.z,map)<14)map.spawn=spawnPoint(map);
   return JSON.parse(JSON.stringify(map))
  }
  const cloneMap=map=>sanitizeMap(map);
@@ -116,13 +124,19 @@
  function scaleMap(src,s){s=clamp(Math.round(+s||1),1,5);const m=sanitizeMap(src,true),old=m.scale||1,f=s/old;if(f===1)return m;
   const rnd=makeRng(hashSeed('scale:'+s+':'+(m.name||''))),ML=MAP_LIMIT*s,mv=o=>({...o,x:Math.round(o.x*f),z:Math.round(o.z*f)});
   const out={...m,scale:s,towns:m.towns.map(mv),ores:m.ores.map(mv),forests:m.forests.map(mv),rocks:m.rocks.map(mv)};
-  if(m.rpath)out.rpath=m.rpath.map(mv);else if(!m.noRiver)out.rpath=riverPath(m).map(mv);
+  if(m.spawn)out.spawn=mv(m.spawn);if(m.rpath)out.rpath=m.rpath.map(mv);else if(!m.noRiver)out.rpath=riverPath(m).map(mv);
   const tmp={...out},ok=(x,z,pad)=>riverDist(x,z,tmp)>pad&&!out.towns.some(t=>Math.hypot(t.x-x,t.z-z)<40);
   const fill=(arr,n,make)=>{for(let k=0,tries=0;k<n&&tries<n*40;tries++){const x=Math.round((rnd()*2-1)*ML),z=Math.round((rnd()*2-1)*ML);if(!ok(x,z,18))continue;arr.push(make(x,z));k++}};
   const extra=Math.round(f*f-1);fill(out.forests,Math.max(4,m.forests.length*extra),(x,z)=>{const b=m.forests[Math.floor(rnd()*m.forests.length)]||{r:20,d:24};return{x,z,r:b.r,d:b.d}});
   fill(out.rocks,Math.max(2,m.rocks.length*extra),(x,z)=>{const b=m.rocks[Math.floor(rnd()*m.rocks.length)]||{r:12,d:16};return{x,z,r:b.r,d:b.d}});
   fill(out.ores,Math.max(2,Math.round(m.ores.length*(f-1)*1.5)),(x,z)=>({k:rnd()<.5?'iron':'copper',x,z}));
   return sanitizeMap(out,true)}
- const api={WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ // Dacheindeckung je Gebäude/Variante: Strohdach braucht Stroh, Ziegel-/Schiefer-/Schindeldächer brauchen Holzschindeln
+ const WORKSHOPS=['bakery','bower','lumber','storage','dairy','butcher','smokehouse','tannery','weaver','fishery'];
+ function roofKind(t,v){v=(v|0)&3;const S='straw',H='shingles';
+  if(t==='house'||t==='market')return[S,H,S,H][v];if(t==='granary')return[H,S,H,H][v];if(WORKSHOPS.includes(t))return[H,S,H,H][v];
+  if(['bighouse','apothecary','armorer','smithy','brewery','tavern','chapel','church','cathedral','armory','watchpost','well','harbor','mill'].includes(t))return H;
+  if(['lodge','farm','cow','sheep','pigsty','keep'].includes(t))return S;return null}
+ const api={roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

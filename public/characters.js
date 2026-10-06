@@ -14,6 +14,9 @@ function box(parent,mat,s,p){return mesh(new T.BoxGeometry(...s),mat,parent,p)}
 function lathe(parent,mat,points,s,p){const o=mesh(new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),16),mat,parent,p);o.scale.set(...s);return o}
 export function weapon(type){const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);
  if(type==='none')return g;
+ if(type==='torch'){rod(g,oak,[0,-.28,0],[0,.3,0],.022,.026);ell(g,dark,[.045,.06,.045],[0,.33,0]);const fm=[0xffc03a,0xff7a1a,0xfff0a0].map(c=>new T.MeshBasicMaterial({color:c}));g.userData.flames=[];
+  for(let n=0;n<3;n++){const f=mesh(new T.ConeGeometry(.055-n*.012,.2+n*.05,6),fm[n],g,[(n-1)*.012,.47+n*.03,0]);f.castShadow=false;g.userData.flames.push(f)}
+  const l=new T.PointLight(0xffaa55,20,13,2);l.position.y=.55;g.add(l);g.userData.light=l;return g}
  if(type==='sword'){
  rod(g,leather,[0,-.09,0],[0,.09,0],.023);ell(g,steel,[.035,.04,.027],[0,-.13,0]);box(g,steel,[.23,.035,.05],[0,.115,0]);
  const shape=new T.Shape();shape.moveTo(-.034,.14);shape.lineTo(.034,.14);shape.lineTo(.026,.82);shape.lineTo(0,.99);shape.lineTo(-.026,.82);shape.closePath();const blade=mesh(new T.ExtrudeGeometry(shape,{depth:.012,bevelEnabled:true,bevelThickness:.007,bevelSize:.006,bevelSegments:1,steps:1}),steel,g);blade.position.z=-.006;
@@ -169,9 +172,24 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
   else{const K0=SWK[kind][0];h=V(K0[1],K0[2],K0[3]);d=V(K0[4],K0[5],K0[6]).normalize();tan=FW.clone()}
   R=h.clone();q=toolQ(d,tan);Lh=two?R.clone().addScaledVector(d,-.25):V(-.3,1,.25)}
  if(fx.firstPerson&&!SW&&!bow&&!busy){R.y=Math.max(R.y,1.2);R.z=Math.max(R.z,.45);Lh.y=Math.max(Lh.y,1.15);Lh.z=Math.max(Lh.z,.4)}
- if(fx.torch&&!two&&!bow&&!busy){Lh=V(-.3,1.15,.38);qL=Eu(.35,0,.15)}
+ if(fx.shield&&!two&&!bow&&!busy){Lh=fx.firstPerson?V(-.32,1.28,.5+(SW?.08:0)):V(-.24,1.12,.36+(SW?.08:0));qL=Eu(0,fx.firstPerson?.5:.25,0)}
+ else if(fx.torch&&!two&&!bow&&!busy){Lh=V(-.3,1.15,.38);qL=Eu(.35,0,.15)}
  up.rotation.set(ux,uy-yawA,uz);pel.rotation.y=py-yawA*.45;up.scale.y=1+br*.004;
  if(yawA)q=Eu(0,yawA,0).multiply(q);
  const L=v=>{v=v.clone();if(yawA){const c=Math.cos(yawA),s=Math.sin(yawA);v.set(v.x*c+v.z*s,v.y,-v.x*s+v.z*c)}v.y-=.95;return v};
  solve(g.right,L(R),q);solve(g.left,L(Lh),qL||(two?q:new T.Quaternion()));
 }
+
+// Schilde für die linke Hand: Rundschild, Wappenschild, Normannenschild (Fläche zeigt nach vorn, +z)
+const SHM=new Map();function shm(c,o={}){const k=c+JSON.stringify(o);if(!SHM.has(k))SHM.set(k,new T.MeshStandardMaterial({color:c,roughness:.75,side:T.DoubleSide,...o}));return SHM.get(k)}
+export function shieldMesh(kind,col=0x8a2a22){const g=new T.Group();g.name='Shield:'+kind;const wood=shm(0x7a5a3a),iron=shm(0x55595c,{metalness:.6,roughness:.45}),paint=shm(col),light=shm(0xe8dcc0);
+ if(kind==='round'){const d=mesh(new T.CylinderGeometry(.34,.34,.035,28),wood,g);d.rotation.x=Math.PI/2;for(let i=0;i<6;i++){const s=mesh(new T.BoxGeometry(.025,.66,.01),i%2?paint:wood,g,[-.28+i*.112,0,.02]);s.scale.y=Math.sqrt(Math.max(.05,1-((-.28+i*.112)/.34)**2))}
+  const rim=mesh(new T.TorusGeometry(.34,.016,6,32),iron,g,[0,0,.012]);const boss=mesh(new T.SphereGeometry(.075,14,8,0,Math.PI*2,0,Math.PI/2),iron,g,[0,0,.02]);boss.rotation.x=Math.PI/2}
+ else{const sh=new T.Shape();if(kind==='heater'){sh.moveTo(-.27,.3);sh.lineTo(.27,.3);sh.lineTo(.27,.05);sh.quadraticCurveTo(.25,-.22,0,-.38);sh.quadraticCurveTo(-.25,-.22,-.27,.05);sh.closePath()}
+  else{sh.moveTo(0,.42);sh.quadraticCurveTo(.27,.4,.27,.2);sh.quadraticCurveTo(.22,-.3,0,-.62);sh.quadraticCurveTo(-.22,-.3,-.27,.2);sh.quadraticCurveTo(-.27,.4,0,.42)}
+  const geo=new T.ExtrudeGeometry(sh,{depth:.03,bevelEnabled:true,bevelThickness:.008,bevelSize:.012,bevelSegments:1});geo.translate(0,0,-.015);mesh(geo,paint,g);
+  const pts=sh.getPoints(40).map(p=>V(p.x,p.y,.025));mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts,true),60,.012,5,true),iron,g);
+  if(kind==='heater'){mesh(new T.BoxGeometry(.07,.6,.012),light,g,[0,-.04,.027]);mesh(new T.BoxGeometry(.5,.07,.012),light,g,[0,.12,.027])}
+  else{for(const a of[0,1,2,3]){const b=mesh(new T.BoxGeometry(.03,.42,.01),light,g,[0,-.05,.028]);b.rotation.z=a*Math.PI/4}mesh(new T.SphereGeometry(.05,10,6),iron,g,[0,-.05,.03])}}
+ g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
+export function setShield(c,kind,col){if(!c.isCharacter)return;if(c.shieldKind===kind&&c.shieldCol===col)return;if(c.shield){c.shield.removeFromParent();c.shield=null}c.shieldKind=kind;c.shieldCol=col;if(!kind)return;c.shield=shieldMesh(kind,col);c.shield.position.set(-.02,-.05,.07);c.left.wrist.add(c.shield)}

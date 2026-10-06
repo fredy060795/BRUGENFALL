@@ -25,7 +25,7 @@ function taper(pts,r0,r1,col=[1,1,1],seg=7,n=16){const cv=new T.CatmullRomCurve3
 const SP={
  horse:{L:1.7,body:[[0,1.36,1.16,.04],[.05,1.5,1.05,.2],[.18,1.6,.98,.27],[.35,1.58,.94,.28],[.55,1.56,.92,.27],[.75,1.62,.96,.27],[.88,1.62,1.03,.23],[.97,1.5,1.12,.15],[1,1.4,1.2,.05]],
   fl:{y:1.12,z:.6,seg:[.42,.36,.2],r:[.075,.05,.042,.035],hoof:'solid'},hl:{y:1.18,z:-.62,seg:[.5,.38,.2],r:[.1,.055,.042,.035],hoof:'solid'},
-  neck:{y:1.48,z:.72,len:.72,w:[.14,.11,.09],d:[.24,.17,.13],crest:.06,rest:.75},head:{len:.6,prof:[[0,.1,-.1,.1],[.25,.11,-.12,.105],[.55,.06,-.1,.075],[.85,.02,-.09,.07],[1,-.01,-.07,.045]],ear:[.05,.14],eyeZ:.18},
+  neck:{y:1.48,z:.72,len:.74,w:[.17,.13,.1],d:[.34,.24,.17],crest:.1,rest:.75},head:{len:.6,prof:[[0,.1,-.1,.1],[.25,.11,-.12,.105],[.55,.06,-.1,.075],[.85,.02,-.09,.07],[1,-.01,-.07,.045]],ear:[.05,.14],eyeZ:.18},
   tail:{y:1.4,len:.75,hair:1},cols:[[0x6b4a2b,'bay'],[0x8a5a30,'chestnut'],[0x3a2a20,'black'],[0x9a9a96,'grey'],[0xb08a5a,'dun'],[0x5a3a24,'bay']]},
  cow:{L:1.6,body:[[0,1.3,.95,.05],[.05,1.38,.82,.24],[.2,1.4,.7,.31],[.45,1.38,.62,.34],[.65,1.38,.66,.32],[.82,1.42,.74,.28],[.95,1.32,.85,.18],[1,1.22,.95,.05]],
   fl:{y:.9,z:.56,seg:[.34,.3,.14],r:[.085,.055,.045,.04],hoof:'cloven'},hl:{y:.98,z:-.58,seg:[.4,.32,.14],r:[.1,.06,.045,.04],hoof:'cloven'},
@@ -98,9 +98,14 @@ export function createAnimal(kind='cow',opts={}){const S=SP[kind]||SP.cow,r=rnd(
   g.body.add(hip);g.legs.push({up:hip,lo:kn,ank:an})});
  // Hals + Kopf
  const N=S.neck;g.neck=new T.Group();g.neck.position.set(0,N.y,N.z);g.body.add(g.neck);add(g.neck,neckGeo(S,C),mat);
- if(kind==='horse'){const mc=C.fn('mane',0,0,0),mm=new T.MeshStandardMaterial({color:mc,roughness:.9,side:T.DoubleSide});         // Mähne: Haarsträhnen entlang des Kamms
-  for(const s of[-1,1])add(g.neck,grid((u,v)=>{const t=.05+.95*v,len=.07+.05*Math.abs(Math.sin(v*31)),y=t*N.len,zc=-N.d[1]*.48-.01;return[s*(.01+u*len*.6),y-u*len*.6,zc-u*.02,.8+.2*Math.sin(v*50),.8+.2*Math.sin(v*50),.8+.2*Math.sin(v*50)]},2,24),mm)}
+ if(kind==='horse'){const mc=C.fn('mane',0,0,0).clone().multiplyScalar(.55),mm=new T.MeshStandardMaterial({color:mc,roughness:.9,side:T.DoubleSide});         // Mähne: Haarsträhnen entlang des Kamms
+  // markante Mähne: dichter Kamm auf dem Mähnenkamm, lange Strähnen fallen zur Seite, Schopf zwischen den Ohren
+  const dz=t=>t<.5?lerp(N.d[0],N.d[1],t*2):lerp(N.d[1],N.d[2],(t-.5)*2);
+  add(g.neck,grid((u,v)=>{const t=.02+.98*v,y=t*N.len,zc=-dz(t)*.5+.02,a=(u-.5)*2.4;return[Math.sin(a)*.05,y+Math.cos(a)*.06,zc-.03*Math.cos(a),.85,.85,.85]},10,24),mm);
+  for(const s of[1,-1])add(g.neck,grid((u,v)=>{const t=.03+.95*v,len=(s>0?.2:.15)+.07*Math.abs(Math.sin(v*37)),y=t*N.len,zc=-dz(t)*.5+.01,c=.75+.25*Math.sin(v*61+u*3);return[s*(.035+u*len*.55),y+.03-u*len*.85,zc-u*.035,c,c,c]},3,30),mm);
+  g.maneMat=mm}
  g.head=new T.Group();g.head.position.set(0,N.len,.02);g.neck.add(g.head);add(g.head,headGeo(S,C),mat);
+ if(kind==='horse'&&g.maneMat)for(let q=0;q<5;q++){const x=(q-2)*.018;add(g.head,taper([[x,.12,-.05],[x*1.4,.1,.04],[x*1.8,.02,.1]],.018,.004,[.9,.9,.9],5,6),g.maneMat)}   // Stirnschopf
  const H=S.head,Lh=H.len,hp=t=>[prof(H.prof,t,1),prof(H.prof,t,2),prof(H.prof,t,3)],ez=-.12*Lh+H.eyeZ/Lh*Lh;
  for(const s of[-1,1]){const[tp,,w]=hp(H.eyeZ/Lh);const e=add(g.head,sph,eyeM,[s*w*.92,tp*.35,ez+.0],[.022,.02,.024]);add(g.head,sph,mat,[s*w*.93,tp*.35+.016,ez],[.026,.01,.028])}   // Augen + Lid
  if(H.snout){const tip=-.12*Lh+Lh;add(g.head,new T.CylinderGeometry(.07,.075,.04,16),new T.MeshStandardMaterial({color:C.base.clone().multiplyScalar(.8),roughness:.6}),[0,-.015,tip],[1,1,.85]).rotation.x=Math.PI/2;
@@ -140,7 +145,10 @@ function tack(g,S,col){const lea=new T.MeshStandardMaterial({color:0x4a2e1a,roug
  add(g.body,grid((u,v)=>{const s=.4+.26*v,a=(u-.5)*2.2,p=surf(s,a,.012);return[...p,1,1,1]},16,10),cloth);                                            // Satteldecke
  add(g.body,grid((u,v)=>{const s=.45+.16*v,a=(u-.5)*1.5,p=surf(s,a,.03),cant=.06*ssm(.52,.45,s)+.035*ssm(.55,.61,s);return[p[0],p[1]+cant*Math.cos(a),p[2],1,1,1]},12,10),lea);   // Sattel mit Zwiesel & Hinterzwiesel
  add(g.body,grid((u,v)=>{const s=.54+.02*u,a=v*2*Math.PI,p=surf(s,a,.015);return[...p,1,1,1]},2,24),lea);                                           // Sattelgurt
- for(const sd of[-1,1]){const p=surf(.53,sd*1.57,.03);add(g.body,new T.BoxGeometry(.012,.32,.02),lea,[p[0],p[1]-.08,p[2]]);add(g.body,new T.TorusGeometry(.04,.007,5,12,Math.PI),st,[p[0],p[1]-.26,p[2]]).rotation.z=Math.PI}
+ {const pf=surf(.62,0,.03),pb=surf(.44,0,.03);add(g.body,new T.SphereGeometry(.09,12,8,0,Math.PI*2,0,Math.PI/2),lea,[pf[0],pf[1]+.02,pf[2]],[1.2,1.1,.8]);add(g.body,new T.CylinderGeometry(.03,.04,.1,8),lea,[pf[0],pf[1]+.1,pf[2]+.01]);                // Sattelknauf (Zwiesel)
+  const cant=new T.Mesh(new T.TorusGeometry(.13,.035,6,14,Math.PI),lea);cant.position.set(pb[0],pb[1]+.02,pb[2]);cant.castShadow=true;g.body.add(cant);                                                                                   // Hinterzwiesel
+  for(const sd of[-1,1]){const p=surf(.53,sd*1.2,.04);add(g.body,new T.BoxGeometry(.015,.26,.3),lea,[p[0]+sd*.01,p[1]-.06,p[2]]).rotation.z=sd*.35}}                                                                                // Sattelblätter
+ for(const sd of[-1,1]){const p=surf(.53,sd*1.57,.04);add(g.body,new T.BoxGeometry(.014,.44,.026),lea,[p[0]+sd*.01,p[1]-.16,p[2]]);const sr=add(g.body,new T.TorusGeometry(.05,.009,5,12),st,[p[0]+sd*.02,p[1]-.4,p[2]]);sr.rotation.y=Math.PI/2;add(g.body,new T.BoxGeometry(.03,.012,.1),st,[p[0]+sd*.02,p[1]-.45,p[2]])}
  const H=S.head,Lh=H.len;for(const t of[.12,.7]){const tp=prof(H.prof,t,1),bt=prof(H.prof,t,2),w=prof(H.prof,t,3),z=-.12*Lh+t*Lh;add(g.head,grid((u,v)=>{const a=u*2*Math.PI;return[(w+.01)*Math.sin(a),(tp+bt)/2+((tp-bt)/2+.01)*Math.cos(a),z+(v-.5)*.025,1,1,1]},18,1),lea)}
  const bt=-.12*Lh+Lh*.85;for(const s of[-1,1])add(g.head,new T.TorusGeometry(.025,.005,5,12),st,[s*.06,-.05,bt]).rotation.y=Math.PI/2;
  const rp=[[.06,-.05,bt],[.08,-.1,bt-.2],[.12,-.2,bt-.4]];add(g.head,taper(rp,.005,.005,[1,1,1],5,8),lea);add(g.head,taper(rp.map(p=>[-p[0],p[1],p[2]]),.005,.005,[1,1,1],5,8),lea)}
