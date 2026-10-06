@@ -286,7 +286,18 @@ function woodCycle(r,n,wb,B,dt,X,Z){const c=n.cy||(n.cy={st:'seek'}),blk=fp(wb,-
  if(c.st==='haul'){n.cr='logs';const P=fp(wb,1.4,B.d/2+1.2);if(dist(n,P)>1.4){mv(n,P.x,P.z,2.6,dt);return}wb.lg=(wb.lg||0)+c.n;c.k=c.n;c.st='split';c.t2=0;n.cr=0}
  if(c.st==='split'){wb.act=r.tk;if(dist(n,blk)>1.2){mv(n,blk.x,blk.z,2.8,dt);return}n.ry=Math.PI;n.work=2;c.t2+=dt;if(c.t2%1.1<dt)n.cd=1;if(c.t2>=2*c.k){wb.lg=Math.max(0,(wb.lg||0)-c.k);c.o=c.k;c.st='deliver'}return}
  if(c.st==='deliver'){n.cr='wood';const D=storeAt(r,wb);if(dist(n,D)>1.6){mv(n,D.x,D.z,3,dt);return}r.inv.wood=Math.min(stockCap(r),r.inv.wood+c.o);r.inv.shingles=Math.min(stockCap(r),(r.inv.shingles||0)+Math.floor(c.o*1.5));n.cr=0;c.st='seek'}}
-function work(r,n,dt){const eve=r.hr>=18||r.hr<6||(r.omen>0&&n.k!=='priest');
+// Pestdoktor: bei Krankheit im Ort macht der Heiler in Schnabelmaske Hausbesuche; besuchte Kranke genesen schneller
+const sickHome=(r,o)=>r.b.find(b=>b.id===o.hid&&(b.t==='house'||b.t==='bighouse'))||r.b.find(b=>b.id===o.insideId);
+function plagueVisit(r,n,dt){const sick=r.n.filter(o=>o.sk&&o.hp>0&&o!==n);if(!sick.length){if(n.pd){n.pd=0;n.visit=0;n.pv=null}return false}
+ if(!n.pd){n.pd=1;say(r,'🩺 Krankheit im Ort – der Heiler legt die Pestdoktor-Tracht an und macht Hausbesuche',n)}
+ const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true;
+ let tgt=n.pv&&r.b.find(b=>b.id===n.pv.b);
+ if(!tgt||n.pv.t<=0||!sick.some(o=>sickHome(r,o)===tgt)){const H=[...new Set(sick.map(o=>sickHome(r,o)).filter(Boolean))].sort((a,b)=>dist(n,a)-dist(n,b));
+  if(!H.length){const o=near(n,sick,1e9);n.visit=0;if(o&&dist(n,o)>1.6)mv(n,o.x,o.z,2.6,dt);return true}
+  tgt=H.length>1&&n.pv&&H[0].id===n.pv.b?H[1]:H[0];n.pv={b:tgt.id,t:16}}
+ const D=fp(tgt,0,BD[tgt.t].d/2+1.4);if(dist(n,D)>1.2){n.visit=0;mv(n,D.x,D.z,2.6,dt);return true}
+ n.visit=tgt.id;n.pv.t-=dt;n.ry=Math.atan2(tgt.x-n.x,tgt.z-n.z);return true}
+function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))return;if(n.k==='healer'&&n.pd&&!r.n.some(o=>o.sk&&o.hp>0)){n.pd=0;n.visit=0}const eve=r.hr>=18||r.hr<6||(r.omen>0&&n.k!=='priest');
  if(eve){const old=r.b.find(b=>b.id===n.insideId);if(old&&old.id!==n.hid&&!exitBuilding(n,old,dt))return;const h=homeOf(r,n)||r.b.find(b=>b.t==='keep')||{x:0,z:6};n.home=h;if(h.id)enterBuilding(n,h,fp(h,0,-.5),dt);else mv(n,h.x,h.z,3.2,dt);return}n.home=null;
  if(n.tr){const g=near(n,r.b.filter(b=>b.t==='garrison'),1e9);if(!g){n.tr=null;return}
   const X=g.x,Z=g.z+5.5;if(dist(n,{x:X,z:Z})>1.2){mv(n,X,Z,2.8,dt);return}
@@ -356,7 +367,7 @@ function sickTick(r,n,dt,stf){if(n.hp<=0)return;if(SICK_IMMUNE.has(n.k)){n.sk=0;
  n.work=0;n.cr=0;n.aim=0;n.cd=0;n.vis=null;n.pr=0;n.el=0;const home=homeOf(r,n)||r.b.find(b=>b.t==='keep');if(!home)return;const old=r.b.find(b=>b.id===n.insideId&&b.id!==home.id);if(old&&!exitBuilding(n,old,dt))return;n.home=home;const slot=r.n.filter(o=>o.hid===home.id&&o.hp>0).findIndex(o=>o.id===n.id),target=fp(home,((Math.max(0,slot)%3)-1)*.85,-.5-Math.floor(Math.max(0,slot)/3)*.7);if(!enterBuilding(n,home,target,dt))return;
  const ap=near(n,(r.healers||[]).filter(h=>h.cap>0).map(h=>h.b),1e9),healer=ap&&(r.healers||[]).find(h=>h.b===ap&&h.cap>0),pr=(r.priests||[]).find(p=>p.cap>0);
  if(pr){pr.cap--;n.sickTime=Math.max(0,n.sickTime-dt*.22);if(n.sk===1&&Math.random()<.012*dt)n.sickStage=Math.max(0,n.sickStage-dt*2)}
- if(healer){healer.cap--;const med=r.inv.potions>0?'potion':(r.inv.herbs|0)>=1?'herbs':'care';n.cu=(n.cu||0)+dt*(pr?1.25:1)*(med==='potion'?1:med==='herbs'?.6:.3);n.sickStage=Math.max(0,n.sickStage-dt*.5);
+ const doc=r.n.some(h=>h.k==='healer'&&h.hp>0&&h.visit&&h.visit===home.id);if(healer||doc){if(healer)healer.cap--;const med=r.inv.potions>0?'potion':(r.inv.herbs|0)>=1?'herbs':'care';n.cu=(n.cu||0)+dt*(pr?1.25:1)*(doc?2.5:1)*(med==='potion'?1:med==='herbs'?.6:.3);n.sickStage=Math.max(0,n.sickStage-dt*.5);
   if(n.cu>=10+n.sk*4){n.cu=0;n.sickStage=0;if(med==='potion')r.inv.potions--;else if(med==='herbs')r.inv.herbs--;
    if(n.sk>1){n.sk--;n.sickTime=Math.max(0,n.sickTime-90);say(r,'💊 Ein Bewohner wurde versorgt – der Zustand bessert sich')}
    else{n.sk=0;n.sickTime=0;n.imm=r.dy+6;n.hp=Math.min(NT[n.k].hp,n.hp+20);say(r,{potion:'💊 Ein Bewohner wurde mit Heiltrank geheilt',herbs:'🌿 Ein Bewohner wurde mit Kräutern geheilt',care:'🤲 Ein Bewohner wurde gesund gepflegt'}[med]+' (6 Tage immun)')}}}
@@ -516,7 +527,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT,r.map)+.1-Rules.height(n.x,n.z,r.map)):0;}}
  const actors=[...r.pl.values(),...r.n.filter(n=>n.hp>0),...r.e.filter(n=>n.hp>0),...r.dr,...r.w];const before=new Map([...r.pl.values()].map(p=>[p.id,[p.x,p.z]]));for(const actor of actors)actor.radius=actor.mt?.75:(r.dr.includes(actor)||r.w.includes(actor))?.6:.42;Rules.separate(actors);for(const p of r.pl.values()){const q=before.get(p.id);p.push=[r2(p.x-q[0]),r2(p.z-q[1])]}
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0,p.fc||0,p.tool==='sword'&&p.sh&&p.shields[p.sh]?p.sh:'',p.coa|0]),
-  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0]),
+  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
   w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0)]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),
   evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};

@@ -562,7 +562,7 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(new T.BoxGeometry(.38,o.female?.05:.085,.07),hairM,H,[s*.3,.43,.93]).rotation.z=-s*.16;
   mesh(ball,M.skin,H,[s*.88,0,-.02],[.1,.26,.17]).rotation.y=s*.3}
  mesh(new T.BoxGeometry(.28,.032,.045),new T.MeshStandardMaterial({color:0x4a1f1f}),H,[0,-.535,.93]);
- const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec',hidden=['helmet','hood','scarf','sallet','coifL','wimple','skullcap','gugel','gugelL'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
+ const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec'||hat==='plague',hidden=['helmet','hood','scarf','sallet','coifL','wimple','skullcap','gugel','gugelL'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
  if(!hidden&&o.hairStyle!=='bald'){const L=o.hairStyle==='long'||o.hairStyle==='braid';
   mesh(shell(geo,o.hairStyle==='tonsure'?(x,y,z)=>(y>.1&&y<.62&&z<.5)||(z<.1&&y>-.15&&y<.62):(x,y,z)=>y>.5||(z<.12&&y>(L?-.95:-.15)),.07,.05),hairM,H);
   if(L)mesh(new T.CylinderGeometry(.95,.8,2.4,20,1,true,Math.PI*.55,Math.PI*.9),new T.MeshStandardMaterial({color:o.hair,roughness:.85,side:T.DoubleSide}),H,[0,-1.25,-.12]);
@@ -597,6 +597,15 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   const bm=hatMat('cloth',o.hatCol||0x2a2a4a);mesh(cg('beret',()=>lat([[0,1.55],[.7,1.58],[1.25,1.42],[1.45,1.22],[1.32,1.05],[1.08,.92],[1.02,.85],[1.0,.95],[1.2,1.08],[1.05,1.32],[.6,1.45],[0,1.48]],30)),bm,H,[0,0,0],[1,1,1]).rotation.z=-.12;
   mesh(cg('brooch',()=>new T.SphereGeometry(.12,10,8)),hatMat('gold'),H,[.95,1.15,.55]);
   const fw=hatMat('feather',0xf0ece2);for(let f=0;f<3;f++)mesh(cg('plf'+f,()=>{const pts=[];for(let k=0;k<=14;k++){const t=k/14;pts.push(new T.Vector3(.95+.4*t+f*.06,1.2+1.0*t-.6*t*t,.5-1.6*t))}return new T.TubeGeometry(new T.CatmullRomCurve3(pts),18,.11-.02*f,6,false)}),f?hatMat('feather',0xd8c090):fw,H)}
+ if(hat==='plague'){     // Pestdoktor: Lederkapuze, Schnabelmaske mit Glasaugen, breitkrempiger Hut
+  const bk=garMat('leather',0x161412),bone=hatMat('cloth',0xe2d6b8),gl=new T.MeshStandardMaterial({color:0x1a2a2c,metalness:.5,roughness:.15}),br=hatMat('gold');
+  buildCoif(g,H,geo,o,bk,{shellOff:.13,teeth:0,hem0:1.27,top1:1.6,top0:1.53,topR:.105});
+  mesh(cg('pdface',()=>new T.SphereGeometry(1,22,16,Math.PI/2-1.4,2.8,.7,1.85)),bone,H,[0,-.02,.02],[1.13,1.12,1.15]);
+  const bkM=mesh(cg('pdbeak',()=>new T.ConeGeometry(.42,2.1,16)),bone,H,[0,-.62,1.95]);bkM.rotation.x=Math.PI/2+.42;bkM.scale.set(1,1,.82);
+  ring(H,hatMat('band',0x8a6a40),1.02,-.3,.06,1.0);
+  for(const sd of[-1,1]){const e=mesh(cg('pdeye',()=>new T.CylinderGeometry(.24,.24,.1,18)),gl,H,[sd*.38,.2,1.08]);e.rotation.x=Math.PI/2;const rr=mesh(cg('pdrim',()=>new T.TorusGeometry(.25,.05,6,18)),br,H,[sd*.38,.2,1.13])}
+  const hm=hatMat('felt',0x181614);mesh(cg('pdhat',()=>lat([[0,1.68],[.85,1.68],[1.02,1.5],[1.08,1.1],[1.1,.92],[2.25,.86],[2.35,.8],[2.2,.78],[1.08,.84],[0,.86]],32)),hm,H);
+  ring(H,hatMat('band',0x3a2a1a),1.09,.98,.1,1.04)}
  // Körperkleidung – jede Lage liegt auf der darunterliegenden auf
  const bel=o.build==='stout'?.045:0,dirt=o.dirt||0,dz={belly:bel,dirt};let base=null;
  if(o.outfit==='gambeson'){buildGambeson(g,o);addLayer(g,{P:GBP,chest:.07,chestW:.09,disp:()=>[GB.amp,1]});if(o.mailShirt){mesh(garment('mail',MAILS),mailMat(2.24,1.79),g);addLayer(g,MAILS,{ymin:.6,ymax:1.48})}if(o.breast){breastplate(g,AR);addLayer(g,{P:GBP,chest:.085,chestW:.15,disp:()=>[GB.amp+.016,1]},{ymin:.86,ymax:1.39})}}

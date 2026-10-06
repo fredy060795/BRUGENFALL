@@ -18,6 +18,7 @@ export function weapon(type){const g=new T.Group();g.name=type;g.userData.second
   if(type==='lance'){lathe(g,steel,[[.0,0],[.11,.02],[.035,.32],[.028,.34]],[1,1,1],[0,.05,0]);const tip=mesh(new T.ConeGeometry(.03,.22,6),steel,g,[0,L-.8,0]);ell(g,leather,[.05,.06,.05],[0,L-.98,0])}
   else{const s=new T.Shape();s.moveTo(-.04,0);s.lineTo(.04,0);s.lineTo(.01,.32);s.lineTo(0,.36);s.lineTo(-.01,.32);s.closePath();const h=mesh(new T.ExtrudeGeometry(s,{depth:.012,bevelEnabled:false}),steel,g,[0,L-.92,-.006]);box(g,steel,[.12,.025,.03],[0,L-.92,0])}
   return g}
+ if(type==='staff'){const dk=new T.MeshStandardMaterial({color:0x2a1e16,roughness:.8});rod(g,dk,[0,-.95,0],[0,.75,0],.013,.011);ell(g,dk,[.024,.03,.024],[0,.77,0]);return g}   // Zeigestab des Pestdoktors
  if(type==='crossbow'){box(g,oak,[.06,.7,.07],[0,.05,0]);const p=mesh(new T.TorusGeometry(.3,.018,5,16,Math.PI),steel,g,[0,.32,0]);p.rotation.x=Math.PI/2;p.rotation.z=Math.PI;
   const sm=new T.MeshStandardMaterial({color:0xe8e0c8,roughness:1});rod(g,sm,[-.3,.32,0],[0,.12,0],.004);rod(g,sm,[.3,.32,0],[0,.12,0],.004);box(g,steel,[.04,.06,.05],[0,-.15,.03]);return g}
  if(type==='torch'){rod(g,oak,[0,-.28,0],[0,.3,0],.022,.026);ell(g,dark,[.045,.06,.045],[0,.33,0]);const fm=[0xffc03a,0xff7a1a,0xfff0a0].map(c=>new T.MeshBasicMaterial({color:c}));g.userData.flames=[];

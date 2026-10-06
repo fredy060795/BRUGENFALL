@@ -135,3 +135,7 @@
 - **Klappvisier**: Visierhelm und Hundsgugel haben ein Visier an Drehbolzen – im Kampf geschlossen, sonst offen;
   eigenes Visier mit **Y** auf-/zuklappen.
 - Kapuzen, Hauben und Masken werden jetzt in ihrer Stofffarbe gezeigt (vorher immer schwarz).
+- **Pestdoktor**: Bricht im Ort eine Krankheit aus, legt der Heiler die Pestdoktor-Tracht an (Schnabelmaske mit
+  Glasaugen, breitkrempiger Hut, Lederkapuze, langer schwarzer Mantel, Handschuhe, Zeigestab) und macht Hausbesuche
+  von Krankenhaus zu Krankenhaus (je ca. 16 s an der Tür). Kranke in besuchten Häusern genesen 2,5× schneller.
+  Ist niemand mehr krank, trägt er wieder seine normale Kleidung.
