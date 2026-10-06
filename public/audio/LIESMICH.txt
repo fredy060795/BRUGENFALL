@@ -1,0 +1,30 @@
+Burgenfall – Sounds
+Jeder Unterordner ist ein Sound. Einfach MP3/OGG/WAV-Dateien hineinlegen; liegen mehrere
+Dateien im Ordner, wird zufällig gewechselt. Fehlt ein Sound, nutzt das Spiel den eingebauten
+Ersatzklang. Lautstärken: Optionen → Audio (Musik, Effekte, Umgebung).
+
+Ordner und wann sie spielen:
+  Hintergrundmusik   Musik in Schleife (Regler „Musik“)
+  Tavernensound      Umgebung nahe der Taverne
+  Schmiede           Hämmern, wenn der Schmied arbeitet
+  Baecker            Umgebung nahe der Bäckerei (noch leer)
+  Webberei           Webstuhl nahe der Weberei (noch leer)
+  Kuhstall / Schafstall / Schweinestall   Tiere im Stall und auf der Weide
+  Feldarbeit-Hacke   Hacke (Spieler und Bauern)
+  Holzhacken         Axt (Spieler und Holzfäller)
+  Steinabbau         Spitzhacke, Steinbruch, Minen
+  Schwertkampf       Schwerthiebe
+  Pfeil              Bogenschuss / Treffer
+  Angriff-Banditen   wenn Banditen angreifen
+  Feuer-in-der-Stadt brennende Gebäude (Schleife, solange es brennt)
+  Gebaeude-Einsturz  wenn ein Gebäude zerstört wird
+  Tod                wenn jemand stirbt
+  Totenglocke        Läuten nach einem Todesfall (Kapelle/Kirche)
+  Kirchenglocken     6, 12 und 18 Uhr sowie zum Gebet
+  Jubel / Buhrufe    Feste bzw. Hinrichtungen auf dem Dorfplatz
+  Menschen-reden     Markt und Dorfplatz am Tag
+  Vogelgesang        tagsüber im Grünen
+  Regen              bei Regenwetter (Schleife)
+  Husten             in der Nähe Kranker
+  Pferd-Galopp       beim Reiten
+  Schritte-Holz      auf Brücken und Holzböden

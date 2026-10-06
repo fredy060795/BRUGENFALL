@@ -1,0 +1,1 @@
+Hier eine oder mehrere MP3-Dateien ablegen – sie werden automatisch erkannt und abwechselnd abgespielt.
