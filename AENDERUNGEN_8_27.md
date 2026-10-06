@@ -139,3 +139,40 @@
   Glasaugen, breitkrempiger Hut, Lederkapuze, langer schwarzer Mantel, Handschuhe, Zeigestab) und macht Hausbesuche
   von Krankenhaus zu Krankenhaus (je ca. 16 s an der Tür). Kranke in besuchten Häusern genesen 2,5× schneller.
   Ist niemand mehr krank, trägt er wieder seine normale Kleidung.
+
+# Burgenfall 8.30 – Tagesablauf, Innenleben, Kirche, Nachtruhe
+
+## Tagesablauf der Bewohner
+- **Abends (18–22 Uhr)** gehen Bewohner in die **Taverne** (feste Sitzplätze, Krug heben, aus Schüsseln essen) oder essen
+  daheim am Tisch. Der **Wirt** zapft am Fass und trägt die Krüge zu den Tischen.
+- **Nachts** steigen die Bewohner über die **Treppen** in die Obergeschosse und **legen sich in ihre Betten**; morgens
+  steigen sie wieder hinunter.
+- **Innenräume**: Wohnhäuser mit Treppen, Deckenöffnungen, Betten mit Truhen, Esstisch mit Bänken, Herd mit Feuer,
+  Regal; Taverne mit Theke, liegenden Zapffässern und drei Tischen mit Bänken; Kapelle und Kirche mit Bankreihen und Taufbecken.
+- **Arbeitsanimationen**: Bäcker knetet, schiebt die Brote mit dem Schieber in den Ofen, wartet und holt sie heraus;
+  Metzger zerteilt das Reh auf dem Tisch mit dem Hackbeil.
+
+## Kirche
+- **Gottesdienst**: Die Gläubigen sitzen betend in den Bänken (feste Plätze – kein Zappeln mehr), der Priester predigt.
+- **Hochzeit** vor dem Altar mit Gästen, **Taufe** am Taufbecken nach jeder Geburt, **Beerdigung** mit Gebet des
+  Priesters und knienden Trauernden am Grab.
+- **Prozession** alle drei Tage: Priester bzw. **Bischof** (Mitra, Krummstab) mit Kreuzträger und Gefolge durch die Stadt.
+- **Dom**: verputzte Gewölbekappen zwischen den Kreuzrippen, bemalte Heiligenfiguren am Portal.
+
+## Wild
+- Rehe bekommen **Kitze**, die der Mutter folgen und heranwachsen; der Wildbestand fällt nie unter ein Minimum.
+- Erlegte Rehe **fallen um** und bleiben als **Wildkadaver** liegen (E aufheben, 20 kg). Der Jäger bringt Kadaver zum
+  Metzger (4 Fleisch + Fell); ohne Metzger im Inventar selbst zerlegen (2 Fleisch + Fell).
+
+## Nacht
+- **Stadttore schließen um 20 Uhr** und öffnen um 6 Uhr; Soldaten passieren jederzeit.
+- Soldaten im Wachmodus **patrouillieren nachts mit Fackeln** innen an der Stadtmauer entlang.
+- **Wölfe** greifen nachts jeden an, der sich außerhalb eines Hauses aufhält (Fackel oder Lagerfeuer schützen);
+  bei geschlossener Stadtmauer kommen sie nicht hinein.
+
+## Sonstiges
+- **Freiflug / Vogelperspektive** (F2 oder Menü → Kamera): WASD, Q hoch, E runter, Shift schnell.
+- Beim Laden erscheint der Spieler **vor dem Bergfried**.
+- Marktgeräusche nur, wenn Menschen am Platz sind; Jubel nur beim Jahrmarkt.
+- Wohnhaus-Ausbau mit Strohdach kostet Stroh statt Schindeln; fehlendes Material wird markiert.
+- Armbrust mit Stahlbogen am Schaftende, Spannbügel, Nuss und Abzugsbügel; Bogenschützen und Lanzenträger tragen Eisenhut.

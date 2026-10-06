@@ -311,6 +311,11 @@ function plagueVisit(r,n,dt){const sick=r.n.filter(o=>o.sk&&o.hp>0&&o!==n);if(!s
   tgt=H.length>1&&n.pv&&H[0].id===n.pv.b?H[1]:H[0];n.pv={b:tgt.id,t:16}}
  const D=fp(tgt,0,BD[tgt.t].d/2+1.4);if(dist(n,D)>1.2){n.visit=0;mv(n,D.x,D.z,2.6,dt);return true}
  n.visit=tgt.id;n.pv.t-=dt;n.ry=Math.atan2(tgt.x-n.x,tgt.z-n.z);return true}
+// Stadtmauer-Ring: Mittelpunkt, Radius und Patrouillenpunkte innen entlang der Mauer (gecacht)
+function wallRing(r){if(r.wrT===r.tk)return r.wr;r.wrT=r.tk;if(r.tk%40&&r.wr!==undefined)return r.wr;const W=r.b.filter(b=>['wall','battle','palisade','tower','gate','portcullis'].includes(b.t));if(W.length<6){r.wr=null;return null}
+ const C={x:W.reduce((a,b)=>a+b.x,0)/W.length,z:W.reduce((a,b)=>a+b.z,0)/W.length},R=W.reduce((a,b)=>a+dist(b,C),0)/W.length;if(R<8){r.wr=null;return null}
+ const S=[...W].sort((a,b)=>Math.atan2(a.z-C.z,a.x-C.x)-Math.atan2(b.z-C.z,b.x-C.x)),step=Math.max(1,Math.floor(S.length/24)),pts=[];for(let i=0;i<S.length;i+=step){const b=S[i],d=dist(b,C)||1,k=Math.max(0,(d-3)/d);pts.push({x:C.x+(b.x-C.x)*k,z:C.z+(b.z-C.z)*k})}
+ r.wr={C,R,pts};return r.wr}
 // ---- Tagesablauf: abends Taverne oder Abendessen daheim, nachts über die Treppe ins eigene Bett, morgens wieder hinunter ----
 const resIdx=(r,n,h)=>r.n.filter(o=>o.hid===h.id&&o.hp>0).sort((a,b)=>a.id-b.id).indexOf(n);
 function pathStep(n,b,pts,i,dt){const tg=pts[i],W=fp(b,tg.x,tg.z),pv=i>0?pts[i-1]:null;
@@ -513,7 +518,10 @@ r.wt-=dt;if(r.wt<=0){
  for(let day=dayBefore+1;day<=r.dy;day++)villageDay(r,day);
  const night=r.hr>=20||r.hr<5;
  if(!night)r.w=[];else if(r.pl.size&&r.w.length<3+2*r.pl.size&&Math.random()<dt*.2){const P=[...r.pl.values()],q=P[Math.random()*P.length|0],a=rnd(0,6.28),d=rnd(30,42);r.w.push({id:uid++,x:q.x+Math.cos(a)*d,z:q.z+Math.sin(a)*d,hp:40,cd:0,ry:0})}
- const fires=r.b.filter(b=>b.t==='fire'),safe=o=>o.torch||(o.home&&dist(o,o.home)<3)||fires.some(f=>dist(f,o)<8),ground=r.n.filter(n=>!n.el);
+ const fires=r.b.filter(b=>b.t==='fire'),safe=o=>o.torch||o.insideId||fires.some(f=>dist(f,o)<8),ground=r.n.filter(n=>!n.el);
+ // Wölfe: nachts um jeden, der draußen ist (Spieler und Bewohner außerhalb der Häuser); bei geschlossener Stadtmauer bleiben sie draußen
+ if(night&&r.w.length<3+2*r.pl.size&&Math.random()<dt*.08){const out=r.n.filter(n=>n.hp>0&&!n.insideId&&!n.el&&!n.torch);if(out.length){const q=out[Math.random()*out.length|0],a=rnd(0,6.28),d=rnd(28,40);r.w.push({id:uid++,x:q.x+Math.cos(a)*d,z:q.z+Math.sin(a)*d,hp:40,cd:0,ry:0})}}
+ {const WR=wallRing(r),closed=WR&&r.b.some(b=>(b.t==='gate'||b.t==='portcullis'))&&r.b.filter(b=>b.t==='gate'||b.t==='portcullis').every(b=>b.st);if(WR&&closed)for(const w of r.w){const d=dist(w,WR.C);if(d<WR.R+1.5){const k=(WR.R+1.5)/(d||1);w.x=WR.C.x+(w.x-WR.C.x)*k;w.z=WR.C.z+(w.z-WR.C.z)*k}}}
  for(const w of r.w){w.cd-=dt;const t=near(w,[...r.pl.values(),...ground].filter(o=>!safe(o)),22);if(!t)continue;if(dist(w,t)>1.6)mv(w,t.x,t.z,4.2,dt);else if(w.cd<=0){t.hp-=6;w.cd=1}}
  for(const d of r.dr)if(!d.w||mv(d,d.w.x,d.w.z,1.5,dt)<1)d.w={x:d.x+rnd(-15,15),z:d.z+rnd(-15,15)};
  r.deerTimer=(r.deerTimer||0)+dt;if(r.deerTimer>=60){r.deerTimer=0;if(r.dr.length<Math.min(120,14*SC(r)*SC(r))){for(let attempt=0;attempt<30;attempt++){const d=newDeer(r);if(!r.b.some(b=>dist(d,b)<reach(b)+4)&&![...r.pl.values()].some(p=>dist(d,p)<18)){r.dr.push(d);break}}}}
@@ -553,6 +561,7 @@ r.wt-=dt;if(r.wt<=0){
   }
   if(T.job){work(r,n,dt);continue}
   // Patrouille: Soldaten stürmen Banditen aktiv entgegen (größere Suchreichweite)
+  if(SOLDIER.includes(n.k))n.torch=0;
   const patrolCharge=(n.m==='patrol'&&SOLDIER.includes(n.k));
   const rngE=T.rng+(n.el?8:0)+(patrolCharge?28:0),e=near(n,[...r.e,...r.w],rngE+(RANGED.includes(n.k)?0:10)+(patrolCharge?40:0));
   if(e){if(dist(n,e)>T.rng+(n.el?8:0)){if(!n.el)mv(n,e.x,e.z,T.spd*(patrolCharge?1.25:1),dt)}else{n.ry=Math.atan2(e.x-n.x,e.z-n.z);if(RANGED.includes(n.k))n.aim=Math.max(0,Math.min(1,1-n.cd/(T.cd-.25)));if(n.cd<=0){if(RANGED.includes(n.k))shoot(r,n,e,T.dmg);else e.hp-=T.dmg;n.cd=T.cd}}continue}
@@ -561,9 +570,12 @@ r.wt-=dt;if(r.wt<=0){
   const o=r.pl.get(n.o);
   if(n.m==='follow'&&!o){n.m='guard';n.p={x:n.x,z:n.z}}
   if(n.m==='follow'){const X=o.x+Math.cos(n.i)*3,Z=o.z+Math.sin(n.i)*3;if(Math.hypot(X-n.x,Z-n.z)>1.2)mv(n,X,Z,T.spd*1.3,dt)}
-  else if(n.m==='guard'){if(dist(n,n.p)>.8)mv(n,n.p.x,n.p.z,T.spd,dt)}
+  else if(n.m==='guard'&&(r.hr>=20||r.hr<6)&&wallRing(r)){const W=wallRing(r).pts;if(n.npw===undefined){let bi=0,bd=1e9;W.forEach((q,i)=>{const d=dist(n,q);if(d<bd){bd=d;bi=i}});n.npw=bi}const q=W[n.npw%W.length];n.torch=1;if(mv(n,q.x,q.z,T.spd*.5,dt)<.8)n.npw=(n.npw+(n.id%2?1:W.length-1))%W.length}
+  else if(n.m==='guard'){n.npw=undefined;if(dist(n,n.p)>.8)mv(n,n.p.x,n.p.z,T.spd,dt)}
   else if(mv(n,n.w.x,n.w.z,T.spd*.7,dt)<1){if(n.a.town){const kp=r.b.find(b=>b.t==='keep')||{x:0,z:0},L=r.b.filter(b=>!['field','moat','bridge','bed','fire','hopfield'].includes(b.t)&&Math.hypot(b.x-kp.x,b.z-kp.z)<200);const b=L[Math.random()*L.length|0]||kp;n.w={x:b.x+rnd(-4,4),z:b.z+BD[b.t||'house'].d/2+2+rnd(0,3)}}else{const a=rnd(0,6.28),d=rnd(0,n.a.r);n.w={x:n.a.x+Math.cos(a)*d,z:n.a.z+Math.sin(a)*d}}}}
- const moats=r.b.filter(b=>b.t==='moat');const alert=r.e.some(e=>!e.camp);for(const b of r.b)if(b.t==='gate'||b.t==='portcullis'){const w=(b.man===undefined?alert:!!b.man)?1:0;if((b.st|0)!==w){b.st=w;r.dirty=true}}
+ const moats=r.b.filter(b=>b.t==='moat');const alert=r.e.some(e=>!e.camp),ngt=r.hr>=20||r.hr<6,gates=r.b.filter(b=>b.t==='gate'||b.t==='portcullis');
+ if(r.gNight!==ngt){r.gNight=ngt;for(const b of gates)delete b.man;if(gates.length)say(r,ngt?'🌙 Die Stadttore werden für die Nacht geschlossen – nur Soldaten passieren':'🌅 Die Stadttore werden geöffnet')}
+ for(const b of gates){let w=(b.man===undefined?(alert||ngt):!!b.man)?1:0;if(w&&!alert&&r.n.some(n=>SOLDIER.includes(n.k)&&n.hp>0&&!n.el&&dist(n,b)<6))w=0;if((b.st|0)!==w){b.st=w;r.dirty=true}}
  for(const e of r.e){e.cd-=dt;
   if(e.camp){const t=near(e,[...ground,...r.pl.values()],16);if(t&&dist(e,{x:e.hx,z:e.hz})<26){if(dist(e,t)>1.8)mv(e,t.x,t.z,2.8,dt);else if(e.cd<=0){t.hp-=8;e.cd=1}}else if(dist(e,{x:e.hx,z:e.hz})>1.5)mv(e,e.hx,e.hz,2.4,dt);continue}const t=near(e,[...ground,...r.pl.values()],8)||near(e,r.b.filter(b=>b.t!=='moat'&&b.t!=='bridge'),1e9);if(!t)continue;
   if(dist(e,t)>(t.t?reach(t):1.8))mv(e,t.x,t.z,2.6*(moats.some(m=>Math.abs(e.x-m.x)<2.4&&Math.abs(e.z-m.z)<2.4)?.4:1),dt);else if(e.cd<=0){t.hp-=t.t?2.5:8;e.cd=t.t?1.4:1;if(t.t)r.under=true}}
@@ -604,7 +616,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT,r.map)+.1-Rules.height(n.x,n.z,r.map))+(n.fl||0):0;}else n.fl=0}
  const actors=[...r.pl.values(),...r.n.filter(n=>n.hp>0&&!n.ps&&!n.pr&&!n.slp),...r.e.filter(n=>n.hp>0),...r.dr,...r.w];const before=new Map([...r.pl.values()].map(p=>[p.id,[p.x,p.z]]));for(const actor of actors)actor.radius=actor.mt?.75:(r.dr.includes(actor)||r.w.includes(actor))?.6:.42;Rules.separate(actors);for(const p of r.pl.values()){const q=before.get(p.id);p.push=[r2(p.x-q[0]),r2(p.z-q[1])]}
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0,p.fc||0,p.tool==='sword'&&p.sh&&p.shields[p.sh]?p.sh:'',p.coa|0]),
-  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.wb&&(r.b.find(b=>b.id===n.wb)||{}).t==='cathedral'?1:0]),
+  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.wb&&(r.b.find(b=>b.id===n.wb)||{}).t==='cathedral'?1:0,n.torch&&SOLDIER.includes(n.k)?1:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
   w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),
   evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
