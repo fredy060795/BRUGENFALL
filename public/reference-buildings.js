@@ -588,8 +588,9 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    const plight=()=>{};   // keine Deko-Lampen außen
    if(k==='chapel'){for(const x of[-.55,.55])box(.14,1.1,.14,x,6.35,-3.6,H.wood);box(1.3,.14,.6,0,6.95,-3.6,H.shingle);
     geo(new T.CylinderGeometry(.14,.26,.36,10,1,true),0,6.25,-3.6,H.brass);cross(0,-0+7.45,-3.6,.8,H.wood);for(const x of[-1.25,1.25])plight(x,2.3,4.0)}
-   if(k==='church'){geo(new T.ConeGeometry(2.05,5.2,8),0,14.2,5.4,H.slate,0,Math.PI/8);for(let q=0;q<4;q++){const a=q*Math.PI/2;geo(new T.ConeGeometry(.22,1.1,6),Math.sin(a)*1.25,12.1,5.4+Math.cos(a)*1.25,H.slate)}
-    cross(0,17.3,5.4,1.2,H.brass);geo(new T.SphereGeometry(.16,10,8),0,16.85,5.4,H.brass);cross(0,9.4,-6.05,1);for(const x of[-1.05,1.05])plight(x,2.5,5.95)}
+   if(k==='church'){// Turmhelm sitzt innerhalb der Zinnen (Turm 2,8 m breit), nicht darüber hinaus
+    geo(new T.ConeGeometry(1.15,5.6,8),0,14.35,5.4,H.slate,0,Math.PI/8);for(const cx of[-1,1])for(const cz of[-1,1])geo(new T.ConeGeometry(.16,.9,6),cx*1.18,12.75,5.4+cz*1.18,H.slate)
+    cross(0,17.45,5.4,1.2,H.brass);geo(new T.SphereGeometry(.16,10,8),0,17.1,5.4,H.brass);cross(0,9.4,-6.05,1);for(const x of[-1.05,1.05])plight(x,2.5,5.95)}
   }
   const snap=new Map([...batches].map(([m,l])=>[m,l.length]));(T2[k]||(()=>{if(R()<.5)woodpile(left,0,3,1.2)}))();
   // Bodengegenstände als eigene Gruppe: der Client blendet sie aus, wenn ein Nachbargebäude direkt angrenzt
