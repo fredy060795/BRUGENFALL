@@ -51,7 +51,8 @@ export function createMedievalMaterials(){
  for(const [name,file,tile,color,nscale,rough]of[['stone',A,0,'#b6ab92',1.1,.92],['wood',A,1,'#544434',.8,.86],['plaster',A,2,'#d8c8a0',.45,.95],['thatch',A,3,'#a7955c',1.0,.98],['redRoof',B,0,'#9b4e34',1.0,.8],['slate',B,1,'#52606a',.9,.66],['shingle',B,2,'#938068',.9,.88],['floor',B,3,'#76644e',.7,.84]]){
   const map=atlasTile(file+'-hd.jpg',tile,color),normalMap=atlasTile(file+'-normal.jpg',tile,'#8080ff',true),roughnessMap=atlasTile(file+'-rough.jpg',tile,'#e0e0e0',true);
   materials[name]=weather(new T.MeshStandardMaterial({map,normalMap,normalScale:new T.Vector2(nscale,nscale),roughnessMap,roughness:rough}),W[name]);materials[name].name=name;}
- materials.iron=new T.MeshStandardMaterial({color:0x333639,metalness:.65,roughness:.57});materials.green=new T.MeshStandardMaterial({color:0x344f38,roughness:.9});materials.dark=new T.MeshStandardMaterial({color:0x272522,roughness:1});materials.brass=new T.MeshStandardMaterial({color:0xb19650,metalness:.55,roughness:.4});return materials;
+ materials.win=new T.MeshStandardMaterial({color:0x2a2620,roughness:.35,emissive:0xffa848,emissiveIntensity:0});materials.win.name='windowGlow';
+ materials.winDark=new T.MeshStandardMaterial({color:0x1e1c1a,roughness:.4});materials.iron=new T.MeshStandardMaterial({color:0x333639,metalness:.65,roughness:.57});materials.green=new T.MeshStandardMaterial({color:0x344f38,roughness:.9});materials.dark=new T.MeshStandardMaterial({color:0x272522,roughness:1});materials.brass=new T.MeshStandardMaterial({color:0xb19650,metalness:.55,roughness:.4});return materials;
 }
 export function boxUV(geo,scale=2){const p=geo.attributes.position,n=geo.attributes.normal,uv=geo.attributes.uv;for(let i=0;i<p.count;i++){const x=Math.abs(n.getX(i)),y=Math.abs(n.getY(i));uv.setXY(i,(x>.5?p.getZ(i):p.getX(i))/scale,(y>.5?p.getZ(i):p.getY(i))/scale)}uv.needsUpdate=true;return geo}
 // Bleiglasfenster: Rand aus Rubin/Saphir, blauer Grund mit Rauten, drei Medaillons mit Figur, Kreuz bzw. Stern, Vierpass im Bogen
@@ -121,7 +122,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
  function window(x,y,z,side=0,width=.85,height=1.1,stone=false){
  // Fenster nie im Türstock: auf der Türseite seitlich neben die Tür schieben (oder weglassen)
  if(Math.abs(Math.sin(side))<.01)for(const D of g._doors||[]){if(Math.abs(z-D.z)>.3||y-height/2>D.h+.15)continue;const need=D.w/2+.3+(stone?width/2:width);if(Math.abs(x-D.x)<need){const nx=D.x+(x>=D.x?1:-1)*need;if(g._halfW&&Math.abs(nx)+(stone?width/2:width)>g._halfW-.1)return;x=nx}}
- (g._wins=g._wins||[]).push({x,y,z,side,w:width,h:height});const group=new T.Group();group.position.set(x,y,z);group.rotation.y=side;const put=(w,h,d,mat,xx,yy,zz)=>{const mesh=new T.Mesh(boxUV(new T.BoxGeometry(w,h,d)),mat);mesh.position.set(xx,yy,zz);group.add(mesh)};put(width,height,.06,H.dark,0,0,0);for(const a of[-1,1])put(.1,height+.15,.12,stone?H.stone:H.wood,a*width/2,0,.04);for(const a of[-1,1])put(width+.15,.12,.14,stone?H.stone:H.wood,0,a*height/2,.04);put(.045,height,.13,H.wood,0,0,.09);put(width,.045,.13,H.wood,0,0,.09);if(!stone)for(const a of[-1,1])put(width*.4,height,.07,H.green,a*width*.8,0,0);g.add(group)}
+ (g._wins=g._wins||[]).push({x,y,z,side,w:width,h:height});const group=new T.Group();group.position.set(x,y,z);group.rotation.y=side;const put=(w,h,d,mat,xx,yy,zz)=>{const mesh=new T.Mesh(boxUV(new T.BoxGeometry(w,h,d)),mat);mesh.position.set(xx,yy,zz);group.add(mesh)};put(width,height,.06,stone?H.dark:((Math.round(x*7+z*13+y*3)&3)===0?(H.winDark||H.dark):(H.win||H.dark)),0,0,0);for(const a of[-1,1])put(.1,height+.15,.12,stone?H.stone:H.wood,a*width/2,0,.04);for(const a of[-1,1])put(width+.15,.12,.14,stone?H.stone:H.wood,0,a*height/2,.04);put(.045,height,.13,H.wood,0,0,.09);put(width,.045,.13,H.wood,0,0,.09);if(!stone)for(const a of[-1,1])put(width*.4,height,.07,H.green,a*width*.8,0,0);g.add(group)}
  function chimney(x,z,y){box(.65,2.7,.7,x,y+1.35,z,H.stone);box(.8,.15,.85,x,y+2.7,z,H.stone);box(.45,.02,.5,x,y+2.79,z,H.dark)}
  function barrel(x,z,y=0){cylinder(.32,.72,x,y+.36,z,H.wood);for(const yy of[.15,.58]){const geo=new T.TorusGeometry(.327,.025,5,14);geo.rotateX(Math.PI/2);geo.translate(x,y+yy,z);staticMesh(geo,H.iron)}}
  function table(x,z){box(1.6,.12,.75,x,.86,z,H.wood);for(const xx of[-.65,.65])box(.12,.8,.55,x+xx,.4,z,H.wood,true)}
@@ -532,7 +533,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
   const SOLID=['house','bighouse','apothecary','bakery','smithy','armorer','armory','bower','weaver','tavern','butcher','dairy','brewery','tannery','smokehouse','granary','storage','keep','garrison','lodge','mill'].includes(k);
   if(EMB&&SOLID){const sx=bw/2-.12,sz=front+.06,sy=2.45;beam([sx,sy+.45,sz],[sx,sy+.45,sz+.75],.05,H.iron);beam([sx,sy+.2,sz],[sx,sy+.45,sz+.4],.04,H.iron);
    box(.06,.5,.62,sx,sy,sz+.45,H.wood);for(const dz of[.2,.7])beam([sx,sy+.25,sz+dz],[sx,sy+.45,sz+dz],.015,H.iron);
-   const ex=sx+.045,ez=sz+.45,ey=sy,met=H.iron,gold=H.brass||met;
+   for(const sd of[1,-1]){const ex=sx+sd*.045,ez=sz+.45,ey=sy,met=H.iron,gold=H.brass||met;   // Symbol auf beiden Seiten der Tafel
    if(EMB==='anvil'){box(.04,.1,.32,ex,ey-.05,ez,met);box(.04,.08,.14,ex,ey+.04,ez-.04,met);box(.04,.05,.1,ex,ey+.1,ez+.07,met)}
    if(EMB==='helmet')geo(new T.SphereGeometry(.13,12,8,0,Math.PI*2,0,Math.PI/2),ex,ey-.06,ez,met,0,0,Math.PI/2,.3,1,1);
    if(EMB==='bow')geo(new T.TorusGeometry(.18,.015,5,16,Math.PI),ex,ey-.05,ez,H.wood,0,Math.PI/2,Math.PI/2);
@@ -542,11 +543,11 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    if(EMB==='spool'){geo(new T.CylinderGeometry(.08,.08,.18,10),ex,ey,ez,col(0xb83a2a));for(const d of[-.1,.1])geo(new T.CylinderGeometry(.11,.11,.02,10),ex,ey+d,ez,H.wood)}
    if(EMB==='mortar'){geo(new T.CylinderGeometry(.11,.07,.14,10),ex,ey-.06,ez,col(0x8a8478));beam([ex,ey,ez-.04],[ex,ey+.16,ez+.06],.025,H.wood)}
    if(EMB==='cleaver'||EMB==='axe'||EMB==='pick'){beam([ex,ey-.18,ez-.12],[ex,ey+.16,ez+.08],.03,H.wood);box(.03,EMB==='pick'?.05:.13,EMB==='pick'?.3:.12,ex,ey+.12,ez+.06,met)}
-   if(EMB==='hide')geo(new T.CircleGeometry(.2,7),ex+.005,ey,ez,col(0x8a6a48),0,Math.PI/2,0,1,1.2,1);
+   if(EMB==='hide')geo(new T.CircleGeometry(.2,7),ex+sd*.005,ey,ez,col(0x8a6a48),0,sd*Math.PI/2,0,1,1.2,1);
    if(EMB==='fish')geo(new T.SphereGeometry(.1,10,6),ex,ey,ez,col(0x8a9aa8),0,0,0,.3,.55,1.6);
    if(EMB==='sack')geo(new T.SphereGeometry(.13,10,8),ex,ey-.03,ez,col(0xd8cfb8),0,0,0,.4,1.2,.9);
    if(EMB==='coin')geo(new T.CylinderGeometry(.12,.12,.02,14),ex,ey,ez,gold,0,0,Math.PI/2);
-   if(EMB==='antler')for(const d of[-1,1])beam([ex,ey-.1,ez],[ex,ey+.15,ez+d*.14],.02,col(0xd8c8a8))}
+   if(EMB==='antler')for(const d of[-1,1])beam([ex,ey-.1,ez],[ex,ey+.15,ez+d*.14],.02,col(0xd8c8a8))}}
   // Laterne an der Front (leuchtet)
   // Gewerbe-typische Gegenstände
   const T2={

@@ -14,6 +14,12 @@ function box(parent,mat,s,p){return mesh(new T.BoxGeometry(...s),mat,parent,p)}
 function lathe(parent,mat,points,s,p){const o=mesh(new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),16),mat,parent,p);o.scale.set(...s);return o}
 export function weapon(type){const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);
  if(type==='none')return g;
+ if(type==='spear'||type==='lance'){const L=type==='lance'?3.1:2.3;rod(g,oak,[0,-.9,0],[0,L-.9,0],.026,.02);
+  if(type==='lance'){lathe(g,steel,[[.0,0],[.11,.02],[.035,.32],[.028,.34]],[1,1,1],[0,.05,0]);const tip=mesh(new T.ConeGeometry(.03,.22,6),steel,g,[0,L-.8,0]);ell(g,leather,[.05,.06,.05],[0,L-.98,0])}
+  else{const s=new T.Shape();s.moveTo(-.04,0);s.lineTo(.04,0);s.lineTo(.01,.32);s.lineTo(0,.36);s.lineTo(-.01,.32);s.closePath();const h=mesh(new T.ExtrudeGeometry(s,{depth:.012,bevelEnabled:false}),steel,g,[0,L-.92,-.006]);box(g,steel,[.12,.025,.03],[0,L-.92,0])}
+  return g}
+ if(type==='crossbow'){box(g,oak,[.06,.7,.07],[0,.05,0]);const p=mesh(new T.TorusGeometry(.3,.018,5,16,Math.PI),steel,g,[0,.32,0]);p.rotation.x=Math.PI/2;p.rotation.z=Math.PI;
+  const sm=new T.MeshStandardMaterial({color:0xe8e0c8,roughness:1});rod(g,sm,[-.3,.32,0],[0,.12,0],.004);rod(g,sm,[.3,.32,0],[0,.12,0],.004);box(g,steel,[.04,.06,.05],[0,-.15,.03]);return g}
  if(type==='torch'){rod(g,oak,[0,-.28,0],[0,.3,0],.022,.026);ell(g,dark,[.045,.06,.045],[0,.33,0]);const fm=[0xffc03a,0xff7a1a,0xfff0a0].map(c=>new T.MeshBasicMaterial({color:c}));g.userData.flames=[];
   for(let n=0;n<3;n++){const f=mesh(new T.ConeGeometry(.055-n*.012,.2+n*.05,6),fm[n],g,[(n-1)*.012,.47+n*.03,0]);f.castShadow=false;g.userData.flames.push(f)}
   const l=new T.PointLight(0xffaa55,20,13,2);l.position.y=.55;g.add(l);g.userData.light=l;return g}
@@ -128,7 +134,7 @@ const SWK={
  hoe:[[0,.18,1.1,.3,.3,.9,.3,.03,0,0,0,'io'],[.3,.15,1.7,0,0,.7,-.7,-.1,.2,-.04,-.03,'io'],[.46,.1,.9,.55,0,-.4,.9,.5,-.1,.1,-.1,'in'],[.7,.1,.85,.25,0,-.6,.8,.58,0,0,-.12,'io'],[1,.18,1.1,.3,.3,.9,.3,.03,0,0,0,'io']],
  hammer:[[0,.29,.95,.12,.12,.95,.3,0,0,0,0,'io'],[.3,.3,1.6,-.05,0,.8,-.6,-.05,.3,-.03,-.02,'io'],[.45,.1,1.05,.5,0,-.1,1,.3,-.2,.08,-.05,'in'],[.6,.1,1,.52,0,-.2,1,.32,-.2,.08,-.05,'out'],[1,.29,.95,.12,.12,.95,.3,0,0,0,0,'io']]};
 export const SWING={sword:.75,axe:.95,pickaxe:1.05,hoe:1,hammer:.55,none:.75},IMPACT={sword:.52,axe:.52,pickaxe:.54,hoe:.46,hammer:.45,none:.52};
-const kindOf=t=>t==='pickaxe'?'pick':(SWK[t]?t:'sword'),FW=V(0,0,1);
+const kindOf=t=>t==='pickaxe'?'pick':(t==='spear'||t==='lance')?'hammer':(SWK[t]?t:'sword'),FW=V(0,0,1);
 function swingPose(kind,u){const K=SWK[kind];let i=1;while(i<K.length-1&&u>K[i][0])i++;const a=K[i-1],b=K[i],s=Math.max(0,Math.min(1,(u-a[0])/(b[0]-a[0]))),e=b[11]==='in'?s*s:b[11]==='out'?1-(1-s)*(1-s):s*s*(3-2*s),m=j=>a[j]+(b[j]-a[j])*e;
  return{h:V(m(1),m(2),m(3)),d:V(m(4),m(5),m(6)).normalize(),lean:m(7),tw:m(8),pz:m(9),pd:m(10)}}
 function toolQ(d,hint){const y=d.clone().normalize(),x=hint.clone().addScaledVector(y,-hint.dot(y));if(x.lengthSq()<1e-4)x.set(1,0,0).addScaledVector(y,-y.x);x.normalize();const z=new T.Vector3().crossVectors(x,y);return new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(x,y,z))}
@@ -184,26 +190,36 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
 const SHM=new Map();function shm(c,o={}){const k=c+JSON.stringify(o);if(!SHM.has(k))SHM.set(k,new T.MeshStandardMaterial({color:c,roughness:.75,side:T.DoubleSide,...o}));return SHM.get(k)}
 // Wappenschild: geviert in Fraktionsfarbe und Silber, goldene Kreuzbänder mit Nieten, Löwen, Burgen und Doppeladler
 const HERALD=new Map();
-function heraldTex(col){const key=col;if(HERALD.has(key))return HERALD.get(key);const W=256,H=340,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),hex='#'+new T.Color(col).getHexString(),dk='#'+new T.Color(col).multiplyScalar(.7).getHexString();
+export const COA_N=['Löwen & Burgen','Adler','Kreuz','Lilien','Schach','Hirsch','Schrägbalken','Turm'];
+function heraldTex(col,coa=0){const key=col+':'+coa;if(HERALD.has(key))return HERALD.get(key);const W=256,H=340,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),hex='#'+new T.Color(col).getHexString(),dk='#'+new T.Color(col).multiplyScalar(.7).getHexString(),SIL='#e4e2dc',SILD='#c8c6c0',GOLD='#e8c040';
  const grain=(c1,c2,x0,y0,w,h)=>{x.fillStyle=c1;x.fillRect(x0,y0,w,h);for(let i=0;i<500;i++){x.fillStyle=Math.random()<.5?c2:'rgba(255,255,255,.08)';x.fillRect(x0+Math.random()*w,y0+Math.random()*h,2,2)}};
- grain('#e4e2dc','#c8c6c0',0,0,W/2,H*.45);grain(hex,dk,W/2,0,W/2,H*.45);grain(hex,dk,0,H*.45,W/2,H*.55);grain('#e4e2dc','#c8c6c0',W/2,H*.45,W/2,H*.55);
- const lion=(cx,cy,s)=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle='#5a5a58';x.strokeStyle='#2a2a28';x.lineWidth=2;x.beginPath();
+ const lion=(cx,cy,s,fill='#5a5a58')=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle=fill;x.strokeStyle='#2a2a28';x.lineWidth=2;x.beginPath();
   x.moveTo(-14,26);x.lineTo(-10,6);x.lineTo(-20,-4);x.lineTo(-12,-8);x.lineTo(-6,-24);x.lineTo(4,-30);x.lineTo(12,-24);x.lineTo(8,-16);x.lineTo(16,-12);x.lineTo(8,-6);x.lineTo(14,4);x.lineTo(22,0);x.lineTo(18,12);x.lineTo(8,10);x.lineTo(10,26);x.lineTo(2,26);x.lineTo(0,12);x.lineTo(-6,26);x.closePath();x.fill();x.stroke();
   x.beginPath();x.moveTo(-14,10);x.quadraticCurveTo(-30,0,-22,-14);x.stroke();x.restore()};
- const castle=(cx,cy,s)=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle='#7a7468';x.strokeStyle='#2a2a28';x.lineWidth=2;x.fillRect(-22,-4,44,30);x.strokeRect(-22,-4,44,30);x.fillRect(-10,-26,20,22);x.strokeRect(-10,-26,20,22);
+ const castle=(cx,cy,s,fill='#7a7468')=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle=fill;x.strokeStyle='#2a2a28';x.lineWidth=2;x.fillRect(-22,-4,44,30);x.strokeRect(-22,-4,44,30);x.fillRect(-10,-26,20,22);x.strokeRect(-10,-26,20,22);
   for(const[bx,by,bw]of[[-22,-10,8],[-8,-10,8],[14,-10,8],[-10,-32,6],[4,-32,6]]){x.fillRect(bx,by,bw,6);x.strokeRect(bx,by,bw,6)}x.fillStyle='#2a2420';x.beginPath();x.moveTo(-6,26);x.lineTo(-6,12);x.arc(0,12,6,Math.PI,0);x.lineTo(6,26);x.fill();x.restore()};
- lion(W*.27,H*.24,1.6);castle(W*.73,H*.24,1.5);castle(W*.27,H*.72,1.5);lion(W*.73,H*.72,1.6);
- // goldene Kreuzbänder
- const gold=x.createLinearGradient(0,0,W,0);gold.addColorStop(0,'#a07818');gold.addColorStop(.5,'#f0d070');gold.addColorStop(1,'#a07818');x.fillStyle=gold;x.fillRect(W/2-9,0,18,H);x.fillRect(0,H*.45-9,W,18);
- x.fillStyle='#fff2b0';for(let y=12;y<H;y+=26){x.beginPath();x.arc(W/2,y,2.6,0,7);x.fill()}for(let X=12;X<W;X+=26){x.beginPath();x.arc(X,H*.45,2.6,0,7);x.fill()}
- // Doppeladler in der Mitte
- x.save();x.translate(W/2,H*.45);x.fillStyle='#4a4a48';x.strokeStyle='#1a1a18';x.lineWidth=2;for(const sd of[-1,1]){x.beginPath();x.moveTo(0,-6);x.lineTo(sd*34,-26);x.lineTo(sd*30,-14);x.lineTo(sd*40,-12);x.lineTo(sd*30,-2);x.lineTo(sd*36,4);x.lineTo(sd*16,6);x.closePath();x.fill();x.stroke();x.beginPath();x.arc(sd*9,-24,6,0,7);x.fill();x.stroke()}
- x.beginPath();x.ellipse(0,4,12,20,0,0,7);x.fill();x.stroke();x.fillStyle='#d8c070';x.beginPath();x.moveTo(-7,-36);x.lineTo(7,-36);x.lineTo(5,-30);x.lineTo(-5,-30);x.closePath();x.fill();x.fillStyle='#e8e4dc';x.beginPath();x.arc(0,4,7,0,7);x.fill();x.fillStyle=hex;x.fillRect(-1.5,-2,3,12);x.fillRect(-5,3,10,3);x.restore();
+ const eagle=(cx,cy,s,fill,two=false)=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle=fill;x.strokeStyle='#1a1a18';x.lineWidth=2;for(const sd of[-1,1]){x.beginPath();x.moveTo(0,-6);x.lineTo(sd*34,-26);x.lineTo(sd*30,-14);x.lineTo(sd*40,-12);x.lineTo(sd*30,-2);x.lineTo(sd*36,4);x.lineTo(sd*16,6);x.closePath();x.fill();x.stroke();if(two){x.beginPath();x.arc(sd*9,-24,6,0,7);x.fill();x.stroke()}}
+  if(!two){x.beginPath();x.arc(0,-24,7,0,7);x.fill();x.stroke()}x.beginPath();x.ellipse(0,4,12,20,0,0,7);x.fill();x.stroke();x.beginPath();x.moveTo(-8,22);x.lineTo(0,36);x.lineTo(8,22);x.fill();x.restore()};
+ const lily=(cx,cy,s,fill)=>{x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle=fill;x.strokeStyle='#4a3a10';x.lineWidth=2;x.beginPath();x.moveTo(0,-30);x.quadraticCurveTo(10,-12,0,6);x.quadraticCurveTo(-10,-12,0,-30);x.fill();x.stroke();for(const sd of[-1,1]){x.beginPath();x.moveTo(sd*3,4);x.quadraticCurveTo(sd*26,-14,sd*18,-22);x.quadraticCurveTo(sd*22,0,sd*4,10);x.fill();x.stroke()}x.fillRect(-14,6,28,6);x.strokeRect(-14,6,28,6);x.beginPath();x.moveTo(-6,12);x.lineTo(0,26);x.lineTo(6,12);x.fill();x.restore()};
+ const stag=(cx,cy,s,fill)=>{x.save();x.translate(cx,cy);x.scale(s,s);x.strokeStyle=fill;x.lineCap='round';x.lineWidth=6;for(const sd of[-1,1]){x.beginPath();x.moveTo(sd*6,-8);x.lineTo(sd*20,-34);x.lineTo(sd*30,-40);x.moveTo(sd*14,-22);x.lineTo(sd*30,-24);x.moveTo(sd*18,-30);x.lineTo(sd*10,-44);x.stroke()}x.fillStyle=fill;x.beginPath();x.ellipse(0,10,14,20,0,0,7);x.fill();x.restore()};
+ const star=(cx,cy,R0,fill)=>{x.fillStyle=fill;x.beginPath();for(let q=0;q<10;q++){const a=q/10*Math.PI*2-Math.PI/2,rr=q%2?R0*.4:R0;x.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}x.closePath();x.fill()};
+ if(coa===1){grain(hex,dk,0,0,W,H);eagle(W/2,H*.42,2.4,GOLD)}
+ else if(coa===2){grain(SIL,SILD,0,0,W,H);x.fillStyle=hex;x.fillRect(W/2-26,0,52,H);x.fillRect(0,H*.38-26,W,52)}
+ else if(coa===3){grain(hex,dk,0,0,W,H);for(const[cx,cy]of[[W*.3,H*.22],[W*.7,H*.22],[W/2,H*.55]])lily(cx,cy,1.6,GOLD)}
+ else if(coa===4){for(let r0=0;r0<8;r0++)for(let c0=0;c0<6;c0++){x.fillStyle=(r0+c0)%2?hex:SIL;x.fillRect(c0*W/6,r0*H/8,W/6+1,H/8+1)}}
+ else if(coa===5){grain(SIL,SILD,0,0,W,H);stag(W/2,H*.45,2.2,hex)}
+ else if(coa===6){grain(hex,dk,0,0,W,H);x.save();x.translate(W/2,H/2);x.rotate(-.75);x.fillStyle=SIL;x.fillRect(-W,-32,W*2,64);x.restore();star(W*.25,H*.72,22,GOLD);star(W*.75,H*.2,22,GOLD)}
+ else if(coa===7){grain(hex,dk,0,0,W,H);castle(W/2,H*.42,2.6,'#d8d2c0')}
+ else{grain(SIL,SILD,0,0,W/2,H*.45);grain(hex,dk,W/2,0,W/2,H*.45);grain(hex,dk,0,H*.45,W/2,H*.55);grain(SIL,SILD,W/2,H*.45,W/2,H*.55);
+  lion(W*.27,H*.24,1.6);castle(W*.73,H*.24,1.5);castle(W*.27,H*.72,1.5);lion(W*.73,H*.72,1.6);
+  const gold=x.createLinearGradient(0,0,W,0);gold.addColorStop(0,'#a07818');gold.addColorStop(.5,'#f0d070');gold.addColorStop(1,'#a07818');x.fillStyle=gold;x.fillRect(W/2-9,0,18,H);x.fillRect(0,H*.45-9,W,18);
+  x.fillStyle='#fff2b0';for(let y=12;y<H;y+=26){x.beginPath();x.arc(W/2,y,2.6,0,7);x.fill()}for(let X=12;X<W;X+=26){x.beginPath();x.arc(X,H*.45,2.6,0,7);x.fill()}
+  eagle(W/2,H*.45,1,'#4a4a48',true)}
  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;const m=new T.MeshStandardMaterial({map:t,roughness:.55,metalness:.15});HERALD.set(key,m);return m}
-export function shieldMesh(kind,col=0x8a2a22){const g=new T.Group();g.name='Shield:'+kind;
+export function shieldMesh(kind,col=0x8a2a22,coa=0){const g=new T.Group();g.name='Shield:'+kind;
  if(kind==='heater'){const sh=new T.Shape();sh.moveTo(-.31,.42);sh.quadraticCurveTo(0,.34,.31,.42);sh.lineTo(.3,.06);sh.quadraticCurveTo(.27,-.28,0,-.46);sh.quadraticCurveTo(-.27,-.28,-.3,.06);sh.closePath();
   const back=new T.ExtrudeGeometry(sh,{depth:.035,bevelEnabled:false});back.translate(0,0,-.035);mesh(back,shm(0x5a4028),g);
-  const face=new T.ShapeGeometry(sh,24),uv=face.attributes.uv,pp=face.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,(pp.getX(i)+.31)/.62,(pp.getY(i)+.46)/.88);mesh(face,heraldTex(col),g,[0,0,.002]);
+  const face=new T.ShapeGeometry(sh,24),uv=face.attributes.uv,pp=face.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,(pp.getX(i)+.31)/.62,(pp.getY(i)+.46)/.88);mesh(face,heraldTex(col,coa|0),g,[0,0,.002]);
   const goldM=shm(0xc8a040,{metalness:.75,roughness:.3}),pts=sh.getPoints(48).map(p=>V(p.x,p.y,.004));mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts,true),80,.016,6,true),goldM,g);
   for(let i=0;i<pts.length;i+=3){const p=pts[i];mesh(new T.SphereGeometry(.009,6,4),goldM,g,[p.x*.94,p.y*.95,.012])}
   g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
@@ -217,4 +233,4 @@ const wood=shm(0x7a5a3a),iron=shm(0x55595c,{metalness:.6,roughness:.45}),paint=s
 
   {for(const a of[0,1,2,3]){const b=mesh(new T.BoxGeometry(.03,.42,.01),light,g,[0,-.05,.028]);b.rotation.z=a*Math.PI/4}mesh(new T.SphereGeometry(.05,10,6),iron,g,[0,-.05,.03])}}
  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
-export function setShield(c,kind,col){if(!c.isCharacter)return;if(c.shieldKind===kind&&c.shieldCol===col)return;if(c.shield){c.shield.removeFromParent();c.shield=null}c.shieldKind=kind;c.shieldCol=col;if(!kind)return;c.shield=shieldMesh(kind,col);c.shield.position.set(-.02,-.05,.07);c.left.wrist.add(c.shield)}
+export function setShield(c,kind,col,coa=0){if(!c.isCharacter)return;if(c.shieldKind===kind&&c.shieldCol===col&&c.shieldCoa===coa)return;c.shieldCoa=coa;if(c.shield){c.shield.removeFromParent();c.shield=null}c.shieldKind=kind;c.shieldCol=col;if(!kind)return;c.shield=shieldMesh(kind,col,coa);c.shield.position.set(-.02,-.05,.07);c.left.wrist.add(c.shield)}
