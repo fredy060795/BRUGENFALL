@@ -56,7 +56,7 @@ const RECIPE={potion:{at:'apothecary',in:{herbs:3},out:{potions:1},n:'Heiltrank 
  cheese:{at:'dairy',in:{milk:2},out:{cheese:1},n:'Käse machen'},weapons:{at:'smithy',in:{iron:2,wood:1},out:{weapons:1},n:'Waffe schmieden'},helmet:{at:'smithy',in:{iron:2},out:{helmet:1},n:'Helm schmieden'},
  mail:{at:'armorer',in:{iron:5},out:{mail:1},n:'Kettenhemd flechten'},breast:{at:'armorer',in:{iron:4},out:{breast:1},n:'Brustpanzer treiben'},plate:{at:'armorer',in:{iron:8,leather:2},out:{plate:1},n:'Plattenharnisch fertigen'}};
 const ANIMAL={sheep:{max:6,cost:30,feed:1,out:{wool:1},n:'Schaf'},cow:{max:4,cost:55,feed:2,out:{milk:1},n:'Kuh'},pigsty:{max:6,cost:25,feed:1,out:{meat:.5},n:'Schwein'}};
-const ARMOR_ITEMS=[{},{gambeson:1},{gambeson:1,mail:1},{gambeson:1,plate:1},{gambeson:1,breast:1}];
+const ARMOR_ITEMS=[{},{gambeson:1},{gambeson:1,mail:1},{gambeson:1,plate:1},{gambeson:1,breast:1},{gambeson:1,breast:1,mail:1},{gambeson:1,plate:1,cloth:1},{gambeson:1,mail:1,cloth:1}];
 const inv=(r,k)=>r.inv[k]||0,give=(r,o,f=1)=>{for(const k in o)r.inv[k]=(r.inv[k]||0)+o[k]*f};
 const FEED_MAX=30;
 // Täglich: Bauern füllen die Krippen aus dem Lager nach, dann fressen die Tiere aus der Krippe
@@ -143,7 +143,7 @@ NT.watch={cost:0,hp:80,dmg:8,rng:2,cd:1,spd:2.2};
 Object.assign(NT,{spear:{cost:45,hp:120,dmg:11,rng:3,cd:1.1,spd:3.2},crossbow:{cost:70,hp:70,dmg:16,rng:20,cd:2.6,spd:2.8},knight:{cost:150,hp:260,dmg:22,rng:2.8,cd:1.1,spd:5.4}});
 const SOLDIER=['sword','archer','spear','crossbow','knight'],RANGED=['archer','crossbow'],SOLN={sword:'Schwertkämpfer',archer:'Bogenschützen',spear:'Lanzenträger',crossbow:'Armbrustschützen',knight:'Ritter zu Pferd'};for(const j of JOBS)NT[j]={cost:0,hp:60,dmg:0,rng:0,cd:1,spd:2.8,job:1};
 // 0 gender,1 skin,2 hairStyle,3 hairColor,4 beard,5 outfit,6 cloth,7 belt,8 civHead,9 armor,10 armHead,11 cloak
-const PMAX=[1,5,3,8,3,1,13,13,6,4,6,5],cleanProf=a=>Array.isArray(a)&&a.length===12&&a.every((v,i)=>Number.isInteger(v)&&v>=0&&v<=PMAX[i])?a:[0,2,0,2,1,0,0,9,0,0,0,0];
+const PMAX=[1,5,3,8,3,1,13,13,9,7,6,5],cleanProf=a=>Array.isArray(a)&&a.length===12&&a.every((v,i)=>Number.isInteger(v)&&v>=0&&v<=PMAX[i])?a:[0,2,0,2,1,0,0,9,0,0,0,0];
 const rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z),r2=v=>Math.round(v*100)/100;
 const dims=(t,rot)=>Rules.dims(BD,t,rot),reach=b=>Math.max(BD[b.t].w,BD[b.t].d)/2+1.5;
 const costStr=c=>Object.entries(c).map(([k,n])=>n+' '+GN[k]).join(', '),afford=(r,c)=>Object.entries(c).every(([k,n])=>r.inv[k]>=n),pay=(r,c)=>{for(const k in c)r.inv[k]-=c[k]};

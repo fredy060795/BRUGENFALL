@@ -149,6 +149,9 @@ function workPose(role,t,type){
 }
 export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  const pel=g.pelvis,up=g.upper;if(!pel)return;
+ // Klappvisier: im Kampf geschlossen, sonst offen (Spieler: g.visorUp per Taste)
+ if(g._vp===undefined){g._vp=null;g.traverse(c=>{if(c.userData&&c.userData.visorPivot)g._vp=c})}
+ if(g._vp){g._va=attacking?2.5:Math.max(0,(g._va||0)-dt);const open=g.visorUp!=null?g.visorUp:g._va<=0&&!fx.closeVisor,tg=open?-1.3:0;g._vp.rotation.x+=(tg-g._vp.rotation.x)*Math.min(1,dt*6)}
  g.t+=dt;g.sp+=(speed-g.sp)*(1-Math.exp(-dt*9));
  const sp=mounted?0:g.sp,k=Math.min(1,sp/3.2),run=Math.max(0,Math.min(1,(sp-4)/3)),type=g.toolType,bow=type==='bow',two=type==='axe'||type==='pickaxe'||type==='hoe',kind=kindOf(type);
  if(sp>.2)g.phase+=dt*sp*1.75;
