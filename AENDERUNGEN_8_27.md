@@ -61,3 +61,23 @@
 - Gebäude, Baustellen, Bodenfunde usw. werden nur in Sichtweite gezeichnet; Türen, Tiere, Festplatz-Animationen und
   Figuren-Animationen laufen nur in der Nähe des Spielers.
 - Bäume, Felsen und Erze sendet der Server nur noch bei Änderungen statt bei jedem Takt.
+
+# Burgenfall 8.28 – Kräuter, Ausbaustufen, Friedhof, Feinschliff
+
+- **Heilkräuter** wachsen auf Wiesen und am Waldrand (E pflücken). 2 Kräuter heilen einen **leichten** Verlauf –
+  bei dir selbst (Inventar → Heilen) oder bei Bewohnern (mit 7 Hände den Kranken anklicken). Schwere Fälle brauchen
+  einen Heiltrank. Du kannst dich bei Kranken anstecken. Die Apotheke braucht jetzt Kräuter; der Heiler sammelt sie selbst.
+- **Gebäude einfärben**: Gebäude verwalten (E) → Putzfarbe (12 Farben).
+- **Wohnhaus-Ausbaustufen**: Kleines Wohnhaus (nur Erdgeschoss, 2 Bewohner) → Mittleres (1 Obergeschoss, 4)
+  → Großes (2 Obergeschosse, 6). Bestehende Wohnhäuser aus älteren Spielständen gelten als groß.
+- Ringe um Fundstücke in den Einstellungen abschaltbar.
+- Kirche: Turm steht jetzt vom Boden auf vor dem Kirchenschiff, das Dach ragt nicht mehr über den Turm.
+- Neue **Bleiglasfenster** mit Bordüre, Medaillons (Heiliger, Kreuz, Stern) und Vierpass, vier Varianten.
+- Bäume an Kirche, Kapelle und Obstplantage sind jetzt echte Bäume wie im Wald (Obstbäume mit Früchten).
+- **Friedhof** neu: Bruchsteinmauer mit Tor, Kiesweg, Hochkreuz, alter Baum, Bank; Gräber mit Grabsteinen,
+  Steinkreuzen, Holzkreuzen und Stelen – teils schief und bemoost. Kirchen, Kapellen und Dom haben einen eigenen
+  Friedhof und einen **Totengräber**-Platz; ein separater Friedhof ist nicht mehr nötig.
+- Abgelegtes Holz liegt als Holzstämme am Boden (statt gelber Blöcke), Stroh als Ballen, Schindeln als Stapel.
+- Hafen: Tretradkran mit beiden Radkränzen auf einer Achse, Böcken und Mast mit Ausleger.
+- Jahrmarkt-Zelte ohne abstehende Stangen (Wimpel an der Spitze). Feste nur **einmal im Jahr**:
+  Maibaum (Frühling), Jahrmarkt/Zirkus (Sommer), Weihnachtsbaum (Winter); Jubel nur dann am Marktplatz.
