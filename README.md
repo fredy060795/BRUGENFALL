@@ -1,3 +1,7 @@
+# Burgenfall 8.27
+
+Realistischer Bau (Fundament → Rahmen → Wände → Dach, Hammer, Holzkarren), Inventar mit Tragkraft, Werkzeugbau und Verschleiß, Erkerhäuser, neuer Dom, flache Welt, freies Drehen, Umland-Ökosystem. Siehe AENDERUNGEN_8_27.md.
+
 # Burgenfall 8.19
 
 Fix: Bäume, Steine und Erze erscheinen wieder auf allen Karten. Neue Hüte/Helme (Chaperon, Federhut, Schaller, Visierhelm). Siehe AENDERUNGEN_8_19.md.
