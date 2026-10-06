@@ -101,8 +101,8 @@ export function createAnimal(kind='cow',opts={}){const S=SP[kind]||SP.cow,r=rnd(
  if(kind==='horse'){const mc=C.fn('mane',0,0,0).clone().multiplyScalar(.55),mm=new T.MeshStandardMaterial({color:mc,roughness:.9,side:T.DoubleSide});         // Mähne: Haarsträhnen entlang des Kamms
   // markante Mähne: dichter Kamm auf dem Mähnenkamm, lange Strähnen fallen zur Seite, Schopf zwischen den Ohren
   const dz=t=>t<.5?lerp(N.d[0],N.d[1],t*2):lerp(N.d[1],N.d[2],(t-.5)*2);
-  add(g.neck,grid((u,v)=>{const t=.02+.98*v,y=t*N.len,zc=-dz(t)*.5+.02,a=(u-.5)*2.4;return[Math.sin(a)*.05,y+Math.cos(a)*.06,zc-.03*Math.cos(a),.85,.85,.85]},10,24),mm);
-  for(const s of[1,-1])add(g.neck,grid((u,v)=>{const t=.03+.95*v,len=(s>0?.2:.15)+.07*Math.abs(Math.sin(v*37)),y=t*N.len,zc=-dz(t)*.5+.01,c=.75+.25*Math.sin(v*61+u*3);return[s*(.035+u*len*.55),y+.03-u*len*.85,zc-u*.035,c,c,c]},3,30),mm);
+  add(g.neck,grid((u,v)=>{const t=.02+.98*v,y=t*N.len,zc=-dz(t)*.5-.06,a=(u-.5)*2.4;return[Math.sin(a)*.06,y+Math.cos(a)*.05,zc-.07*Math.cos(a),.85,.85,.85]},10,24),mm);
+  for(const s of[1,-1])add(g.neck,grid((u,v)=>{const t=.03+.95*v,len=(s>0?.2:.15)+.07*Math.abs(Math.sin(v*37)),y=t*N.len,zc=-dz(t)*.5-.07,c=.75+.25*Math.sin(v*61+u*3);return[s*(.05+u*len*.6),y+.03-u*len*.85,zc-u*.035,c,c,c]},3,30),mm);
   g.maneMat=mm}
  g.head=new T.Group();g.head.position.set(0,N.len,.02);g.neck.add(g.head);add(g.head,headGeo(S,C),mat);
  if(kind==='horse'&&g.maneMat)for(let q=0;q<5;q++){const x=(q-2)*.018;add(g.head,taper([[x,.12,-.05],[x*1.4,.1,.04],[x*1.8,.02,.1]],.018,.004,[.9,.9,.9],5,6),g.maneMat)}   // Stirnschopf
