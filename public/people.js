@@ -16,22 +16,22 @@ export const PAL=[0x8b7355,0x6b5a45,0x7a6a50,0x9a8767,0x5e5a4a,0x7b4b32,0x4d5a3a
 export const OPT={skin:['Sehr hell','Hell','Mittel','Gebräunt','Braun','Dunkel'],hair:['Schwarz','Dunkelbraun','Braun','Kastanie','Hellbraun','Blond','Goldblond','Grau','Rot'],
  hsM:[['short','Kurz'],['long','Lang'],['bald','Glatze'],['braid','Zopf']],hsF:[['long','Lang'],['braid','Zopf'],['bun','Dutt'],['short','Kurz']],
  beard:[['none','Rasiert'],['stubble','Dreitagebart'],['short','Kurzer Bart'],['full','Vollbart']],civ:['Tunika / Kleid','Wams'],
- civHead:['Keine','Kappe','Kopftuch','Strohhut','Chaperon','Federhut','Jägerhut'],
+ civHead:['Keine','Kappe','Kopftuch','Strohhut','Chaperon','Federhut','Jägerhut','Gugel','Gugel mit langem Zipfel','Gugel (abgelegt, Zaddelkragen)'],
  pal:['Hellbraun','Braun','Sand','Beige','Graugrün','Rotbraun','Moosgrün','Dunkelbraun','Violett','Rot','Blau','Grün','Weiß','Schwarz'],
- armor:['Keine Rüstung','Gambeson','Kettenhemd','Plattenharnisch (Ritter)','Gambeson + Brustpanzer'],
- armHead:['Kein Helm','Eisenhut','Kettenhaube','Schaller','Visierhelm','Beckenhaube','Nasalhelm'],
+ armor:['Keine Rüstung','Gambeson','Kettenhemd','Plattenharnisch (Ritter)','Gambeson + Brustpanzer','Waffenrock, Brustplatte, Kettenzeug (Ritter)','Wappenrock über Plattenharnisch (Ritter)','Wappenrock über Kettenhemd'],
+ armHead:['Kein Helm','Eisenhut','Kettenhaube','Schaller','Visierhelm (Klappvisier)','Hundsgugel (Klappvisier)','Nasalhelm'],
  cloak:['Kein Umhang','Rot','Blau','Grün','Schwarz','Braun']};
 // Index: 0 gender,1 skin,2 hairStyle,3 hairColor,4 beard,5 outfit,6 cloth,7 belt,8 civHead,9 armor,10 armHead,11 cloak
-export const PROF_MAX=[1,5,3,8,3,1,13,13,6,4,6,5];
+export const PROF_MAX=[1,5,3,8,3,1,13,13,9,7,6,5];
 export const defProf=g=>g?[1,1,0,5,0,0,5,10,2,0,0,0]:[0,2,0,2,1,0,0,9,0,0,0,0];
 function playerLook(id,P,fc){const r=rng(id*7919+99),A=k=>Math.max(0,Math.min(PROF_MAX[k],P[k]|0)),f=!!A(0),hs=(f?OPT.hsF:OPT.hsM)[A(2)][0],bd=f?'none':OPT.beard[A(4)][0];
- const civHeads=['none','cap','scarf','strawhat','chaperon','plume','hunterhat'];
+ const civHeads=['none','cap','scarf','strawhat','chaperon','plume','hunterhat','gugel','gugelL','gugelD'];
  let outfit=A(5)===1?'jerkin':(f?'dress':'tunic'),head=civHeads[A(8)]||'none';if(!f&&head==='scarf')head='cap';
- const ar=A(9);if(ar)outfit='gambeson';const knight=ar===3;
+ const ar=A(9);if(ar)outfit='gambeson';const knight=ar===3||ar===6;let hoodDown=false;if(head==='gugelD'){head='none';hoodDown=true}
  let mailHood=false;const armH=A(10);
  if(armH===1)head='helmet';else if(armH===2){head='hood';mailHood=true}else if(armH===3)head='sallet';else if(armH===4)head='visored';else if(armH===5)head='bascinet';else if(armH===6)head='nasal';
  const lt=h=>new T.Color(h).multiplyScalar(1.5).getHex();
- return{seed:id*31+7,role:'player',female:f,skin:SKIN[A(1)],hair:HAIR[A(3)],eye:pick(r,EYE),nose:.7+r()*.6,chin:r(),hairStyle:hs,beard:bd,cloth:lt(PAL[A(6)]),over:lt(PAL[A(7)]),outfit,head,cloak:A(11)?lt(CLOAKS[A(11)]):0,apron:false,mask:false,mailHood,bag:ar===0,rolled:ar===0,tool:'sword',name:'',title:'',mailShirt:ar===2,breast:ar===3||ar===4,arms:knight?2:0,legs:knight?2:0,hands:knight?'hour':0,rank:knight?'veteran':undefined,...(FACTIONS[fc]?{cloth:FACTIONS[fc][1],over:ar?FACTIONS[fc][1]:lt(PAL[A(7)]),fac:FACTIONS[fc][1]}:{})}}
+ return{seed:id*31+7,role:'player',female:f,skin:SKIN[A(1)],hair:HAIR[A(3)],eye:pick(r,EYE),nose:.7+r()*.6,chin:r(),hairStyle:hs,beard:bd,cloth:lt(PAL[A(6)]),over:lt(PAL[A(7)]),outfit,head,cloak:A(11)?lt(CLOAKS[A(11)]):0,apron:false,mask:false,mailHood,bag:ar===0,rolled:ar===0,tool:'sword',name:'',title:'',mailShirt:ar===2||ar===5||ar===7,breast:[3,4,5,6].includes(ar),arms:knight?2:ar===5?1:0,legs:knight||ar===5?2:ar===7?1:0,hands:knight||ar===5?'hour':ar===7?'lea':0,rank:knight||ar===5?'veteran':undefined,tabard:ar===6||ar===7,hood:hoodDown?'cowl':undefined,dag:hoodDown,hoodCol:lt(PAL[A(7)]),...(FACTIONS[fc]?{cloth:FACTIONS[fc][1],over:ar?FACTIONS[fc][1]:lt(PAL[A(7)]),fac:FACTIONS[fc][1]}:{})}}
 // ---------- Individuelle Looks je Beruf (eigener Zufallsstrom -> Namen bleiben stabil) ----------
 const PW={brown:[0x6b5a45,0x5a4a3a,0x7a6a50,0x4a3d30],grey:[0x6a6660,0x7a7670,0x5a5650],nat:[0x9a8767,0x8b7d64,0xa89878],green:[0x4d5a3a,0x3d4a30,0x5a6a42],
  blue:[0x3a4a5a,0x2f4a6a,0x4a5a6a],red:[0x6a2a2a,0x7b4b32,0x5a2a24],white:[0xd8d2c4,0xe2dccb,0xcfc8b6],dark:[0x3a3430,0x2b2622,0x4a3d30,0x3a3a30]};
@@ -89,7 +89,7 @@ export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook
  if(role==='archer'){Object.assign(o,{tool:'bow',outfit:'jerkin',head:'nasal',cloth:0x4d5a3a,over:0x5a3d22,cloak:0x3d5a35,rank:pick(r,['scout','marksman'])});o.mailHood=o.rank==='marksman'}
  if(role==='spear'){Object.assign(o,{tool:'spear',outfit:'gambeson',head:pick(r,['helmet','nasal']),breast:pick(r,[true,false]),arms:1,legs:0,hands:'lea',bag:false,rolled:false,hairStyle:'short',beard:pick(r,['none','stubble','short'])})}
  if(role==='crossbow'){Object.assign(o,{tool:'crossbow',outfit:'gambeson',head:pick(r,['helmet','sallet']),cloak:0x4a4030,arms:0,legs:0,hands:'lea',bag:true,rolled:false,hairStyle:'short'})}
- if(role==='knight'){Object.assign(o,{tool:'lance',outfit:'gambeson',head:'visored',breast:true,arms:2,legs:2,hands:'hour',bag:false,rolled:false,hairStyle:'short',beard:'short',cloak:0x6a2a2a})}
+ if(role==='knight'){Object.assign(o,{tool:'lance',outfit:'gambeson',head:pick(r,['visored','bascinet','visored','sallet']),breast:true,arms:2,legs:2,hands:'hour',bag:false,rolled:false,hairStyle:'short',beard:'short',cloak:pick(r,[0x6a2a2a,0,0]),tabard:r()<.55,mailShirt:r()<.4})}
  if(role==='bandit'){Object.assign(o,{outfit:'jerkin',head:'hood',mask:true,cloth:0x3a3430,over:0x2a2420,cloak:0x2b2622,beard:'stubble'})}
  if(role==='peasant'){o.tool='none';o.outfit=female?'dress':'tunic';o.head=female?pick(r,['scarf','none','none']):pick(r,['none','cap','none'])}
  if(role==='farmer'){o.head=female?'scarf':'strawhat';o.outfit=female?'dress':'tunic';o.tool='hoe';if(female)o.cloth=pick(r,[0x7b4b32,0x6b5a45,0x7a6a50,0x5a4a3a])}
@@ -123,7 +123,7 @@ function shell(geo,test,off,noise=.03){const P=geo.attributes.position,U=geo.att
  const get=(i,w)=>{const key=i*2+w;if(map.has(key))return map.get(key);const k=pos.length/3,x=U.getX(i),y=U.getY(i),z=U.getZ(i),n=off+noise*(Math.sin(x*23+y*7)*Math.cos(z*19+x*5)*.5+.5);
   pos.push(P.getX(i)+Nn.getX(i)*n,P.getY(i)+Nn.getY(i)*n,P.getZ(i)+Nn.getZ(i)*n);let a=ang(i);if(w&&a<0)a+=2*Math.PI;uv.push(a*1.4,y*1.62);map.set(key,k);return k};
  for(let t=0;t<ix.length;t+=3){const a=ix[t],b=ix[t+1],c=ix[t+2];if(!(ok[a]&&ok[b]&&ok[c]))continue;const A=[ang(a),ang(b),ang(c)],w=Math.max(...A)-Math.min(...A)>Math.PI?1:0;idx.push(get(a,w),get(b,w),get(c,w))}
- const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setAttribute('color',new T.Float32BufferAttribute(new Float32Array(pos.length).fill(1),3));g.setIndex(idx);g.computeVertexNormals();return g}
 const mesh=(geo,mat,par,p=[0,0,0],s=[1,1,1])=>{const m=new T.Mesh(geo,mat);m.userData.pp=1;m.position.set(...p);m.scale.set(...s);par.add(m);return m};
 const lathe=(par,mat,pts,s,p=[0,0,0])=>mesh(new T.LatheGeometry(pts.map(([r,y])=>new T.Vector2(r,y)),20),mat,par,p,s);
 function canvasMat(kind,color){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,64,64);
@@ -276,13 +276,13 @@ function dressUp(g,o,A){const S=DRESS;mesh(garment('dress',S),garMat('linen',o.c
  const lace=new T.MeshStandardMaterial({color:0x2a2018,roughness:1});            // Schnürung vorne
  for(const s of[1,-1]){const pts=[];for(let k=0;k<=7;k++){const a=(k%2?.05:-.05)*s,y=1.0+k*.045,p=gPt(S,a,y);pts.push([p[0],y,p[2]+.004])}tube(g,lace,pts,.0024)}}
 function jerkinUp(g,o,A){mesh(garment('jerkin',JERK),garMat('leather',o.over),g);const pts=[];for(let y=.78;y<1.46;y+=.045){const p=gPt(JERK,0,y);pts.push([0,y,p[2]+.004])}rivets(g,A.brass,pts,.007,[1,1,.6])}
-function cloakUp(g,o,A){const h=o.head,cape=h==='helmet'||h==='hood'||h==='bascinet'||h==='visored'||(h==='nasal'&&o.mailHood),ex=(o.breast?.024:0)+(cape?.022:0)+(o.outfit==='robe'||o.outfit==='gown'?.02:0),S=cloakSpec(ex,o.ragged),m=garMat('linen',o.cloak);mesh(garment('cloak'+ex+!!o.ragged,S),m,g);
+function cloakUp(g,o,A){const h=o.head,cape=h==='helmet'||h==='hood'||h==='gugel'||h==='gugelL'||h==='bascinet'||h==='visored'||(h==='nasal'&&o.mailHood),ex=(o.breast?.024:0)+(cape?.022:0)+(o.outfit==='robe'||o.outfit==='gown'?.02:0),S=cloakSpec(ex,o.ragged),m=garMat('linen',o.cloak);mesh(garment('cloak'+ex+!!o.ragged,S),m,g);
  const pl=gPt(S,-1.92,1.43),pr=gPt(S,1.92,1.43),cord=new T.MeshStandardMaterial({color:0x2a2018,roughness:1});         // Schließkordel über der Brust
  tube(g,cord,[pl,gPt(S,-.7,1.41),gPt(S,0,1.395),gPt(S,.7,1.41),pr].map(p=>[p[0],p[1],p[2]+.004]),.0035);rivets(g,A.brass,[pl,pr],.012)}
 // ---------- Kettenhaube / Helmbrünne / Stoffkapuze ----------
-function capeGeo(o,{top1=1.585,top0=1.52,topR=.1,teeth=18,hem0=1.31,off=0,ragged=0}={}){const ex=o.breast?.024:0;
- return cg(['cape',top1,top0,topR,teeth,hem0,off,ex,ragged].join(),()=>{const C=96,y1=1.15,y2=top1+.01,R=Math.ceil((y2-y1)/.006),pos=[],col=[],uv=[],idx=[];
-  const hem=a=>{const c=Math.cos(a);let tz=0;if(teeth){let f=((a/(2*Math.PI))*teeth+.5)%1;if(f<0)f+=1;tz=.042*(1-Math.abs(2*f-1))}if(ragged)tz+=.05*Math.abs(Math.sin(a*23.7)*Math.sin(a*7.1+1));return hem0-tz-.045*Math.max(0,c)**2-.03*Math.max(0,-c)**2};
+function capeGeo(o,{top1=1.585,top0=1.52,topR=.1,teeth=18,hem0=1.31,off=0,ragged=0,leaf=0}={}){const ex=o.breast?.024:0;
+ return cg(['cape',top1,top0,topR,teeth,hem0,off,ex,ragged,leaf].join(),()=>{const C=leaf?192:96,y1=Math.min(1.15,hem0-.13),y2=top1+.01,R=Math.ceil((y2-y1)/.006),pos=[],col=[],uv=[],idx=[];
+  const hem=a=>{const c=Math.cos(a);let tz=0;if(teeth){let f=((a/(2*Math.PI))*teeth+.5)%1;if(f<0)f+=1;tz=leaf?.085*Math.pow(Math.max(0,Math.sin(Math.PI*Math.min(1,f*1.12))),.55):.042*(1-Math.abs(2*f-1))}if(ragged)tz+=.05*Math.abs(Math.sin(a*23.7)*Math.sin(a*7.1+1));return hem0-tz-.045*Math.max(0,c)**2-.03*Math.max(0,-c)**2};
   const top=a=>top1-(top1-top0)*Math.max(0,Math.cos(a))**2;
   for(let j=0;j<=R;j++){const yr=y2-j*(y2-y1)/R;for(let i=0;i<=C;i++){const a=-Math.PI+2*Math.PI*i/C,y=Math.min(Math.max(yr,hem(a)),top(a)),[r,d]=gbProf(y),fr=fr_(a),
    ch=1+.07*Math.exp(-(((y-1.26)/.09)**2))*fr*fr,tw=ssm(1.44,1.52,y),e=(GB.amp+.007)*(1-tw)+ex*(1-ssm(1.37,1.43,y))+off;
@@ -321,11 +321,14 @@ function bascinet(H,A,rounded){const SA=1.1,SB=1.32,SC=1.2,tmax=ph=>1.25+1.2*ssm
  mesh(cg('bs',()=>paramGeo((u,v)=>{const ph=-Math.PI+2*Math.PI*u;return SP(v*tmax(ph),ph)},60,28)),A.st,H);
  const S=rounded?.38:.85,VP=(ph,y,o=0)=>{const k=1-.24*ssm(-.3,-1.05,y),sn=rounded?S*Math.max(0,1-(Math.sin(ph)/.95)**2-((y+.2)/.95)**2):S*Math.max(0,1-Math.abs(Math.sin(ph))/.72-Math.abs(y+.32)/.82),
   br=.05*ssm(.25,.31,y),rx=1.2*k+br+o,rz=1.3*k+br+o;return[rx*Math.sin(ph),y,rz*Math.cos(ph)+sn,sn]};
- mesh(cg('bv'+rounded,()=>paramGeo((u,v)=>VP(-1.62+3.24*u,.54-1.62*v),56,48)),A.st,H);
- for(const s of[-1,1]){mesh(cg('bsl'+s+rounded,()=>paramGeo((u,v)=>VP(s*(.1+.95*u),.245-.065*v,.02),16,1)),A.hole,H);                // Sehschlitze
+ // Klappvisier: dreht an den beiden Drehbolzen nach oben (userData.visorPivot, gesteuert in animateCharacter)
+ const pv=VP(1.6,.36,.03),VG=new T.Group();VG.position.set(0,pv[1],pv[2]);VG.userData.visorPivot=1;H.add(VG);const V=new T.Group();V.position.set(0,-pv[1],-pv[2]);VG.add(V);
+ mesh(cg('bv'+rounded,()=>paramGeo((u,v)=>VP(-1.62+3.24*u,.54-1.62*v),56,48)),A.st,V);
+ for(const s of[-1,1]){mesh(cg('bsl'+s+rounded,()=>paramGeo((u,v)=>VP(s*(.1+.95*u),.245-.065*v,.02),16,1)),A.hole,V);                // Sehschlitze
   const p=VP(s*1.6,.36,.03);mesh(BTN_GEO,A.st,H,p,[.05,.15,.15]);mesh(BTN_GEO,A.brass,H,[p[0]+s*.05,p[1],p[2]],[.03,.05,.05])}   // Drehbolzen
- tube(H,A.st,Array.from({length:17},(_,i)=>VP(-1.6+3.2*i/16,.54,.02)),.03);tube(H,A.st,Array.from({length:17},(_,i)=>VP(-1.6+3.2*i/16,-1.08,.02)),.03);
- const holes=[];for(const s of[-1,1])for(let ph=.16;ph<.66;ph+=.09)for(let y=-.08;y>-.75;y-=.1){const p=VP(s*ph,y,.006);if(p[3]>.1)holes.push(p)}rivets(H,A.hole,holes,.042); // Atemlöcher
+ tube(V,A.st,Array.from({length:17},(_,i)=>VP(-1.6+3.2*i/16,.54,.02)),.03);tube(V,A.st,Array.from({length:17},(_,i)=>VP(-1.6+3.2*i/16,-1.08,.02)),.03);
+ mesh(cg('bvlift',()=>new T.BoxGeometry(.08,.22,.06)),A.st,V,VP(.55,-.35,.06));   // Hebeknauf
+ const holes=[];for(const s of[-1,1])for(let ph=.16;ph<.66;ph+=.09)for(let y=-.08;y>-.75;y-=.1){const p=VP(s*ph,y,.006);if(p[3]>.1)holes.push(p)}rivets(V,A.hole,holes,.042); // Atemlöcher
  const rv=[];for(let k=0;k<26;k++){const ph=-Math.PI+(k+.5)/26*2*Math.PI;if(Math.abs(ph)<1.55)continue;rv.push(SP(tmax(ph)-.08,ph,.04))}rivets(H,A.brass,rv,.045)}  // Vervellen-Nieten
 // ---------- Schaller mit Kinnreff ----------
 function salletHelm(H,A){const SA=1.1,SB=1.2,SC=1.22,yc=.1,tm=ph=>2.0+.12*Math.max(0,-Math.cos(ph));
@@ -414,6 +417,9 @@ function robeS(o={}){const gw=!!o.gown;return{P:gw?GWP:RBP,y1:.04,y2:gw?1.56:1.5
  hem:a=>(gw?.09:.1)+.012*Math.sin(a*4+.5),top:a=>gw?1.555-.05*fr_(a)**2:1.47-.02*fr_(a)**2,
  disp:(a,y)=>{if(gw){const pl=ssm(1.25,.95,y),f=Math.sin(a*16),fa=.014*pl*(.4+.6*ssm(1,.2,y));return[.006+fa*(.5+.5*f),1-.3*pl*(.5-.5*f)*(fa/.014||0)]}
   const fa=.02*ssm(.92,.25,y),f=Math.sin(a*10+Math.sin(a*3)*1.3+y*2),bl=.008*Math.exp(-(((y-.995)/.03)**2)),pn=Math.exp(-(((y-.95)/.012)**2));return[.005+fa*(.5+.5*f)+bl-.003*pn,1-.3*(fa/.02)*(.5-.5*f)-.2*pn]}}}
+// Wappenrock über Rüstung: Brust/Rücken-Bahnen, Armausschnitte; trim=true: gezaddelter Saumstreifen
+const tabardS=(ex,trim)=>({P:TUP,y1:trim?.5:.66,y2:trim?.74:1.5,cols:trim?192:96,dy:.008,hem:a=>trim?.6-.07*Math.pow(Math.max(0,Math.sin(Math.PI*((((a+Math.PI)/(2*Math.PI))*22)%1))),.6):.7,
+ top:a=>trim?.74:1.48-.17*Math.exp(-(((Math.abs(wrapA(a))-Math.PI/2)/.36)**2)),disp:(a,y)=>{const f=Math.sin(a*11+y*4);return[GB.amp+.03+ex+(trim?.004:0)+.004*f*ssm(1.1,.7,y),.88+.12*f]},chest:.09,chestW:.15});
 // Skapulier (Ordensüberwurf): vorne und hinten bis fast zum Boden
 const scapS=(back,o={})=>({P:RBP,y1:.12,y2:1.48,a0:back?Math.PI-.32:-.32,a1:back?Math.PI+.32:.32,cols:14,dy:.015,belly:o.belly||0,hem:a=>.14,top:a=>1.47,disp:(a,y)=>[.03+.003*Math.sin(a*9),.92+.08*Math.sin(a*9)]});
 // Offene Lederweste mit Armausschnitten
@@ -456,7 +462,7 @@ let NETM=null;function netMat(){if(NETM)return NETM;const S=64,c=document.create
 const WICK=new T.MeshStandardMaterial({color:0xb08a52,roughness:1,vertexColors:true,side:T.DoubleSide});
 const wickerGeo=(rx,rz,h)=>cg(KEY('wk',[rx,rz,h]),()=>paramGeo((u,v)=>{const a=u*2*Math.PI,y=h*(1-v),r=1+.06*v,s=.72+.28*(Math.sin(u*90)*Math.sin(v*30)>0?1:0);return[rx*r*Math.sin(a),y,rz*r*Math.cos(a),s]},48,12));
 // Kapuze unten (Gugel / Kutte): Kragen über den Schultern + Kapuzenbeutel im Nacken
-function cowlDown(g,o,mat){mesh(capeGeo(o,{top1:1.53,top0:1.49,topR:.105,teeth:0,hem0:1.3,off:.012}),mat,g);
+function cowlDown(g,o,mat){mesh(capeGeo(o,o.dag?{top1:1.53,top0:1.49,topR:.105,teeth:13,leaf:1,hem0:1.25,off:.012}:{top1:1.53,top0:1.49,topR:.105,teeth:0,hem0:1.3,off:.012}),mat,g);
  mesh(cg('hoodbag',()=>paramGeo((u,v)=>{const ph=Math.PI/2+Math.PI*u,th=v*Math.PI*.92,f=1+.1*Math.sin(ph*6)*Math.sin(th);const p=ellP(.13*f,.105,.085*f,0,th,ph);return[p[0],p[1]+1.43,p[2]-.15,.85+.15*Math.sin(ph*6)]},20,12)),mat,g)}
 // ---------- Kopfbedeckungen ----------
 function headwear(g,H,geo,o,AR,M){const h=o.head,lin=garMat('linen',o.coifCol||0xe6e0d0);
@@ -472,6 +478,8 @@ function headwear(g,H,geo,o,AR,M){const h=o.head,lin=garMat('linen',o.coifCol||0
   mesh(cg('swb',()=>paramGeo((u,v)=>{const ph=u*2*Math.PI,bk=Math.max(0,-Math.cos(ph)),L=.45+.5*bk;return[(1.08+v*L)*Math.sin(ph),.24-v*(.25+.25*bk),(1.13+v*L)*Math.cos(ph)]},40,3)),m,H)}
  if(h==='exec'){const bm=garMat('linen',0x141212);mesh(shell(geo,()=>true,.09,.01),bm,H);                       // Henkerhaube mit Augenlöchern
   for(const s of[-1,1])mesh(BTN_GEO,AR.hole,H,[s*.33,.17,.97],[.15,.09,.05]);mesh(capeGeo(o,{top1:1.56,top0:1.52,topR:.1,teeth:0,hem0:1.32}),bm,g)}
+ if(h==='gugel'||h==='gugelL'){const m=garMat('linen',o.hoodCol||o.over||o.cloth);buildCoif(g,H,geo,o,m,{shellOff:.16,teeth:12,leaf:1,hem0:1.24,top1:1.6,top0:1.53,topR:.105});   // Gugel mit Zaddelkragen und Zipfel
+  const L=h==='gugelL';tube(g,m,L?[[0,1.8,-.05],[0,1.78,-.15],[.02,1.64,-.21],[.03,1.4,-.23],[.03,1.12,-.22],[.02,.86,-.21]]:[[0,1.8,-.05],[0,1.76,-.15],[.01,1.66,-.2],[.02,1.55,-.21]],L?.024:.03)}
  if(h==='hood'&&o.liri){const m=garMat('linen',o.hoodCol||o.cloak||o.cloth);tube(g,m,[[0,1.79,-.06],[0,1.76,-.15],[.02,1.62,-.2],[.03,1.42,-.22],[.02,1.18,-.21]],.022)}}   // Gugel-Zipfel
 // ---------- Zubehör am Körper ----------
 function accessories(g,o,M,AR){const acc=o.acc||[],lea=AR.lea,wd=new T.MeshStandardMaterial({color:0x6a4a2c,roughness:1}),cord=new T.MeshStandardMaterial({color:0x2a2018,roughness:1});
@@ -554,7 +562,7 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(new T.BoxGeometry(.38,o.female?.05:.085,.07),hairM,H,[s*.3,.43,.93]).rotation.z=-s*.16;
   mesh(ball,M.skin,H,[s*.88,0,-.02],[.1,.26,.17]).rotation.y=s*.3}
  mesh(new T.BoxGeometry(.28,.032,.045),new T.MeshStandardMaterial({color:0x4a1f1f}),H,[0,-.535,.93]);
- const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec',hidden=['helmet','hood','scarf','sallet','coifL','wimple','skullcap'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
+ const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec'||hat==='plague',hidden=['helmet','hood','scarf','sallet','coifL','wimple','skullcap','gugel','gugelL'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
  if(!hidden&&o.hairStyle!=='bald'){const L=o.hairStyle==='long'||o.hairStyle==='braid';
   mesh(shell(geo,o.hairStyle==='tonsure'?(x,y,z)=>(y>.1&&y<.62&&z<.5)||(z<.1&&y>-.15&&y<.62):(x,y,z)=>y>.5||(z<.12&&y>(L?-.95:-.15)),.07,.05),hairM,H);
   if(L)mesh(new T.CylinderGeometry(.95,.8,2.4,20,1,true,Math.PI*.55,Math.PI*.9),new T.MeshStandardMaterial({color:o.hair,roughness:.85,side:T.DoubleSide}),H,[0,-1.25,-.12]);
@@ -583,15 +591,26 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
  if(hat==='chaperon'){   // Chaperon: gepolsterter Wulst, seitlich fallender Stoffkamm (Sendelbinde) und langer Zipfel
   const cm=hatMat('cloth',o.cloak||o.hatCol||0x5a1e1e);mesh(cg('chroll',()=>new T.TorusGeometry(1.05,.32,10,26)),cm,H,[0,.95,0]).rotation.x=Math.PI/2;
   mesh(cg('chtop',()=>new T.SphereGeometry(1.0,18,10,0,Math.PI*2,0,1.3)),cm,H,[0,.95,0],[1,.75,1.05]);
-  mesh(cg('chcomb',()=>paramGeo((u,v)=>{const a=-.4+u*1.6,y=1.25-v*1.5,r=1.05+.35*v+.12*Math.sin(u*14)*v;return[r*Math.sin(a+Math.PI/2),y,r*Math.cos(a+Math.PI/2)*.6,.85+.15*Math.sin(u*14)]},18,8)),cm,H);
+  mesh(cg('chcomb',()=>paramGeo((u,v)=>{const a=-.4+u*1.6,y=1.25-v*(1.5+.38*Math.pow(Math.abs(Math.sin(u*Math.PI*6)),.6)),r=1.05+.35*v+.12*Math.sin(u*14)*v;return[r*Math.sin(a+Math.PI/2),y,r*Math.cos(a+Math.PI/2)*.6,.85+.15*Math.sin(u*14)]},18,8)),cm,H);
   mesh(cg('chtail',()=>{const pts=[];for(let k=0;k<=10;k++){const t=k/10;pts.push(new T.Vector3(-.3-.4*t,.9-2.6*t,-.95-.3*Math.sin(t*3)))}return new T.TubeGeometry(new T.CatmullRomCurve3(pts),14,.16,7,false)}),cm,H)}
  if(hat==='plume'){      // Barett mit Straußenfeder: weiche flache Kopfplatte, gefältelt, Brosche
   const bm=hatMat('cloth',o.hatCol||0x2a2a4a);mesh(cg('beret',()=>lat([[0,1.55],[.7,1.58],[1.25,1.42],[1.45,1.22],[1.32,1.05],[1.08,.92],[1.02,.85],[1.0,.95],[1.2,1.08],[1.05,1.32],[.6,1.45],[0,1.48]],30)),bm,H,[0,0,0],[1,1,1]).rotation.z=-.12;
   mesh(cg('brooch',()=>new T.SphereGeometry(.12,10,8)),hatMat('gold'),H,[.95,1.15,.55]);
   const fw=hatMat('feather',0xf0ece2);for(let f=0;f<3;f++)mesh(cg('plf'+f,()=>{const pts=[];for(let k=0;k<=14;k++){const t=k/14;pts.push(new T.Vector3(.95+.4*t+f*.06,1.2+1.0*t-.6*t*t,.5-1.6*t))}return new T.TubeGeometry(new T.CatmullRomCurve3(pts),18,.11-.02*f,6,false)}),f?hatMat('feather',0xd8c090):fw,H)}
+ if(hat==='plague'){     // Pestdoktor: Lederkapuze, Schnabelmaske mit Glasaugen, breitkrempiger Hut
+  const bk=garMat('leather',0x161412),bone=hatMat('cloth',0xe2d6b8),gl=new T.MeshStandardMaterial({color:0x1a2a2c,metalness:.5,roughness:.15}),br=hatMat('gold');
+  buildCoif(g,H,geo,o,bk,{shellOff:.13,teeth:0,hem0:1.27,top1:1.6,top0:1.53,topR:.105});
+  mesh(cg('pdface',()=>new T.SphereGeometry(1,22,16,Math.PI/2-1.4,2.8,.7,1.85)),bone,H,[0,-.02,.02],[1.13,1.12,1.15]);
+  const bkM=mesh(cg('pdbeak',()=>new T.ConeGeometry(.42,2.1,16)),bone,H,[0,-.62,1.95]);bkM.rotation.x=Math.PI/2+.42;bkM.scale.set(1,1,.82);
+  ring(H,hatMat('band',0x8a6a40),1.02,-.3,.06,1.0);
+  for(const sd of[-1,1]){const e=mesh(cg('pdeye',()=>new T.CylinderGeometry(.24,.24,.1,18)),gl,H,[sd*.38,.2,1.08]);e.rotation.x=Math.PI/2;const rr=mesh(cg('pdrim',()=>new T.TorusGeometry(.25,.05,6,18)),br,H,[sd*.38,.2,1.13])}
+  const hm=hatMat('felt',0x181614);mesh(cg('pdhat',()=>lat([[0,1.68],[.85,1.68],[1.02,1.5],[1.08,1.1],[1.1,.92],[2.25,.86],[2.35,.8],[2.2,.78],[1.08,.84],[0,.86]],32)),hm,H);
+  ring(H,hatMat('band',0x3a2a1a),1.09,.98,.1,1.04)}
  // Körperkleidung – jede Lage liegt auf der darunterliegenden auf
  const bel=o.build==='stout'?.045:0,dirt=o.dirt||0,dz={belly:bel,dirt};let base=null;
  if(o.outfit==='gambeson'){buildGambeson(g,o);addLayer(g,{P:GBP,chest:.07,chestW:.09,disp:()=>[GB.amp,1]});if(o.mailShirt){mesh(garment('mail',MAILS),mailMat(2.24,1.79),g);addLayer(g,MAILS,{ymin:.6,ymax:1.48})}if(o.breast){breastplate(g,AR);addLayer(g,{P:GBP,chest:.085,chestW:.15,disp:()=>[GB.amp+.016,1]},{ymin:.86,ymax:1.39})}}
+ if(o.tabard&&o.outfit==='gambeson'){const ex=(o.breast?.03:0)+(o.mailShirt?.012:0),tc=o.fac||o.over||0x2a4a8a,S=tabardS(ex,false),S2=tabardS(ex,true);   // Wappenrock: ärmellos, seitlich offen, gezaddelter Saum in Kontrastfarbe
+  mesh(garment(KEY('tb',[ex]),S),garMat('linen',tc),g);mesh(garment(KEY('tb2',[ex]),S2),garMat('linen',o.tabTrim||0xd8b040),g);addLayer(g,S)}
  if(['tunic','jerkin','vest','smock'].includes(o.outfit)){base=tunicS({...dz,hem:o.outfit==='smock'?.6:o.hem||.52});mesh(garment(KEY('tu',[bel,dirt,o.outfit==='smock',o.hem]),base),garMat(o.outfit==='smock'?'leather':'linen',o.cloth),g);addLayer(g,base)}
  if(o.outfit==='jerkin'){const S=jerkS(dz);mesh(garment(KEY('je',[bel,dirt]),S),garMat('leather',o.over),g);addLayer(g,S);const pts=[];for(let y=.78;y<1.46;y+=.045){const p=gPt(S,0,y);pts.push([0,y,p[2]+.004])}rivets(g,AR.brass,pts,.007,[1,1,.6])}
  if(o.outfit==='vest'){const S=vestS(dz);mesh(garment(KEY('ve',[bel,dirt]),S),garMat('leather',o.vestCol||o.over),g);addLayer(g,S);

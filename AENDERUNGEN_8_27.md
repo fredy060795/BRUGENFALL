@@ -125,3 +125,17 @@
   schweben nicht mehr in der Luft.
 - Neue zivile Kopfbedeckungen (Strohhut, Jägerhut, Chaperon, Federhut, Haube, Kopftuch). Pferdemähne sichtbar.
 - **Neue Anzeige** für Leben, Hunger und Energie als Ringe (wie Medieval Dynasty); Meldungen überdecken sie nicht mehr.
+
+## Gewandungen & Rüstungen (Nachtrag 8.29)
+- **Gugeln**: Gugel mit Zaddelkragen (blattförmig gezaddelt), Gugel mit langem Zipfel und abgelegte Gugel
+  (Zaddelkragen über den Schultern) – Farbe = Gürtel-/Überwurffarbe. Der Chaperon hat jetzt eine gezaddelte Sendelbinde.
+- **Neue Rüstungen**: Waffenrock mit Brustplatte und Kettenzeug (Ritter), Wappenrock über Plattenharnisch (Ritter,
+  Fraktionsfarbe mit goldenem Zaddelsaum), Wappenrock über Kettenhemd. Ritter der Garnison tragen zufällig
+  Wappenrock, Visierhelm, Hundsgugel oder Schaller.
+- **Klappvisier**: Visierhelm und Hundsgugel haben ein Visier an Drehbolzen – im Kampf geschlossen, sonst offen;
+  eigenes Visier mit **Y** auf-/zuklappen.
+- Kapuzen, Hauben und Masken werden jetzt in ihrer Stofffarbe gezeigt (vorher immer schwarz).
+- **Pestdoktor**: Bricht im Ort eine Krankheit aus, legt der Heiler die Pestdoktor-Tracht an (Schnabelmaske mit
+  Glasaugen, breitkrempiger Hut, Lederkapuze, langer schwarzer Mantel, Handschuhe, Zeigestab) und macht Hausbesuche
+  von Krankenhaus zu Krankenhaus (je ca. 16 s an der Tür). Kranke in besuchten Häusern genesen 2,5× schneller.
+  Ist niemand mehr krank, trägt er wieder seine normale Kleidung.
