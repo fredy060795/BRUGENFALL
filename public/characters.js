@@ -19,9 +19,13 @@ export function weapon(type){const g=new T.Group();g.name=type;g.userData.second
   else{const s=new T.Shape();s.moveTo(-.04,0);s.lineTo(.04,0);s.lineTo(.01,.32);s.lineTo(0,.36);s.lineTo(-.01,.32);s.closePath();const h=mesh(new T.ExtrudeGeometry(s,{depth:.012,bevelEnabled:false}),steel,g,[0,L-.92,-.006]);box(g,steel,[.12,.025,.03],[0,L-.92,0])}
   return g}
  if(type==='staff'){const dk=new T.MeshStandardMaterial({color:0x2a1e16,roughness:.8});rod(g,dk,[0,-.95,0],[0,.75,0],.013,.011);ell(g,dk,[.024,.03,.024],[0,.77,0]);return g}   // Zeigestab des Pestdoktors
- if(type==='crossbow'){box(g,oak,[.06,.7,.07],[0,.05,0]);const p=mesh(new T.TorusGeometry(.6,.02,5,16,.9),steel,g,[0,-.24,0]);p.rotation.z=Math.PI/2-.45;   // flacher Stahlbogen quer zur Säule, Wölbung nach vorn
-
-  const sm=new T.MeshStandardMaterial({color:0xe8e0c8,roughness:1});rod(g,sm,[-.26,.3,0],[0,.12,0],.004);rod(g,sm,[.26,.3,0],[0,.12,0],.004);box(g,steel,[.04,.06,.05],[0,-.15,.03]);return g}
+ if(type==='crossbow'){   // Säule mit Kolben; Stahlbogen sitzt direkt am vorderen Schaftende (Wölbung nach vorn, Enden zur Sehne), Spannbügel davor, Nuss und Abzugsbügel
+  box(g,oak,[.055,.62,.065],[0,.11,0]);box(g,oak,[.07,.26,.085],[0,-.27,-.005]);
+  const p=mesh(new T.TorusGeometry(.7,.022,6,20,.96),steel,g,[0,-.28,0]);p.rotation.z=Math.PI/2-.48;
+  box(g,steel,[.09,.07,.09],[0,.41,0]);for(const sx of[-1,1])mesh(new T.SphereGeometry(.022,6,5),steel,g,[sx*.325,.37,0]);
+  rod(g,steel,[-.045,.44,0],[-.07,.56,0],.008);rod(g,steel,[.045,.44,0],[.07,.56,0],.008);rod(g,steel,[-.075,.56,0],[.075,.56,0],.009);   // Spannbügel
+  const sm=new T.MeshStandardMaterial({color:0xe8e0c8,roughness:1});rod(g,sm,[-.325,.37,0],[0,.2,.036],.004);rod(g,sm,[.325,.37,0],[0,.2,.036],.004);
+  mesh(new T.CylinderGeometry(.018,.018,.03,8),steel,g,[0,.2,.04]).rotation.z=Math.PI/2;rod(g,steel,[0,.12,-.035],[0,-.3,-.07],.007);return g}
  if(type==='torch'){rod(g,oak,[0,-.28,0],[0,.3,0],.022,.026);ell(g,dark,[.045,.06,.045],[0,.33,0]);const fm=[0xffc03a,0xff7a1a,0xfff0a0].map(c=>new T.MeshBasicMaterial({color:c}));g.userData.flames=[];
   for(let n=0;n<3;n++){const f=mesh(new T.ConeGeometry(.055-n*.012,.2+n*.05,6),fm[n],g,[(n-1)*.012,.47+n*.03,0]);f.castShadow=false;g.userData.flames.push(f)}
   const l=new T.PointLight(0xffaa55,20,13,2);l.position.y=.55;g.add(l);g.userData.light=l;return g}
@@ -164,11 +168,29 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  const f0=foot(0),f1=foot(1),dy=(mounted?0:-.05*k+.035*k*Math.cos(2*(g.phase-.6*Math.PI)))+(SW?SW.pd:0);
  if(mounted){g.legs.forEach(({hip,knee},i)=>{hip.rotation.set(-1.05,0,i?-.22:.22);knee.rotation.x=.85});pel.position.set(0,0,0)}
  else{pel.position.set(-.02*k*Math.cos(g.phase-.6*Math.PI),dy,pz);[f0,f1].forEach((f,i)=>{legIK(g.legs[i],f[0]-pz,f[1]+.067-.84-dy);g.legs[i].hip.rotation.z=0})}
+ // Posen: 1 liegen, 2 sitzen, 3 sitzen+trinken, 4 sitzen+essen, 5 knien, 6 jubeln, 7 Bier zapfen
+ const ps=fx.pose|0;
+ if(ps===2||ps===3||ps===4){pel.position.set(0,-.44,.04);g.legs.forEach(({hip,knee})=>{hip.rotation.set(-1.52,0,0);knee.rotation.x=1.52})}
+ else if(ps===5){pel.position.set(0,-.4,-.05);g.legs.forEach(({hip,knee},i)=>{hip.rotation.set(i?-.05:-1.45,0,0);knee.rotation.x=i?1.55:1.45})}
+ else if(ps===1){pel.position.set(0,0,0);g.legs.forEach(({hip,knee})=>{hip.rotation.set(0,0,0);knee.rotation.x=.05})}
+ if(ps&&!g._props){g._props=1;const wd=new T.MeshStandardMaterial({color:0x7a5230,roughness:.9}),hoop=new T.MeshStandardMaterial({color:0x444444,metalness:.5,roughness:.5});
+  g._mug=new T.Group();const m=new T.Mesh(new T.CylinderGeometry(.045,.05,.13,10),wd);m.position.set(0,-.07,.05);g._mug.add(m);const fo=new T.Mesh(new T.CylinderGeometry(.04,.04,.01,10),new T.MeshStandardMaterial({color:0xf0e6c8,roughness:1}));fo.position.set(0,-.005,.05);g._mug.add(fo);const hd=new T.Mesh(new T.TorusGeometry(.035,.009,4,8,Math.PI),hoop);hd.rotation.z=-Math.PI/2;hd.position.set(.05,-.07,.05);g._mug.add(hd);g.right.wrist.add(g._mug);
+  g._bowl=new T.Mesh(new T.SphereGeometry(.09,12,6,0,Math.PI*2,Math.PI/2,Math.PI/2),wd);g._bowl.material=wd.clone();g._bowl.material.side=T.DoubleSide;g._bowl.position.set(0,-.06,.06);g.left.wrist.add(g._bowl);
+  g._spoon=new T.Mesh(new T.BoxGeometry(.015,.16,.012),wd);g._spoon.position.set(0,-.1,.04);g.right.wrist.add(g._spoon)}
+ if(g._props){g._mug.visible=ps===3||ps===7;g._bowl.visible=ps===4;g._spoon.visible=ps===4}
+ if(g.tool)g.tool.visible=!(ps>=1&&ps<=7&&ps!==6);
  const br=Math.sin(g.t*1.7)*(1-k);
  let ux=.03+.08*run+.025*k+.006*br,uy=-.12*k*Math.cos(g.phase),uz=.012*Math.sin(g.t*.9)*(1-k),py=.06*k*Math.cos(g.phase),yawA=0;
  const none=type==='none',carry=type==='sword'||bow?.6:1,sw0=mounted?0:.65;
  let R=V(.29,.9+.012*br,.09+sw0*f0[0]*carry),Lh=V(-.29,.9+.012*br,.09+sw0*f1[0]),q=Eu(none?.05:.22,0,none?-.08:-.12),qL=null;
- if(fx.carry){R=V(.2,1.05,.4);Lh=V(-.2,1.05,.4);q=Eu(0,0,0)}
+ if(ps===1){R=V(.27,.72,.02);Lh=V(-.27,.72,.02);q=Eu(0,0,0);ux=0;uy=0}
+ else if(ps===3){const ph=g.t*.8+(g.id||0),lf=Math.pow(Math.max(0,Math.sin(ph)),3);R=V(.2,1.0,.4).lerp(V(.08,1.43,.24),lf);q=Eu(-1.1*lf,0,0);Lh=V(-.22,.98,.38);ux=.06-.05*lf}
+ else if(ps===4){const ph=g.t*1.9+(g.id||0),lf=Math.pow(Math.max(0,Math.sin(ph)),2);R=V(.1,1.02,.44).lerp(V(.06,1.4,.24),lf);q=Eu(-.6*lf,0,0);Lh=V(-.1,1.0,.4);ux=.14}
+ else if(ps===2){R=V(.2,.98,.36);Lh=V(-.2,.98,.36);q=Eu(0,0,0)}
+ else if(ps===5){R=V(.06,1.12,.32);Lh=V(-.06,1.12,.32);q=Eu(0,0,0);ux+=.1}
+ else if(ps===6){const w=Math.sin(g.t*6);R=V(.28,1.75+.05*w,.12);Lh=V(-.28,1.75-.05*w,.12);q=Eu(0,0,0)}
+ else if(ps===7){const ph=g.t*.7,tl=Math.max(0,Math.sin(ph));R=V(.18,1.12,.42);q=Eu(0,0,-1.1*tl);Lh=V(-.12,.98,.46)}
+ else if(fx.carry){R=V(.2,1.05,.4);Lh=V(-.2,1.05,.4);q=Eu(0,0,0)}
  else if(fx.pray){R=V(.1,1,.38);Lh=V(-.1,1,.38);q=Eu(0,0,0);ux+=.3}
  else if(fx.work===1||fx.work===3){const pose=workPose(g.role,g.t*(fx.work===3?.65:1),type),k2=Math.sin(g.t*(fx.work===3?3:7));if(pose){R=pose.R;Lh=pose.Lh;q=pose.q;ux+=pose.ux||0;uy+=pose.uy||0;py+=pose.py||0}else{R=V(.16,1,.42+.07*k2);Lh=V(-.16,1,.42-.07*k2);q=Eu(0,0,0);ux+=.18}}
  else if(bow){let draw;const a=fx.aim;

@@ -174,6 +174,21 @@
   if(t==='house'||t==='market')return[S,H,S,H][v];if(t==='granary')return[H,S,H,H][v];if(WORKSHOPS.includes(t))return[H,S,H,H][v];
   if(['bighouse','apothecary','armorer','smithy','brewery','tavern','chapel','church','cathedral','armory','watchpost','well','harbor','mill'].includes(t))return H;
   if(['lodge','farm','cow','sheep','pigsty','keep'].includes(t))return S;return null}
- const api={lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ // Innenräume (lokale Koordinaten, Tür bei +z): Betten [x,z,el], Treppen, Sitzplätze [x,z,ry,el] – Server (Wege) und Client (Möbel)
+ const INT=new Map();
+ function interior(t,lv){const key=t+':'+(lv|0);if(INT.has(key))return INT.get(key);let o=null;
+  if(t==='house'||t==='bighouse'){const w=t==='bighouse'?8:6,h0=2.7,SH=2.3,st=t==='house'?Math.max(0,Math.min(2,lv|0)):2,beds=[],stairs=[],E=s=>s?h0+(s-1)*SH+.2:0,cols=w>6?[-w/2+.85,-w/2+2.05,-w/2+3.25]:[-w/2+.85,-w/2+2.05];
+   if(st>=1)stairs.push({x:w/2-.65,z0:2.0,z1:-1.6,e0:0,e1:E(1),wd:.8});if(st>=2)stairs.push({x:w/2-1.55,z0:-1.6,z1:2.0,e0:E(1),e1:E(2),wd:.8});
+   if(st===0)for(const z of[-1.3,1.0])beds.push([-w/2+.85,z,0]);
+   for(let s=1;s<=st;s++)for(const x of cols)for(const z of[-1.3,1.0])beds.push([x,z,E(s)]);
+   const tx=w>6?1.4:1.0;o={w,d:6,h0,SH,storeys:st,beds,stairs,table:[tx,-.3],seats:[[tx-.4,-.95,0,0],[tx+.4,-.95,0,0],[tx-.4,.35,Math.PI,0],[tx+.4,.35,Math.PI,0]],hearth:[-.6,-2.45]}}
+  else if(t==='tavern'){const tb=[[-2.5,1.35],[2.5,1.35],[2.5,-.55]],seats=[];for(const[x,z]of tb)for(const dx of[-.42,.42]){seats.push([x+dx,z-.62,0,0]);seats.push([x+dx,z+.62,Math.PI,0])}
+   o={tables:tb,seats,counter:[0,-1.75,3.2],tap:[0,-2.45]}}
+  INT.set(key,o);return o}
+ // Weg zum Bett: Treppen hinauf (lokale Wegpunkte mit Höhe)
+ function bedPath(t,lv,bi){const I=interior(t,lv);if(!I||!I.beds.length)return null;const b=I.beds[bi%I.beds.length],P=[];
+  for(const s of I.stairs){if(b[2]<s.e1-.01)break;P.push({x:s.x,z:s.z0,el:s.e0},{x:s.x,z:s.z1,el:s.e1})}
+  P.push({x:b[0],z:b[1]+.85,el:b[2]});return{P,bed:b}}
+ const api={interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

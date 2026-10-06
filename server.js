@@ -207,7 +207,7 @@ function idle(r,n,dt){if(r.hr>=7&&r.hr<18&&gatherIdle(r,n,dt))return;const c=r.b
 function homeOf(r,n){let h=n.hid&&r.b.find(b=>b.id===n.hid);if(!h){let best=null,bs=9;for(const b of r.b){const c=capOf(b);if(!c)continue;const u=(r.res[b.id]||0)/c;if(u<1&&u<bs){bs=u;best=b}}if(best){n.hid=best.id;r.res[best.id]=(r.res[best.id]||0)+1}h=best}return h}
 const WK={smith:2,miner:2};
 function storeAt(r,from){const s=near(from,r.b.filter(b=>b.t==='storage'),1e9)||r.b.find(b=>b.t==='keep')||from;return BD[s.t]?fp(s,0,BD[s.t].d/2+1.8):{x:s.x,z:s.z}}
-const WORKSPOTS={smithy:[[-1.6,1.25,0]],bakery:[[1.35,.65,0]],bower:[[1.45,-.2,0]],armorer:[[1.3,-.45,0]],dairy:[[-1.5,.35,Math.PI]],butcher:[[-1.4,.3,Math.PI]],smokehouse:[[0,.2,Math.PI]],brewery:[[0,-.7,Math.PI]],tannery:[[0,-.6,Math.PI/2]],weaver:[[-1.1,.2,Math.PI]],tavern:[[0,-1.4,Math.PI/2]],apothecary:[[0,-.8,Math.PI]],mill:[[0,-.3,Math.PI/2]],keep:[[2.1,-1.7,Math.PI/2]],chapel:[[0,-2,Math.PI]],church:[[0,-4,Math.PI]],cathedral:[[0,-7.2,Math.PI]]};
+const WORKSPOTS={smithy:[[-1.6,1.25,0]],bakery:[[1.35,.65,0]],bower:[[1.45,-.2,0]],armorer:[[1.3,-.45,0]],dairy:[[-1.5,.35,Math.PI]],butcher:[[-1.4,.3,Math.PI]],smokehouse:[[0,.2,Math.PI]],brewery:[[0,-.7,Math.PI]],tannery:[[0,-.6,Math.PI/2]],weaver:[[-1.1,.2,Math.PI]],tavern:[[0,-2.4,0]],apothecary:[[0,-.8,Math.PI]],mill:[[0,-.3,Math.PI/2]],keep:[[2.1,-1.7,Math.PI/2]],chapel:[[0,-2,Math.PI]],church:[[0,-4,Math.PI]],cathedral:[[0,-7.2,Math.PI]]};
 function workPoint(r,b,n){const slots=WORKSPOTS[b.t]||[[0,0,Math.PI]],index=r.n.filter(o=>o.wb===b.id&&o.hp>0).findIndex(o=>o.id===n.id),q=slots[Math.max(0,index)%slots.length],p=fp(b,q[0]+(index>0?.85*index:0),q[1]);return {...p,ry:q[2]+(b.r||0)*Math.PI/2};}
 function enterBuilding(n,b,target,dt){const [x,z]=Rules.local(b,n.x,n.z),B=BD[b.t],inside=Math.abs(x)<B.w/2-.25&&Math.abs(z)<B.d/2-.25;
  if(!inside){const side=b.t==='church',door=side?fp(b,4.8,3.5):fp(b,0,B.d/2+.7);if(!n.entry||n.entry!==b.id){if(dist(n,door)>.18){mv(n,door.x,door.z,2.8,dt);return false;}n.entry=b.id;}const threshold=side?fp(b,3.1,3.5):fp(b,0,B.d/2-.7);if(dist(n,threshold)>.15){mv(n,threshold.x,threshold.z,2.8,dt);return false;}}
@@ -307,6 +307,35 @@ function plagueVisit(r,n,dt){const sick=r.n.filter(o=>o.sk&&o.hp>0&&o!==n);if(!s
   tgt=H.length>1&&n.pv&&H[0].id===n.pv.b?H[1]:H[0];n.pv={b:tgt.id,t:16}}
  const D=fp(tgt,0,BD[tgt.t].d/2+1.4);if(dist(n,D)>1.2){n.visit=0;mv(n,D.x,D.z,2.6,dt);return true}
  n.visit=tgt.id;n.pv.t-=dt;n.ry=Math.atan2(tgt.x-n.x,tgt.z-n.z);return true}
+// ---- Tagesablauf: abends Taverne oder Abendessen daheim, nachts über die Treppe ins eigene Bett, morgens wieder hinunter ----
+const resIdx=(r,n,h)=>r.n.filter(o=>o.hid===h.id&&o.hp>0).sort((a,b)=>a.id-b.id).indexOf(n);
+function pathStep(n,b,pts,i,dt){const tg=pts[i],W=fp(b,tg.x,tg.z),pv=i>0?pts[i-1]:null;
+ if(pv){const PW=fp(b,pv.x,pv.z),L=Math.max(.01,dist(PW,W)),f=Math.max(0,Math.min(1,1-dist(n,W)/L));n.fl=pv.el+(tg.el-pv.el)*f}
+ if(dist(n,W)>.12){mv(n,W.x,W.z,1.6,dt);return false}n.fl=tg.el;return true}
+function wakeUp(r,n,dt){const h=r.b.find(b=>b.id===n.slp.b),BP=h&&(h.t==='house'||h.t==='bighouse')?Rules.bedPath(h.t,h.lv,n.slp.ri):null;
+ if(!BP||!n.slp.up){n.slp=null;n.fl=0;return false}const R=[...BP.P].reverse();n.slp.dn=n.slp.dn||0;
+ if(n.slp.dn<R.length){if(pathStep(n,h,R,n.slp.dn,dt))n.slp.dn++;return true}n.slp=null;n.fl=0;return false}
+function lifeTick(r,n,dt){if(SOLDIER.includes(n.k)||['watch','trader','hangman','gravedigger'].includes(n.k)||n.tr||n.pd)return false;
+ const hr=r.hr,sleep=hr>=22||hr<6,eve=hr>=18&&hr<22,T=NT[n.k];
+ if(!sleep&&!eve){if(n.slp)return wakeUp(r,n,dt);return false}
+ if(!(T.job||n.k==='peasant'||n.k==='child'))return false;
+ const tvs=r.b.filter(b=>b.t==='tavern');
+ if(n.k==='keeper'&&eve){const tv=r.b.find(b=>b.id===n.wb&&b.t==='tavern');if(tv){const I=Rules.interior('tavern'),P=fp(tv,I.tap[0],I.tap[1]);if(enterBuilding(n,tv,{...P,ry:(tv.r||0)*Math.PI/2},dt)){n.ps=7;n.work=1}return true}}
+ if(eve&&n.k!=='child'&&tvs.length){if(n.evd!==r.dy){n.evd=r.dy;n.evp=Math.random()<.55?'tav':'home'}
+  if(n.evp==='tav'){const tv=near(n,tvs,1e9),I=Rules.interior('tavern'),g=r.n.filter(o=>o.evp==='tav'&&o.evd===r.dy&&o.hp>0&&!o.sk).sort((a,b)=>a.id-b.id),i=g.indexOf(n);
+   if(i>=0&&i<I.seats.length){const S=I.seats[i],P=fp(tv,S[0],S[1]);if(n.insideId&&n.insideId!==tv.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true}
+    if(enterBuilding(n,tv,{...P,ry:S[2]+(tv.r||0)*Math.PI/2},dt)){n.ps=n.id%3===0?4:3;if(Math.random()<dt*.008)r.gold+=1}return true}n.evp='home'}}
+ const home=homeOf(r,n);if(!home)return false;n.home=home;
+ if(n.insideId&&n.insideId!==home.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true}
+ const isH=home.t==='house'||home.t==='bighouse',ri=Math.max(0,resIdx(r,n,home));
+ if(!sleep){if(n.slp)return wakeUp(r,n,dt);if(isH&&ri<4){const S=Rules.interior(home.t,home.lv).seats[ri],P=fp(home,S[0],S[1]);if(enterBuilding(n,home,{...P,ry:S[2]+(home.r||0)*Math.PI/2},dt))n.ps=4;return true}
+  enterBuilding(n,home,fp(home,((ri%3)-1)*.85,-.5),dt);return true}
+ if(!isH){if(enterBuilding(n,home,{...fp(home,((ri%3)-1)*.9,-.6-Math.floor(ri/3)*.8),ry:(home.r||0)*Math.PI/2},dt))n.ps=1;return true}
+ const BP=Rules.bedPath(home.t,home.lv,ri);if(!BP)return false;
+ if(!n.slp||n.slp.b!==home.id||n.slp.ri!==ri){n.slp={b:home.id,ri,i:0}}
+ if(!n.slp.in){const W=fp(home,BP.P[0].x,BP.P[0].z);if(!enterBuilding(n,home,{...W,ry:0},dt))return true;n.slp.in=1;n.slp.up=1}
+ if(n.slp.i<BP.P.length){if(pathStep(n,home,BP.P,n.slp.i,dt))n.slp.i++;return true}
+ n.ps=1;n.ry=(home.r||0)*Math.PI/2;n.fl=BP.bed[2]+.6;return true}
 function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))return;if(n.k==='healer'&&n.pd&&!r.n.some(o=>o.sk&&o.hp>0)){n.pd=0;n.visit=0}const eve=r.hr>=18||r.hr<6||(r.omen>0&&n.k!=='priest');
  if(eve){const old=r.b.find(b=>b.id===n.insideId);if(old&&old.id!==n.hid&&!exitBuilding(n,old,dt))return;const h=homeOf(r,n)||r.b.find(b=>b.t==='keep')||{x:0,z:6};n.home=h;if(h.id)enterBuilding(n,h,fp(h,0,-.5),dt);else mv(n,h.x,h.z,3.2,dt);return}n.home=null;
  if(n.tr){const g=near(n,r.b.filter(b=>b.t==='garrison'),1e9);if(!g){n.tr=null;return}
@@ -464,7 +493,8 @@ r.wt-=dt;if(r.wt<=0){
  if(kp0&&r.set.interval>0&&r.set.max>0){r.rt=(r.rt===undefined?240:r.rt)-dt;if(r.rt<=0&&Math.random()<dt/r.set.interval*(1-(r.det||0))){raid(r);r.rt=90}}
  for(const p of r.pl.values()){p.food=Math.max(0,p.food-(r.creative?0:dt/24)*(season(r)===3?1.3:1));if(p.sl&&!(r.hr>=19||r.hr<5))p.sl=false;playerSick(r,p,dt);p.hp=p.food>0?(p.sk?p.hp-dt*(p.sk===2?.12:0):Math.min(100,p.hp+dt)):p.hp-dt*2;if(p.hp<=0){p.hp=100;p.food=100;p.sk=0;p.bd=1;const sp=spawnOf(r);p.x=sp.x;p.z=sp.z;p.ws.send(JSON.stringify({t:'rs'}));say(r,p.name+' wurde niedergestreckt',p)}}
  for(const n of r.n){const T=NT[n.k];n.cd-=dt;n.aim=0;n.work=0;if(!T.job)n.cr=0;
-  n.pr=0;if(n.sk){sickTick(r,n,dt,stf);continue}
+  n.pr=0;n.ps=0;if(n.sk){sickTick(r,n,dt,stf);continue}
+  if(lifeTick(r,n,dt))continue;
   if(n.k==='child'){play(r,n,dt);continue}
   if(n.k==='watch'){watchTick(r,n,dt);continue}
   if(r.pray>0&&chap&&(T.job||n.k==='peasant')){const P=fp(chap,((n.i*3.7)%6)-3,BD[chap.t].d/2+2.2+((n.i*2.3)%3));if(dist(n,P)>.9)mv(n,P.x,P.z,3,dt);else{n.ry=Math.PI;n.pr=1}continue}
@@ -536,10 +566,10 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  for(const b of r.b)if(b.hp<=0&&BD[b.t].hp>=150){r.ru.push({id:b.id,t:b.t,x:b.x,z:b.z,r:b.r,st:b.st|0,lv:b.lv||0,ext:b.ext||0,pendingTorture:!!b.pendingTorture});say(r,'💥 '+BN[b.t]+' wurde zerstört – mit dem Hammer reparieren',b)}
  for(const b of r.b)if(b.hp<=0)b.fire=0;const nb=r.b.length;r.b=r.b.filter(b=>b.hp>0);if(nb!==r.b.length)r.dirty=true;
  r.hpt=(r.hpt||0)-dt;if(r.under&&r.hpt<=0){r.dirty=true;r.under=false;r.hpt=1.5}
- for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT,r.map)+.1-Rules.height(n.x,n.z,r.map)):0;}}
- const actors=[...r.pl.values(),...r.n.filter(n=>n.hp>0),...r.e.filter(n=>n.hp>0),...r.dr,...r.w];const before=new Map([...r.pl.values()].map(p=>[p.id,[p.x,p.z]]));for(const actor of actors)actor.radius=actor.mt?.75:(r.dr.includes(actor)||r.w.includes(actor))?.6:.42;Rules.separate(actors);for(const p of r.pl.values()){const q=before.get(p.id);p.push=[r2(p.x-q[0]),r2(p.z-q[1])]}
+ for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT,r.map)+.1-Rules.height(n.x,n.z,r.map))+(n.fl||0):0;}else n.fl=0}
+ const actors=[...r.pl.values(),...r.n.filter(n=>n.hp>0&&!n.ps&&!n.pr&&!n.slp),...r.e.filter(n=>n.hp>0),...r.dr,...r.w];const before=new Map([...r.pl.values()].map(p=>[p.id,[p.x,p.z]]));for(const actor of actors)actor.radius=actor.mt?.75:(r.dr.includes(actor)||r.w.includes(actor))?.6:.42;Rules.separate(actors);for(const p of r.pl.values()){const q=before.get(p.id);p.push=[r2(p.x-q[0]),r2(p.z-q[1])]}
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0,p.fc||0,p.tool==='sword'&&p.sh&&p.shields[p.sh]?p.sh:'',p.coa|0]),
-  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0]),
+  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
   w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),
   evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
