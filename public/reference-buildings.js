@@ -1,6 +1,7 @@
 import * as T from 'three';
 import {addDoor,doorTop} from './doors.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {forestTree} from './world.js';
 
 // Material tiles are copied into independent canvases: no atlas-neighbour bleeding.
 const atlasCache=new Map(),COLM=new Map();
@@ -53,11 +54,36 @@ export function createMedievalMaterials(){
  materials.iron=new T.MeshStandardMaterial({color:0x333639,metalness:.65,roughness:.57});materials.green=new T.MeshStandardMaterial({color:0x344f38,roughness:.9});materials.dark=new T.MeshStandardMaterial({color:0x272522,roughness:1});materials.brass=new T.MeshStandardMaterial({color:0xb19650,metalness:.55,roughness:.4});return materials;
 }
 export function boxUV(geo,scale=2){const p=geo.attributes.position,n=geo.attributes.normal,uv=geo.attributes.uv;for(let i=0;i<p.count;i++){const x=Math.abs(n.getX(i)),y=Math.abs(n.getY(i));uv.setXY(i,(x>.5?p.getZ(i):p.getX(i))/scale,(y>.5?p.getZ(i):p.getY(i))/scale)}uv.needsUpdate=true;return geo}
-let stainedMaterial;
-function fineGlass(){if(stainedMaterial)return stainedMaterial;const canvas=document.createElement('canvas');canvas.width=960;canvas.height=2010;const ctx=canvas.getContext('2d'),sx=32,sy=30,palette=['#912d43','#bc974d','#386958','#3d6391','#78618e','#ab7c3f'];ctx.fillStyle='#29303a';ctx.fillRect(0,0,960,2010);for(let row=-1;row<135;row++)for(let col=-1;col<32;col++){const x=col*sx+(row%2?sx/2:0),y=row*sy/2;ctx.beginPath();ctx.moveTo(x,y-sy/2);ctx.lineTo(x+sx/2,y);ctx.lineTo(x,y+sy/2);ctx.lineTo(x-sx/2,y);ctx.closePath();ctx.fillStyle=palette[((row*7+col*11)%6+6)%6];ctx.fill();ctx.strokeStyle='#252a30';ctx.lineWidth=1.3;ctx.stroke();}const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.anisotropy=8;stainedMaterial=new T.MeshStandardMaterial({map,emissiveMap:map,emissive:0xffffff,emissiveIntensity:.28,roughness:.3,side:T.DoubleSide});stainedMaterial.name='fineStainedGlass';return stainedMaterial;}
-const TYPES=new Set(['house','bighouse','apothecary','bakery','lumber','lodge','quarry','bower','armorer','armory','granary','market','storage','keep','garrison','gate','portcullis','tower','chapel','church','cathedral','cow','smithy','dairy','butcher','smokehouse','brewery','tannery','weaver','tavern','ironmine','coppermine','fishery','sheep','pigsty','mill','well','watchpost','palisade','apiary','harbor','orchard','farm','hopfield']);
+// Bleiglasfenster: Rand aus Rubin/Saphir, blauer Grund mit Rauten, drei Medaillons mit Figur, Kreuz bzw. Stern, Vierpass im Bogen
+const GLASS=new Map();
+function fineGlass(v=0){v=v%4;if(GLASS.has(v))return GLASS.get(v);const W=256,H=640,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+ const lead='#1d1b1a',ruby=['#9a1f2a','#b8323a'],blue=['#1f3f8a','#2b56a8','#16306e'],gold='#d9a83a',green='#2f7a4a',white='#e8e0c8',purple='#6a3a8a';
+ x.fillStyle=lead;x.fillRect(0,0,W,H);
+ // Grund: Rauten in Blautönen
+ const g0=v%2?blue:[green,'#3a8a5a','#256a3c'];for(let r0=-1;r0<H/24+1;r0++)for(let c0=-1;c0<W/24+1;c0++){const cx=c0*24+(r0%2?12:0),cy=r0*24;x.beginPath();x.moveTo(cx,cy-12);x.lineTo(cx+12,cy);x.lineTo(cx,cy+12);x.lineTo(cx-12,cy);x.closePath();x.fillStyle=g0[(r0*3+c0*5+99)%3];x.fill();x.strokeStyle=lead;x.lineWidth=2.5;x.stroke()}
+ // Randbordüre
+ for(let y=0;y<H;y+=22)for(const bx0 of[0,W-22]){x.fillStyle=((y/22)|0)%2?ruby[0]:gold;x.fillRect(bx0+3,y+3,16,16);x.strokeStyle=lead;x.lineWidth=3;x.strokeRect(bx0+3,y+3,16,16)}
+ // Medaillons
+ const med=(cy,kind,col)=>{x.beginPath();x.arc(W/2,cy,70,0,7);x.fillStyle=gold;x.fill();x.lineWidth=5;x.strokeStyle=lead;x.stroke();x.beginPath();x.arc(W/2,cy,60,0,7);x.fillStyle=col;x.fill();x.stroke();
+  x.fillStyle=white;x.strokeStyle=lead;x.lineWidth=3;
+  if(kind==='fig'){x.beginPath();x.arc(W/2,cy-28,13,0,7);x.fill();x.stroke();x.beginPath();x.arc(W/2,cy-28,20,Math.PI*1.05,Math.PI*1.95);x.strokeStyle=gold;x.lineWidth=5;x.stroke();x.strokeStyle=lead;x.lineWidth=3;
+   x.beginPath();x.moveTo(W/2-12,cy-14);x.lineTo(W/2+12,cy-14);x.lineTo(W/2+26,cy+42);x.lineTo(W/2-26,cy+42);x.closePath();x.fillStyle=v%2?ruby[1]:purple;x.fill();x.stroke()}
+  else if(kind==='cross'){x.fillStyle=gold;x.fillRect(W/2-9,cy-42,18,84);x.fillRect(W/2-32,cy-18,64,18);x.strokeRect(W/2-9,cy-42,18,84);x.strokeRect(W/2-32,cy-18,64,18)}
+  else{x.beginPath();for(let q=0;q<16;q++){const a=q/16*Math.PI*2,rr=q%2?18:44;x.lineTo(W/2+Math.cos(a)*rr,cy+Math.sin(a)*rr)}x.closePath();x.fillStyle=gold;x.fill();x.stroke()}};
+ const order=[['fig','cross','star'],['star','fig','cross'],['cross','fig','fig'],['fig','star','fig']][v];
+ med(H*.36,order[0],ruby[0]);med(H*.6,order[1],blue[1]);med(H*.84,order[2],ruby[1]);
+ // Vierpass im Spitzbogen
+ x.fillStyle=gold;for(const[dx,dy]of[[0,-22],[22,0],[0,22],[-22,0]]){x.beginPath();x.arc(W/2+dx,H*.12+dy,18,0,7);x.fill();x.strokeStyle=lead;x.lineWidth=3;x.stroke()}x.beginPath();x.arc(W/2,H*.12,12,0,7);x.fillStyle=ruby[1];x.fill();x.stroke();
+ // senkrechte Windeisen
+ x.strokeStyle=lead;x.lineWidth=6;for(const y of[H*.22,H*.48,H*.72])x.beginPath(),x.moveTo(0,y),x.lineTo(W,y),x.stroke();
+ const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;map.anisotropy=8;const m=new T.MeshStandardMaterial({map,emissiveMap:map,emissive:0xffffff,emissiveIntensity:.32,roughness:.3,side:T.DoubleSide});m.name='stainedGlass'+v;GLASS.set(v,m);return m}
+const TYPES=new Set(['cemetery','house','bighouse','apothecary','bakery','lumber','lodge','quarry','bower','armorer','armory','granary','market','storage','keep','garrison','gate','portcullis','tower','chapel','church','cathedral','cow','smithy','dairy','butcher','smokehouse','brewery','tannery','weaver','tavern','ironmine','coppermine','fishery','sheep','pigsty','mill','well','watchpost','palisade','apiary','harbor','orchard','farm','hopfield']);
 export const referenceTypes=[...TYPES];
-export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
+const PAINT=[0,0xf4f0e6,0xe8d9b0,0xd9b060,0xd8a8a0,0xb8c8d8,0xb8c8a0,0xb85a48,0xc8c0b0,0x9ab0c0,0xe0c890,0x8a9a70];
+export const PAINT_N=['Standard','Weiß','Creme','Ocker','Rosé','Hellblau','Salbei','Ochsenblut','Grau','Taubenblau','Sand','Moos'];
+function tintPlaster(H,c){const key='pl'+c;if(COLM.has(key))return COLM.get(key);const m=H.plaster.clone();m.color.set(c);m.onBeforeCompile=H.plaster.onBeforeCompile;m.customProgramCacheKey=H.plaster.customProgramCacheKey;COLM.set(key,m);return m}
+export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
+ if(paint&&PAINT[paint])H={...H,plaster:tintPlaster(H,PAINT[paint])};
  if(!TYPES.has(k))return null;
  const V=(v|0)&3; // 4 Varianten 0..3
  const g=new T.Group();g.name='ReferenceBuilding:'+k+':'+lv+':v'+V;g.colliders=[];g.walkAreas=[];g.referenceModel=true;g.terrainConform=['cow','sheep','pigsty','apiary','orchard','farm'].includes(k);
@@ -115,7 +141,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
  function gothic(x,z,side,y=2.2,w=1.1,h=2.6){
  // Paired window surfaces sit outside both faces of the masonry.
  for(const inside of[false,true]){const inset=inside?-.41:0,xx=x+Math.sin(side)*inset,zz=z+Math.cos(side)*inset,group=new T.Group();group.name=inside?'StainedGlassInterior':'StainedGlassExterior';group.position.set(xx,y,zz);group.rotation.y=side;
- const sh=new T.Shape();sh.moveTo(-w/2,0);sh.lineTo(w/2,0);sh.lineTo(w/2,h*.65);sh.quadraticCurveTo(w*.4,h*.84,0,h);sh.quadraticCurveTo(-w*.4,h*.84,-w/2,h*.65);sh.closePath();const geo=new T.ShapeGeometry(sh,32),uv=geo.attributes.uv,pp=geo.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,pp.getX(i)/w+.5,pp.getY(i)/h);const glass=new T.Mesh(geo,fineGlass());glass.userData.paneColumns=30;glass.userData.paneRows=67;group.add(glass);
+ const sh=new T.Shape();sh.moveTo(-w/2,0);sh.lineTo(w/2,0);sh.lineTo(w/2,h*.65);sh.quadraticCurveTo(w*.4,h*.84,0,h);sh.quadraticCurveTo(-w*.4,h*.84,-w/2,h*.65);sh.closePath();const geo=new T.ShapeGeometry(sh,32),uv=geo.attributes.uv,pp=geo.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,pp.getX(i)/w+.5,pp.getY(i)/h);const glass=new T.Mesh(geo,fineGlass(g._gw=(g._gw||0)+(inside?0:1)));glass.userData.paneColumns=30;glass.userData.paneRows=67;group.add(glass);
  g.add(group);arch(xx,y,zz,w,h,side)}
  }
  function bell(x,y,z){const b=new T.Group(),mesh=new T.Mesh(new T.LatheGeometry([[.47,-.9],[.43,-.8],[.25,-.55],[.19,-.2],[.09,0]].map(p=>new T.Vector2(...p)),16),H.brass);b.add(mesh);const cl=new T.Mesh(new T.CylinderGeometry(.035,.05,.85,8),H.iron);cl.position.y=-.5;b.add(cl);b.position.set(x,y,z);g.add(b);g.bell=b;}
@@ -155,14 +181,14 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
   // Freie Seiten kragen aus, Seiten mit direktem Nachbarhaus bleiben bündig und geschlossen (Brandwand ohne Fenster).
   const big=k==='bighouse',w=big?8:6,d=6,h0=2.7,SH=2.3,OV=.42,mask=attach|0,free=[!(mask&1),!(mask&2),!(mask&4),!(mask&8)];   // links, rechts, hinten, vorne
   const roofs=big?[H.slate,H.shingle,H.slate,H.redRoof]:[H.thatch,H.shingle,H.thatch,H.slate],roofMat=roofs[V];
-  const PC=big?[0xe9e2d0,0xd9b98a,0xe8d8c0,0xcfa48a]:[0xf0eadc,0xe6d2a8,0xdcc6b0,0xd8c9a0],plaster=COLM.get('pl'+PC[V])||(()=>{const m=H.plaster.clone();m.color.set(PC[V]);m.onBeforeCompile=H.plaster.onBeforeCompile;m.customProgramCacheKey=H.plaster.customProgramCacheKey;COLM.set('pl'+PC[V],m);return m})();
+  const PC=big?[0xe9e2d0,0xd9b98a,0xe8d8c0,0xcfa48a]:[0xf0eadc,0xe6d2a8,0xdcc6b0,0xd8c9a0],plaster=paint&&PAINT[paint]?H.plaster:tintPlaster(H,PC[V]),storeys=k==='house'?Math.max(0,Math.min(2,lv|0)):2;
   shell(w,d,h0,big&&V%2?H.stone:plaster,1.4);if(!(big&&V%2))framing(w,d,h0);box(w-.4,.14,d-.4,0,h0-.05,0,H.floor);
   // Erdgeschoss-Fenster (Seitenfenster nur an freien Seiten)
   const gw=.8;window(-(.7+.3+gw),1.5,d/2+.04,0,gw,1);if(big)window(.7+.3+gw+.2,1.5,d/2+.04,0,gw,1);
   if(free[1])window(w/2+.04,1.5,V&1?-1:.6,Math.PI/2,gw,1);if(free[0])window(-w/2-.04,1.5,V&1?.6:-1,-Math.PI/2,gw,1);if(free[2])window(V&1?1:-1,1.5,-d/2-.04,Math.PI,gw,1);
   const pt=(ax,pos,u,y)=>ax==='z'?[u,y,pos]:[pos,y,u];
-  let top=null;
-  for(let s=1;s<=2;s++){const o=OV*s,L=free[0]?o:0,Rr=free[1]?o:0,B=free[2]?o:0,F=free[3]?o:0,x0=-w/2-L,x1=w/2+Rr,z0=-d/2-B,z1=d/2+F,y0=h0+(s-1)*SH,y1=y0+SH,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  let top={x0:-w/2,x1:w/2,z0:-d/2,z1:d/2,y:h0};
+  for(let s=1;s<=storeys;s++){const o=OV*s,L=free[0]?o:0,Rr=free[1]?o:0,B=free[2]?o:0,F=free[3]?o:0,x0=-w/2-L,x1=w/2+Rr,z0=-d/2-B,z1=d/2+F,y0=h0+(s-1)*SH,y1=y0+SH,cx=(x0+x1)/2,cz=(z0+z1)/2;
    box(x1-x0+.06,.2,z1-z0+.06,cx,y0+.1,cz,H.wood);                                       // Stockwerksschwelle
    const t=.2;box(x1-x0,SH,t,cx,y0+SH/2,z1-t/2,plaster,false);box(x1-x0,SH,t,cx,y0+SH/2,z0+t/2,plaster,false);box(t,SH,z1-z0-2*t,x0+t/2,y0+SH/2,cz,plaster,false);box(t,SH,z1-z0-2*t,x1-t/2,y0+SH/2,cz,plaster,false);
    // Wandflächen: [Achse, Lage, Richtung, u0, u1, frei, Fensterseite]
@@ -185,7 +211,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
     // Blumenkästen unter den Erkerfenstern (nur Straßenseite)
     if(ax==='z'&&sg>0&&s===1)for(let q=0;q<n;q++){const u=u0+len*(q+.5)/n;box(ww+.1,.16,.2,u,wy-wh/2-.2,pos+.2,H.wood);for(let f=0;f<4;f++){const geo=new T.SphereGeometry(.06,6,5);geo.translate(u-ww/2+.12+f*(ww-.24)/3,wy-wh/2-.07,pos+.22);staticMesh(geo,COLM.get('fl'+f)||(COLM.set('fl'+f,new T.MeshStandardMaterial({color:[0xc83a3a,0xe8c040,0xd870a0,0xf0f0e8][f],roughness:.8})),COLM.get('fl'+f)))}}}
    top={x0,x1,z0,z1,y:y1}}
-  const rw=top.x1-top.x0,rd=top.z1-top.z0,rx=(top.x0+top.x1)/2,rz=(top.z0+top.z1)/2,rise=big?3.6:3.2;
+  const rw=top.x1-top.x0,rd=top.z1-top.z0,rx=(top.x0+top.x1)/2,rz=(top.z0+top.z1)/2,rise=big?3.6:storeys?3.2:2.7;
   roof(rw,rd,top.y,rise,roofMat,rx,rz,plaster);
   for(const sg of[-1,1]){const zz=rz+sg*(rd/2+.08);beam([rx,top.y+.15,zz],[rx,top.y+rise-.2,zz],.14);beam([rx-rw/4,top.y+.15,zz],[rx-rw/4,top.y+rise/2,zz],.12);beam([rx+rw/4,top.y+.15,zz],[rx+rw/4,top.y+rise/2,zz],.12);beam([rx-rw/2+.2,top.y+.6,zz],[rx+rw/2-.2,top.y+.6,zz],.12);
    window(rx,top.y+1.15,zz+sg*.03,sg>0?0:Math.PI,.55,.75)}                                   // Giebelfenster
@@ -271,7 +297,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
  else if(k==='chapel'){shell(6,8,3.6,H.stone,1.7);roof(6,8,3.6,2.3,H.shingle,0,0,H.stone);for(const side of[-1,1])for(const z of[-2,1])gothic(side*3.02,z,side*Math.PI/2,1.6,.8,1.7);box(.14,1,.14,0,6.4,3.4,H.stone);box(.65,.14,.14,0,6.55,3.4,H.stone);furniture();
   {const pl=new T.Mesh(new T.PlaneGeometry(1.5,2.1),fresco(1));pl.position.set(0,2.5,-3.64);g.add(pl);for(const a of[-1,1]){const p2=new T.Mesh(new T.PlaneGeometry(.9,1.4),fresco(a>0?2:5));p2.position.set(a*2.64,2.2,-.5);p2.rotation.y=-a*Math.PI/2;g.add(p2)}
    for(const x of[-.55,.55]){cylinder(.04,.28,x,1.14,-3.2,H.plaster,8);const f=new T.Mesh(new T.ConeGeometry(.028,.08,6),new T.MeshBasicMaterial({color:0xffc860}));f.position.set(x,1.32,-3.2);g.add(f)}}}
- else if(k==='church'){shell(8,12,5.5,H.stone,2.4,true);roof(8,11.6,5.5,3.3,H.slate,0,-.2,H.stone);{const sh=new T.Shape();sh.moveTo(-4,0);sh.lineTo(4,0);sh.lineTo(0,3.3);sh.closePath();const q=new T.ExtrudeGeometry(sh,{depth:.35,bevelEnabled:false});q.translate(0,5.5,5.65);staticMesh(q,H.stone)}for(const a of[-1,1])for(const z of[-3.5,-.8,3.3]){if(a===1&&z>1)continue;gothic(a*4.02,z,a*Math.PI/2,2.1,1.05,2.7);box(.65,4.7,.55,a*4.15,2.35,z-1,H.stone)}box(2.8,3.8,2.8,0,6.95,4.6,H.stone);g.bellTowerWalls=4;for(let face=0;face<4;face++){const angle=face*Math.PI/2,x=Math.sin(angle)*1.4,z=4.6+Math.cos(angle)*1.4,sh=new T.Shape();sh.moveTo(-1.4,0);sh.lineTo(1.4,0);sh.lineTo(1.4,2.5);sh.lineTo(-1.4,2.5);sh.closePath();const hole=new T.Path();hole.moveTo(-.55,.35);hole.lineTo(-.55,1.42);hole.quadraticCurveTo(-.44,1.74,0,2);hole.quadraticCurveTo(.44,1.74,.55,1.42);hole.lineTo(.55,.35);hole.closePath();sh.holes.push(hole);const geo=new T.ExtrudeGeometry(sh,{depth:.35,bevelEnabled:false});geo.translate(0,8.85,-.35);geo.rotateY(angle);geo.translate(x,0,z);staticMesh(geo,H.stone);gothic(x+Math.sin(angle)*.02,z+Math.cos(angle)*.02,angle,9.2,1.1,1.65);}box(2.8,.2,2.8,0,11.45,4.6,H.stone);crown(2.8,2.8,11.55,H.stone,0,4.6);bell(0,11.1,4.6);furniture();
+ else if(k==='church'){shell(8,12,5.5,H.stone,2.4,true);roof(8,11.6,5.5,3.3,H.slate,0,-.2,H.stone);{const sh=new T.Shape();sh.moveTo(-4,0);sh.lineTo(4,0);sh.lineTo(0,3.3);sh.closePath();const q=new T.ExtrudeGeometry(sh,{depth:.35,bevelEnabled:false});q.translate(0,5.5,5.65);staticMesh(q,H.stone)}for(const a of[-1,1])for(const z of[-3.5,-.8,3.3]){if(a===1&&z>1)continue;gothic(a*4.02,z,a*Math.PI/2,2.1,1.05,2.7);box(.65,4.7,.55,a*4.15,2.35,z-1,H.stone)}box(2.8,8.85,2.8,0,4.425,5.4,H.stone,true);for(const y of[2.6,5.4])for(const a of[-1,1])window(a*1.42,y,5.4,a*Math.PI/2,.3,.9,true);g.bellTowerWalls=4;for(let face=0;face<4;face++){const angle=face*Math.PI/2,x=Math.sin(angle)*1.4,z=5.4+Math.cos(angle)*1.4,sh=new T.Shape();sh.moveTo(-1.4,0);sh.lineTo(1.4,0);sh.lineTo(1.4,2.5);sh.lineTo(-1.4,2.5);sh.closePath();const hole=new T.Path();hole.moveTo(-.55,.35);hole.lineTo(-.55,1.42);hole.quadraticCurveTo(-.44,1.74,0,2);hole.quadraticCurveTo(.44,1.74,.55,1.42);hole.lineTo(.55,.35);hole.closePath();sh.holes.push(hole);const geo=new T.ExtrudeGeometry(sh,{depth:.35,bevelEnabled:false});geo.translate(0,8.85,-.35);geo.rotateY(angle);geo.translate(x,0,z);staticMesh(geo,H.stone);gothic(x+Math.sin(angle)*.02,z+Math.cos(angle)*.02,angle,9.2,1.1,1.65);}box(2.8,.2,2.8,0,11.45,5.4,H.stone);crown(2.8,2.8,11.55,H.stone,0,5.4);bell(0,11.1,5.4);furniture();
   // Wandmalereien im Inneren, Altarbild, Kerzen
   for(const a of[-1,1])for(const [z,n]of[[-5.05,0],[-2.15,1],[1.25,2]]){const pl=new T.Mesh(new T.PlaneGeometry(1.25,1.9),fresco(n+(a>0?3:0)));pl.position.set(a*3.64,3.3,z);pl.rotation.y=-a*Math.PI/2;g.add(pl)}
   {const pl=new T.Mesh(new T.PlaneGeometry(2.4,3.2),fresco(4));pl.position.set(0,3.7,-5.62);g.add(pl);box(2.6,.12,.12,0,5.36,-5.6,H.brass);box(2.6,.12,.12,0,2.04,-5.6,H.brass)}
@@ -363,6 +389,31 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
   {const tz=.15,tw=2.6;for(const x of[-tw/2+.1,tw/2-.1])for(const dz of[-.18,.18])beam([x,0,tz+dz*1.6],[x,.55,tz+dz*.6],.05);box(tw,.06,.5,0,.48,tz,H.wood);for(const dz of[-.25,.25])box(tw,.3,.05,0,.62,tz+dz,H.wood);for(const dx of[-tw/2,tw/2])box(.05,.3,.5,dx,.62,tz,H.wood);
    const feed=new T.Mesh(new T.BoxGeometry(tw-.1,.24,.42),H.thatch);feed.position.set(0,.51+.12,tz);feed.userData.base=.51;feed.scale.y=1;feed.receiveShadow=true;g.add(feed);g.feedMesh=feed}
   g.animals=[];const N=k==='cow'?4:6,SPOT=[[-2.3,1.3],[-.8,2.1],[.8,1.3],[2.3,2.1],[-1.6,2.5],[1.6,.95]];for(let n=0;n<N;n++){const a=quad(k==='pigsty'?'pig':k==='sheep'?'sheep':'cow');a.position.set(SPOT[n][0],0,SPOT[n][1]);a.rotation.y=(n*1.7)%6.28;a.visible=n<3;g.add(a);g.animals.push(a)}}
+ else if(k==='cemetery'){
+  // Friedhof: niedrige Bruchsteinmauer, Kiesweg, Hochkreuz, alter Baum, Bank; Gräber mit Grabsteinen (rund, Kreuz, Holzkreuz, Stele), teils schief und bemoost
+  const W=10,D=8,t=.35,mh=.75,gravel=COLM.get('gravel')||(COLM.set('gravel',new T.MeshStandardMaterial({color:0xa49a86,roughness:1})),COLM.get('gravel')),earth=COLM.get('graveEarth')||(COLM.set('graveEarth',new T.MeshStandardMaterial({color:0x4a3a28,roughness:1})),COLM.get('graveEarth')),
+   moss=COLM.get('mossStone')||(()=>{const m=H.stone.clone();m.color.set(0x8a9a78);m.onBeforeCompile=H.stone.onBeforeCompile;m.customProgramCacheKey=H.stone.customProgramCacheKey;COLM.set('mossStone',m);return m})(),dark=COLM.get('darkStone')||(()=>{const m=H.stone.clone();m.color.set(0x8a8478);m.onBeforeCompile=H.stone.onBeforeCompile;m.customProgramCacheKey=H.stone.customProgramCacheKey;COLM.set('darkStone',m);return m})();
+  box(W,mh,t,0,mh/2,-D/2+t/2,H.stone,true);for(const a of[-1,1]){box(t,mh,D,a*(W/2-t/2),mh/2,0,H.stone,true);const L=W/2-.9;box(L,mh,t,a*(.9+L/2),mh/2,D/2-t/2,H.stone,true);box(.5,1.3,.5,a*.95,.65,D/2-t/2,H.stone,true);cylinder(.2,.25,a*.95,1.42,D/2-t/2,H.stone,8)}
+  for(let q=0;q<26;q++){const a=q/26,x=-W/2+t/2+a*(W-t);box(.36,.1,.42,x,mh+.05,-D/2+t/2,H.stone)}
+  addDoor(g,H,{x:0,z:D/2-t/2,width:1.5,height:1.05,style:'gate',double:true});
+  box(1.2,.04,D-.6,0,.03,0,gravel);box(W-1,.03,.9,0,.025,-D/2+1.2,gravel);
+  // Hochkreuz am Wegende
+  box(1,.4,1,0,.2,-D/2+1.1,H.stone,true);box(.7,.3,.7,0,.55,-D/2+1.1,H.stone);box(.18,2.4,.18,0,1.85,-D/2+1.1,H.stone);box(1,.18,.18,0,2.5,-D/2+1.1,H.stone);
+  {const tr=forestTree(H.wood);tr.scale.setScalar(.55);tr.position.set(W/2-1.3,0,-D/2+1.3);g.add(tr)}box(1.4,.08,.4,-W/2+1.4,.45,-D/2+1.2,H.wood);for(const e of[-.55,.55])box(.08,.42,.35,-W/2+1.4+e,.22,-D/2+1.2,H.wood);
+  g.crosses=new T.Group();let sd=1234567;const rr=()=>(sd=(sd*16807)%2147483647)/2147483647;const slots=[];
+  for(let row=0;row<5;row++)for(const sx of[-1,1])for(let c=0;c<4;c++)slots.push([sx*(1.35+c*.95),-2.1+row*1.25]);
+  slots.sort((a,b)=>(a[1]-b[1])||(Math.abs(a[0])-Math.abs(b[0])));
+  for(const[x,z]of slots){const gr=new T.Group();gr.position.set(x,0,z);const add2=(geo,m,px,py,pz,rx=0,rz=0)=>{const o=new T.Mesh(geo,m);o.position.set(px,py,pz);o.rotation.set(rx,0,rz);o.castShadow=o.receiveShadow=true;gr.add(o);return o};
+   add2(new T.BoxGeometry(.55,.14,1),earth,0,.07,.15);const sm=rr()<.35?moss:rr()<.5?dark:H.stone,tl=rr()<.3?(rr()-.5)*.45:(rr()-.5)*.08,tx=rr()<.25?(rr()-.5)*.35:0,ty=rr(),kind=(rr()*4)|0,hz=-.38;
+   const st=new T.Group();st.position.set(0,0,hz);st.scale.setScalar(1.3);st.rotation.set(tx,(rr()-.5)*.15,tl);gr.add(st);const put=(geo,m,px,py,pz,rx=0)=>{const o=new T.Mesh(geo,m);o.position.set(px,py,pz);o.rotation.x=rx;o.castShadow=true;st.add(o)};
+   if(kind===0){const hh=.45+ty*.25;put(new T.BoxGeometry(.44,hh,.1),sm,0,hh/2,0);put(new T.CylinderGeometry(.22,.22,.1,14,1,false,Math.PI/2,Math.PI),sm,0,hh,0,Math.PI/2)}
+   else if(kind===1){put(new T.BoxGeometry(.12,.85,.12),sm,0,.42,0);put(new T.BoxGeometry(.46,.12,.12),sm,0,.62,0);put(new T.BoxGeometry(.3,.12,.26),sm,0,.06,0)}
+   else if(kind===2){put(new T.BoxGeometry(.07,.9,.07),H.wood,0,.45,0);put(new T.BoxGeometry(.42,.07,.07),H.wood,0,.66,0)}
+   else{const hh=.7+ty*.35;put(new T.BoxGeometry(.32,hh,.14),sm,0,hh/2,0);put(new T.ConeGeometry(.23,.22,4),sm,0,hh+.1,0)}
+   if(rr()<.4){const f=new T.Mesh(new T.SphereGeometry(.07,6,4),COLM.get('fl'+((rr()*4)|0))||H.green);f.position.set((rr()-.5)*.3,.18,.2);gr.add(f)}
+   gr.visible=false;g.crosses.add(gr)}
+  g.add(g.crosses);g.setGraves=m=>g.crosses.children.forEach((c,q)=>c.visible=q<m);
+ }
  else if(k==='orchard'||k==='hopfield'){let sd=(V+1)*48271+(k==='orchard'?7:11);const rr=()=>(sd=(sd*16807)%2147483647)/2147483647;
   const mat=(key,c)=>{if(!COLM.has(key))COLM.set(key,new T.MeshStandardMaterial({color:c,roughness:.9}));return COLM.get(key)};
   const blob=(r,x,y,z,m,j=.18)=>{const geo=new T.IcosahedronGeometry(r,1),P=geo.attributes.position;for(let i=0;i<P.count;i++){const f=1+(rr()-.5)*j*2;P.setXYZ(i,P.getX(i)*f,P.getY(i)*f*.85,P.getZ(i)*f)}geo.computeVertexNormals();geo.translate(x,y,z);staticMesh(geo,m)};
@@ -372,12 +423,10 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
    // kein Zaun: Plantagen lassen sich lückenlos aneinanderreihen
    // Obstbäume mit Ästen, unregelmäßigen Kronen, Früchten
    const TREES=[[-2.3,-2],[0,-2.4],[2.3,-2],[-2.3,1],[0,.7],[2.3,1]];
-   TREES.forEach(([x,z],ti)=>{const h=1.1+rr()*.3,lean=(rr()-.5)*.15;{const geo=new T.CylinderGeometry(.08,.13,h,7);geo.translate(x,h/2,z);staticMesh(geo,BK)}
-    const top=[x+lean,h,z];for(let b=0;b<4;b++){const a=b*1.6+rr(),L=.55+rr()*.35;beam(top,[top[0]+Math.cos(a)*L,h+.4+rr()*.35,top[2]+Math.sin(a)*L],.05,BK)}
-    const cy=h+.75;for(let q=0;q<7;q++){const a=q/7*6.28+rr(),R=q?.45+rr()*.25:0;blob(.42+rr()*.22,x+Math.cos(a)*R,cy+(q?(rr()-.3)*.4:.2),z+Math.sin(a)*R,q%2?L1:L2)}
-    for(let q=0;q<9;q++){const a=rr()*6.28,e=rr()*1.2-.3,R=.72+rr()*.15;sph(.065,x+Math.cos(a)*R*Math.cos(e),cy+Math.sin(e)*R*.75,z+Math.sin(a)*R*Math.cos(e),ti%3===1?YEL:RED)}
-    for(let q=0;q<2;q++)sph(.06,x+(rr()-.5)*1.4,.06,z+(rr()-.5)*1.4,RED);
-    if(ti%2===0)beam([x+.25,0,z+.1],[x+.12,1.0,z+.05],.025,H.wood)});
+   // echte Bäume (wie im Wald), kleiner geschnitten, mit Früchten in der Krone und Fallobst
+   TREES.forEach(([x,z],ti)=>{const tr=forestTree(H.wood);tr.scale.setScalar(.36+rr()*.06);tr.position.set(x,0,z);tr.rotation.y=rr()*6.28;g.add(tr);
+    for(let q=0;q<14;q++){const a=rr()*6.28,R=.5+rr()*1.1;sph(.07,x+Math.cos(a)*R,1.7+rr()*1.2,z+Math.sin(a)*R,ti%3===1?YEL:RED)}
+    for(let q=0;q<3;q++)sph(.06,x+(rr()-.5)*1.6,.06,z+(rr()-.5)*1.6,RED)});
    // Leiter am Baum und Erntekorb
    const [lx,lz]=TREES[4];beam([lx-.55,0,lz+.55],[lx-.18,1.9,lz+.18],.03,H.wood);beam([lx-.35,0,lz+.75],[lx+.02,1.9,lz+.38],.03,H.wood);for(let q=1;q<7;q++){const t=q/7;beam([lx-.55+.37*t,1.9*t,lz+.55-.37*t],[lx-.35+.37*t,1.9*t,lz+.75-.37*t],.018,H.wood)}
    {const geo=new T.CylinderGeometry(.25,.2,.28,12,1,true);geo.translate(lx+.6,.14,lz+.7);staticMesh(geo,H.thatch)}for(let q=0;q<6;q++)sph(.07,lx+.5+(q%3)*.09,.28,lz+.65+Math.floor(q/3)*.1,RED)}
@@ -449,7 +498,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
 }
  for(const f of g._frames||[])framingNow(...f);g._frames=[];
  // Varianten-Details: kleine Unterschiede an jedem Gebäude (Fässer, Bretter, Schornstein-Rauchfang)
- if(!['wall','battle','palisade','moat','bridge','field','hopfield','stairs','bed','fire','bench','well','apiary','gate','portcullis','tower','watchpost','keep','harbor','chapel','church','cathedral','orchard'].includes(k)){
+ if(!['wall','battle','palisade','moat','bridge','field','hopfield','stairs','bed','fire','bench','well','apiary','gate','portcullis','tower','watchpost','keep','harbor','chapel','church','cathedral','orchard','cemetery'].includes(k)){
   const C=g.colliders[0],bw=(C?C[2]*2:4),bd=(C?C[3]*2:4);
   if(V===1){const lean=new T.Mesh(boxUV(new T.BoxGeometry(.12,1.4,.8)),H.wood);lean.position.set(bw*.45,.7,bd*.45);lean.rotation.z=.15;g.add(lean)}
   if(V===2){const crate=new T.Mesh(boxUV(new T.BoxGeometry(.55,.4,.45)),H.wood);crate.position.set(-bw*.4,.2,bd*.42);g.add(crate)}
@@ -459,14 +508,16 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
  // ===== Hafen-Ausbau: Tretradkran, Poller mit Tauen, Laufplanke, Laternen =====
  if(k==='harbor'){const st=H.stone,wd=H.wood,glowM=COLM.get('glow')||(COLM.set('glow',new T.MeshStandardMaterial({color:0xffd27a,emissive:0xffb040,emissiveIntensity:.9})),COLM.get('glow')),rope=COLM.get('rope')||(COLM.set('rope',new T.MeshStandardMaterial({color:0xb09a6a,roughness:1})),COLM.get('rope'));
   for(const z of[-3.0,3.0])for(let x=-3.5;x<=3.6;x+=1.75){cylinder(.16,.55,x,.6,z,st,10);cylinder(.2,.08,x,.9,z,st,10);staticMesh((()=>{const q=new T.TorusGeometry(.3,.05,5,14);q.rotateX(Math.PI/2);q.translate(x+.45,.4,z*.93);return q})(),rope)}
-  const wx=-2.7,wz=.1;for(const dz of[-.55,.55]){beam([wx-.9,.3,wz+dz],[wx,2.4,wz+dz],.08);beam([wx+.9,.3,wz+dz],[wx,2.4,wz+dz],.08)}
-  staticMesh((()=>{const q=new T.TorusGeometry(1.15,.07,6,24);q.rotateY(Math.PI/2);q.translate(wx,1.5,wz-.32);return q})(),wd);staticMesh((()=>{const q=new T.TorusGeometry(1.15,.07,6,24);q.rotateY(Math.PI/2);q.translate(wx,1.5,wz+.32);return q})(),wd);
-  for(let q=0;q<8;q++){const a=q/8*Math.PI*2;beam([wx,1.5,wz],[wx,1.5+Math.sin(a)*1.12,wz+Math.cos(a)*1.12],.04);}for(let q=0;q<16;q++){const a=q/16*Math.PI*2;box(.7,.05,.12,wx,1.5+Math.sin(a)*1.12,wz+Math.cos(a)*1.12,wd)}
-  beam([wx,2.4,wz],[wx,4.6,wz+3.4],.11);beam([wx,4.6,wz+3.4],[wx,2.1,wz+3.4],.012,rope);box(.12,.3,.12,wx,2.0,wz+3.4,H.iron);g.colliders.push([wx,wz,.95,.75,2.7,0]);
+  // Tretradkran: beide Radkränze auf einer gemeinsamen Achse (x), Böcke außen, Mast mit Ausleger zum Wasser
+  const wx=-2.7,wz=.1;for(const dx of[-.62,.62]){beam([wx+dx,.3,wz-.95],[wx+dx,1.55,wz],.09);beam([wx+dx,.3,wz+.95],[wx+dx,1.55,wz],.09);box(.14,.14,2,wx+dx,.32,wz,wd)}
+  beam([wx-.75,1.5,wz],[wx+.75,1.5,wz],.1);
+  for(const dx of[-.32,.32]){staticMesh((()=>{const q=new T.TorusGeometry(1.15,.07,6,24);q.rotateY(Math.PI/2);q.translate(wx+dx,1.5,wz);return q})(),wd);for(let q=0;q<8;q++){const a=q/8*Math.PI*2;beam([wx+dx,1.5,wz],[wx+dx,1.5+Math.sin(a)*1.12,wz+Math.cos(a)*1.12],.04)}}
+  for(let q=0;q<16;q++){const a=q/16*Math.PI*2;box(.72,.05,.12,wx,1.5+Math.sin(a)*1.12,wz+Math.cos(a)*1.12,wd)}
+  box(.22,3.2,.22,wx-.95,1.6,wz,wd,true);beam([wx-.95,3.0,wz],[wx-.95,4.6,wz+3.4],.11);beam([wx-.95,1.6,wz+.3],[wx-.95,2.6,wz+1.4],.07);beam([wx-.95,4.6,wz+3.4],[wx-.95,2.1,wz+3.4],.012,rope);box(.12,.3,.12,wx-.95,2.0,wz+3.4,H.iron);beam([wx,1.5,wz],[wx-.95,3.0,wz],.012,rope);g.colliders.push([wx,wz,.85,1,2.7,0]);
   {const geo=new T.BoxGeometry(.9,.06,2.4);geo.rotateX(-.28);geo.translate(-1.2,.55,3.9);staticMesh(geo,wd)}
   }
  // ===== Lebendige Details: Zunftschild, Laterne und Gewerbe-typische Gegenstände (Rückwand/linke Seite, Türen bleiben frei) =====
- if(!['palisade','well','watchpost','gate','portcullis','tower','harbor','orchard','apiary','hopfield'].includes(k)){
+ if(!['palisade','well','watchpost','gate','portcullis','tower','harbor','orchard','apiary','hopfield','cemetery'].includes(k)){
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const c of g.colliders){x0=Math.min(x0,c[0]-c[2]);x1=Math.max(x1,c[0]+c[2]);z0=Math.min(z0,c[1]-c[3]);z1=Math.max(z1,c[1]+c[3])}
   if(!g.colliders.length){x0=z0=-2;x1=z1=2}const bw=Math.min(14,Math.max(Math.abs(x0),Math.abs(x1))*2),bd=Math.min(14,Math.max(Math.abs(z0),Math.abs(z1))*2),R=(()=>{let a=(V+1)*9301+k.length*49297;return()=>((a=(a*1103515245+12345)&0x7fffffff)/0x7fffffff)})();
   const col=c=>{if(!COLM.has(c))COLM.set(c,new T.MeshStandardMaterial({color:c,roughness:.85}));return COLM.get(c)},glow=COLM.get('glow')||(COLM.set('glow',new T.MeshStandardMaterial({color:0xffd27a,emissive:0xffb040,emissiveIntensity:.9})),COLM.get('glow'));
@@ -525,24 +576,20 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0}){
    house:()=>{if(V%2===0)woodpile(left,0,3,1.4);else{beam([-bw/4-1,0,back],[-bw/4-1,1.8,back],.06);beam([bw/4+1,0,back],[bw/4+1,1.8,back],.06);beam([-bw/4-1,1.75,back],[bw/4+1,1.75,back],.012,H.iron);
     for(let i=0;i<4;i++)geo(new T.PlaneGeometry(.5,.6),-bw/4-.5+i*.75,1.42,back,col([0xe8e2d0,0x7a3a2a,0x3a4a6a,0xd8cfb8][(i+V)%4]))}},
    bighouse:()=>T2.house(),keep:()=>{woodpile(left,1.5,3,1.6);barrel(left,-1)},garrison:()=>{for(let i=0;i<4;i++)beam([left,0,-.9+i*.3],[left+.15,1.8,-.9+i*.3],.03,H.wood);box(.3,1,1.2,left,.5,.6,H.wood)},
-   chapel:()=>T2.church(),cathedral:()=>{},
+   chapel:()=>T2.church(),
    church:()=>{const x0=-bw/2-3.6,x1=-bw/2-.35,z0=-bd/2+.6,z1=bd/2-.6;for(const[xa,za,xb,zb]of[[x0,z0,x1,z0],[x0,z1,x1,z1],[x0,z0,x0,z1]]){const L=Math.hypot(xb-xa,zb-za);geo(new T.BoxGeometry(xa===xb?.3:L,.55,xa===xb?L:.3),(xa+xb)/2,.27,(za+zb)/2,H.stone)}
-    for(let row=0;row<Math.floor((z1-z0-.8)/1.3);row++)for(let c=0;c<2;c++){const x=x0+.9+c*1.4,z=z0+1+row*1.3;if(R()<.55){geo(new T.BoxGeometry(.42,.6,.1),x,.3,z,H.stone,(R()-.5)*.12,0,(R()-.5)*.1);geo(new T.CylinderGeometry(.21,.21,.1,12,1,false,Math.PI/2,Math.PI),x,.6,z,H.stone,Math.PI/2,0,0)}
+    for(let row=0;row<Math.floor((z1-z0-.8)/1.3);row++)for(let c=0;c<2;c++){const x=x0+.9+c*1.4,z=z0+1+row*1.3;if(R()<.55){const tl=R()<.35?(R()-.5)*.5:(R()-.5)*.1,tz2=(R()-.5)*.25;geo(new T.BoxGeometry(.42,.6,.1),x,.3,z,H.stone,tz2,0,tl);geo(new T.CylinderGeometry(.21,.21,.1,12,1,false,Math.PI/2,Math.PI),x-Math.sin(tl)*.3,.6*Math.cos(tl),z,H.stone,Math.PI/2+tz2,0,tl)}
      else{beam([x,0,z],[x,.85,z],.035,H.wood);beam([x-.22,.62,z],[x+.22,.62,z],.03,H.wood)}geo(new T.BoxGeometry(.5,.08,1),x,.04,z+.55,COLM.get('grave')||(COLM.set('grave',new T.MeshStandardMaterial({color:0x3a4a2a,roughness:1})),COLM.get('grave')))}
-    // Friedhofsbaum (alte Linde): knorriger Stamm, Äste, unregelmäßige Krone, Wurzelanläufe, Bank darunter
-    {const tx=x0+1.1,tz=z1-1.1,bark=COLM.get('bark2')||(COLM.set('bark2',new T.MeshStandardMaterial({color:0x4a3a2a,roughness:1})),COLM.get('bark2')),lv=[COLM.get('lvA')||(COLM.set('lvA',new T.MeshStandardMaterial({color:0x2f5a26,roughness:1})),COLM.get('lvA')),COLM.get('lvB')||(COLM.set('lvB',new T.MeshStandardMaterial({color:0x3e6c2c,roughness:1})),COLM.get('lvB'))];
-     geo(new T.CylinderGeometry(.22,.38,2.6,9),tx,1.3,tz,bark);for(let q=0;q<5;q++){const a=q*1.26;beam([tx,0,tz],[tx+Math.cos(a)*.6,.02,tz+Math.sin(a)*.6],.12,bark)}
-     const tops=[];for(let q=0;q<6;q++){const a=q*1.05+.3,L=1+R()*.6,e=[tx+Math.cos(a)*L,2.6+R()*1.1,tz+Math.sin(a)*L];beam([tx,2.2+q*.08,tz],e,.09,bark);tops.push(e)}
-     for(const e of tops)for(let q=0;q<3;q++){const gg=new T.IcosahedronGeometry(.62+R()*.3,1);gg.translate(e[0]+(R()-.5)*.6,e[1]+.3+(R()-.5)*.4,e[2]+(R()-.5)*.6);staticMesh(gg,lv[q%2])}
-     {const gg=new T.IcosahedronGeometry(1.1,1);gg.translate(tx,4,tz);staticMesh(gg,lv[0])}
-     box(1.4,.08,.4,tx+1.2,.45,tz,H.wood);for(const e of[-.55,.55])box(.08,.42,.35,tx+1.2+e,.22,tz,H.wood)}}};
+    // Friedhofsbaum: echter Baum wie im Wald, darunter eine Bank
+    {const tx=x0+1.1,tz=z1-1.1,tr=forestTree(H.wood);tr.scale.setScalar(.6);tr.position.set(tx,0,tz);g.add(tr);box(1.4,.08,.4,tx+1.4,.45,tz,H.wood);for(const e of[-.55,.55])box(.08,.42,.35,tx+1.4+e,.22,tz,H.wood)}},
+   cathedral:()=>T2.church()};
   // ===== Kirchliche Atmosphäre: Rosette, Turmhelm, Giebelkreuze, Dachreiter, Portallichter, Heiligenfiguren =====
   if(k==='chapel'||k==='church'||k==='cathedral'){const cross=(x,y,z,s2=1,m=H.stone)=>{box(.14*s2,1.1*s2,.14*s2,x,y,z,m);box(.62*s2,.14*s2,.14*s2,x,y+.18*s2,z,m)};
    const plight=()=>{};   // keine Deko-Lampen außen
    if(k==='chapel'){for(const x of[-.55,.55])box(.14,1.1,.14,x,6.35,-3.6,H.wood);box(1.3,.14,.6,0,6.95,-3.6,H.shingle);
     geo(new T.CylinderGeometry(.14,.26,.36,10,1,true),0,6.25,-3.6,H.brass);cross(0,-0+7.45,-3.6,.8,H.wood);for(const x of[-1.25,1.25])plight(x,2.3,4.0)}
-   if(k==='church'){geo(new T.ConeGeometry(2.05,5.2,8),0,14.2,4.6,H.slate,0,Math.PI/8);for(let q=0;q<4;q++){const a=q*Math.PI/2;geo(new T.ConeGeometry(.22,1.1,6),Math.sin(a)*1.25,12.1,4.6+Math.cos(a)*1.25,H.slate)}
-    cross(0,17.3,4.6,1.2,H.brass);geo(new T.SphereGeometry(.16,10,8),0,16.85,4.6,H.brass);cross(0,9.4,-6.05,1);for(const x of[-1.05,1.05])plight(x,2.5,5.95)}
+   if(k==='church'){geo(new T.ConeGeometry(2.05,5.2,8),0,14.2,5.4,H.slate,0,Math.PI/8);for(let q=0;q<4;q++){const a=q*Math.PI/2;geo(new T.ConeGeometry(.22,1.1,6),Math.sin(a)*1.25,12.1,5.4+Math.cos(a)*1.25,H.slate)}
+    cross(0,17.3,5.4,1.2,H.brass);geo(new T.SphereGeometry(.16,10,8),0,16.85,5.4,H.brass);cross(0,9.4,-6.05,1);for(const x of[-1.05,1.05])plight(x,2.5,5.95)}
   }
   const snap=new Map([...batches].map(([m,l])=>[m,l.length]));(T2[k]||(()=>{if(R()<.5)woodpile(left,0,3,1.2)}))();
   // Bodengegenstände als eigene Gruppe: der Client blendet sie aus, wenn ein Nachbargebäude direkt angrenzt
