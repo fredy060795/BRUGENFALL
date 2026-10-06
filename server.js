@@ -343,6 +343,28 @@ function lifeTick(r,n,dt){if(SOLDIER.includes(n.k)||['watch','trader','hangman',
  if(!n.slp.in){const W=fp(home,BP.P[0].x,BP.P[0].z);if(!enterBuilding(n,home,{...W,ry:0},dt))return true;n.slp.in=1;n.slp.up=1}
  if(n.slp.i<BP.P.length){if(pathStep(n,home,BP.P,n.slp.i,dt))n.slp.i++;return true}
  n.ps=1;n.ry=(home.r||0)*Math.PI/2;n.fl=BP.bed[2]+.6;return true}
+// ---- Kirchliches Leben: Gottesdienst in den Bänken, Hochzeit vor dem Altar, Taufe am Taufbecken, Beerdigung am Grab, Prozession ----
+const CH_T=['cathedral','church','chapel'],chapOf=r=>{for(const t of CH_T){const b=r.b.find(b=>b.t===t);if(b)return b}return null},
+ priestOf=(r,c)=>c&&r.n.find(n=>n.k==='priest'&&n.wb===c.id&&n.hp>0&&!n.sk),layAdult=n=>n.hp>0&&!n.sk&&!n.tr&&n.k!=='child'&&!SOLDIER.includes(n.k)&&!['watch','priest','hangman','trader'].includes(n.k);
+function pickAdults(r,k,ex=[]){return r.n.filter(n=>layAdult(n)&&!ex.includes(n.id)).sort(()=>Math.random()-.5).slice(0,k).map(n=>n.id)}
+function startProc(r,c){const P=[fp(c,0,BD[c.t].d/2+3)];const stops=[...['plaza','market','keep','well','tavern'].map(t=>r.b.find(b=>b.t===t)).filter(Boolean)];let cur=P[0];
+ while(stops.length){stops.sort((a,b)=>dist(cur,a)-dist(cur,b));const b=stops.shift();cur=fp(b,0,BD[b.t].d/2+3.5);P.push(cur)}P.push(P[0]);
+ const pr=priestOf(r,c);if(!pr||P.length<3)return;r.ce={k:'proc',t:240,c:c.id,pts:P,i:1,lead:pr.id,m:pickAdults(r,8)};say(r,c.t==='cathedral'?'✝ Der Bischof zieht mit seinem Gefolge in einer Prozession durch die Stadt':'✝ Prozession: Der Priester zieht mit den Gläubigen durch das Dorf',c)}
+function churchTick(r,dt){const c=chapOf(r);if(!c){r.ce=null;return}
+ if(r.ce){r.ce.t-=dt;const e=r.ce;if(e.k==='proc'&&e.i>=e.pts.length)e.t=0;if(e.t<=0){r.ce=null;if(e.k==='wed')say(r,'💍 Das Brautpaar ist verheiratet – die Gäste gratulieren');if(e.k==='bap')say(r,'💧 Das Kind wurde getauft');if(e.k==='fun')say(r,'🕯 Die Trauernden verlassen das Grab');if(e.k==='proc')say(r,'✝ Die Prozession ist zurück in der Kirche')}}
+ if(!r.ce&&r.pray<=0&&r.hr>=10.5&&r.hr<11&&r.prd!==r.dy&&r.dy%3===1&&priestOf(r,c)){r.prd=r.dy;startProc(r,c)}}
+function ceRole(r,n,dt){const e=r.ce;if(!e||n.sk)return false;const c=r.b.find(b=>b.id===e.c);if(!c)return false;const I=Rules.interior(c.t),rr=(c.r||0)*Math.PI/2,at=(x,z,ry)=>({...fp(c,x,z),ry:ry+rr}),pr=n.k==='priest'&&n.wb===c.id;
+ const goIn=(P)=>{if(n.insideId&&n.insideId!==c.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return false}return enterBuilding(n,c,P,dt)};
+ if(e.k==='wed'||e.k==='bap'){const ri=[e.a,e.b,e.kid].indexOf(n.id);
+  if(pr){const P=e.k==='wed'?at(I.altar[0],I.altar[1]+1.2,0):at(I.font[0]+1,I.font[1],-Math.PI/2);if(goIn(P))n.ps=13;return true}
+  if(ri>=0){const P=e.k==='wed'?at(ri?.42:-.42,I.altar[1]+2.3,Math.PI):at(I.font[0]+[-.2,.2,0][ri],I.font[1]+[1,1,-.9][ri],[Math.PI,Math.PI,0][ri]);if(goIn(P))n.pr=1;return true}
+  const gi=(e.g||[]).indexOf(n.id);if(gi>=0){const S=I.seats[gi%I.seats.length];if(goIn(at(S[0],S[1],S[2])))n.ps=12;return true}return false}
+ if(e.k==='fun'){const mi=(e.m||[]).indexOf(n.id);if(!pr&&mi<0)return false;const A=e.at,ang=pr?0:(mi+1)/((e.m.length)+1)*Math.PI*1.6+Math.PI*.2,R=pr?1.2:1.7,P={x:A.x+Math.sin(ang)*R,z:A.z+Math.cos(ang)*R};
+  if(n.insideId){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true}if(dist(n,P)>.15){mv(n,P.x,P.z,2.4,dt);return true}n.ry=Math.atan2(A.x-n.x,A.z-n.z);if(pr)n.ps=13;else if(mi%2)n.ps=5;else n.pr=1;return true}
+ if(e.k==='proc'){const mi=e.m.indexOf(n.id);if(n.id!==e.lead&&mi<0)return false;if(n.insideId){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true}
+  if(n.id===e.lead){const tg=e.pts[e.i];if(!tg)return true;if(mv(n,tg.x,tg.z,1.25,dt)<.4)e.i++;n.ps=13;return true}
+  const ahead=mi===0?r.n.find(o=>o.id===e.lead):r.n.find(o=>o.id===e.m[mi-1]);if(ahead&&dist(n,ahead)>1.5)mv(n,ahead.x,ahead.z,1.45,dt);if(mi===0)n.ps=14;else n.pr=1;return true}
+ return false}
 function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))return;if(n.k==='healer'&&n.pd&&!r.n.some(o=>o.sk&&o.hp>0)){n.pd=0;n.visit=0}const eve=r.hr>=18||r.hr<6||(r.omen>0&&n.k!=='priest');
  if(eve){const old=r.b.find(b=>b.id===n.insideId);if(old&&old.id!==n.hid&&!exitBuilding(n,old,dt))return;const h=homeOf(r,n)||r.b.find(b=>b.t==='keep')||{x:0,z:6};n.home=h;if(h.id)enterBuilding(n,h,fp(h,0,-.5),dt);else mv(n,h.x,h.z,3.2,dt);return}n.home=null;
  if(n.tr){const g=near(n,r.b.filter(b=>b.t==='garrison'),1e9);if(!g){n.tr=null;return}
@@ -357,7 +379,7 @@ function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))r
  const old=r.b.find(b=>b.id===n.insideId&&b.id!==wb.id);if(old&&!exitBuilding(n,old,dt))return;const B=BD[wb.t],F0=workPoint(r,wb,n),X=F0.x,Z=F0.z;
  if(n.k==='gravedigger'){const c=near(n,r.co,1e9);if(!c){if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,2.8,dt);return}
   if(dist(n,c)>1.4){mv(n,c.x,c.z,3,dt);return}n.bt=(n.bt||0)+dt;if(n.bt%1.2<dt)n.cd=1;
-  if(n.bt>=3){n.bt=0;r.co=r.co.filter(o=>o!==c);r.gr++;say(r,'⚰ Ein Toter wurde beerdigt')}return}
+  if(n.bt>=3){n.bt=0;r.co=r.co.filter(o=>o!==c);r.gr++;say(r,'⚰ Ein Toter wurde beerdigt');const C=chapOf(r);if(C&&!r.ce&&r.hr>=7&&r.hr<19){r.ce={k:'fun',t:45,c:C.id,at:fp(C,-BD[C.t].w/2-3.2,-1+(r.gr%4)*1.4),m:pickAdults(r,5)};say(r,'🕯 Beerdigung: Der Priester spricht Gebete, die Trauernden stehen am Grab',C)}}return}
  if(!['farmer','wood','hunter','mason'].includes(n.k))return cycle(r,n,wb,B,dt,X,Z);
  if(n.k==='wood')return woodCycle(r,n,wb,B,dt,X,Z);
  let t,act;
@@ -452,7 +474,7 @@ function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.d
  // Produktion und Wirkung der Gebäude
  const chap=r.b.find(b=>(b.t==='chapel'||b.t==='church'||b.t==='cathedral')&&stf[b.id]);r.holy=!!chap;r.healers=r.b.filter(b=>b.t==='apothecary'&&stf[b.id]).map(b=>({b,cap:4}));r.priests=r.b.filter(b=>(b.t==='chapel'||b.t==='church'||b.t==='cathedral')&&stf[b.id]).map(b=>({b,cap:priestCap(b)}));{const tf=r.b.some(b=>hasRoom(b,'torture')&&stf[b.id]);r.det=Math.max(tf?.15:0,(r.det||0)-.0015*dt)}
  if(chap&&r.hr>=9&&r.hr<9.4&&r.pd!==r.dy){r.pd=r.dy;r.pray=90;say(r,'🔔 Die Glocken läuten – alle Bewohner gehen zum Gebet')}
- if(r.pray>0){r.pray-=dt;if(r.pray<=0){r.bl=r.dy;say(r,'🙏 Der Priester spendet den Segen – die Bewohner fühlen sich gestärkt')}}
+ churchTick(r,dt);if(r.pray>0){r.pray-=dt;if(r.pray<=0){r.bl=r.dy;say(r,'🙏 Der Priester spendet den Segen – die Bewohner fühlen sich gestärkt')}}
  r.mk=(r.mk===undefined?rnd(25,50):r.mk)-dt;if(r.mk<=0){r.mk=rnd(100,260);const mkb=r.b.find(b=>b.t==='market'),plaza=r.b.find(b=>b.t==='plaza');if((mkb||plaza)&&r.hr>=7&&r.hr<18){const L=r.n.filter(n=>!n.sk&&!n.vis&&(NT[n.k].job||n.k==='peasant')),count=plaza&&r.plazaEvent?6:3;for(let i=0;i<count&&L.length;i++)L.splice(Math.random()*L.length|0,1)[0].vis={t:plaza&&r.plazaEvent?50:35,kind:plaza&&r.plazaEvent?'plaza':'market'}}}events(r,dt,bm,stf);tradeTick(r,dt);campTick(r,dt);
  for(const b of r.b){const B=BD[b.t];
   if(b.t==='tavern'&&stf[b.id]){b.pt=(b.pt||0)+dt;if(b.pt>=40){b.pt=0;const f=['bread','cheese','meat','fish','roast','sausage','smoked'].find(k=>r.inv[k]>=1);if(f)r.inv[f]--;r.beer=r.inv.beer>=1;if(r.beer)r.inv.beer--}}
@@ -470,8 +492,8 @@ function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.d
  // Zuzug, Hochzeit, Geburt
  const kp0=r.b.find(b=>b.t==='keep');r.aa=(r.aa||0)-dt;if(r.aa<=0){r.aa=3;autoAssign(r)}
  r.pt-=dt;if(kp0&&r.pt<=0){r.pt=18;const pop=r.n.filter(n=>n.k!=='watch').length;r.immWhy=r.noImm?'Zuzug gesperrt (Bergfried)':pop>=popCap(r)?'Kein Wohnraum – Wohnhäuser bauen oder ausbauen':food(r)<4?'Zu wenig Nahrung im Lager':r.hap<30?'Beliebtheit unter 30 %':'';if(!r.immWhy){mkNpc(r,'peasant',kp0.x+rnd(-3,3),kp0.z-55);say(r,'🏠 Ein neuer Dorfbewohner ist angekommen ('+(pop+1)+'/'+popCap(r)+')')}}
- if(chap&&r.n.length<popCap(r)&&r.hap>=40&&food(r)>=6){r.bt-=dt;if(r.bt<=0){r.bt=70;r.bw=25;say(r,'💒 In der Kapelle wurde eine Hochzeit gefeiert')}}
- if(r.bw>0){r.bw-=dt;if(r.bw<=0&&chap&&!r.noImm){const kid=mkNpc(r,'child',chap.x,chap.z+5);kid.born=r.dy|0;say(r,'👶 Ein Kind wurde geboren – in einem Jahr ist es erwachsen')}}
+ if(chap&&r.n.length<popCap(r)&&r.hap>=40&&food(r)>=6){r.bt-=dt;if(r.bt<=0){r.bt=70;r.bw=70;const C=chapOf(r);if(C&&!r.ce&&r.hr>=8&&r.hr<17){const cp=pickAdults(r,2);if(cp.length===2){r.ce={k:'wed',t:50,c:C.id,a:cp[0],b:cp[1],g:pickAdults(r,8,cp)};say(r,'💒 Hochzeit in der '+(C.t==='chapel'?'Kapelle':C.t==='church'?'Kirche':'Kathedrale')+' – das Brautpaar tritt vor den Altar',C)}}else say(r,'💒 In der Kapelle wurde eine Hochzeit gefeiert')}}
+ if(r.bw>0){r.bw-=dt;if(r.bw<=0&&chap&&!r.noImm){const kid=mkNpc(r,'child',chap.x,chap.z+5);kid.born=r.dy|0;say(r,'👶 Ein Kind wurde geboren – in einem Jahr ist es erwachsen');const C=chapOf(r);if(C&&!r.ce){const pa=pickAdults(r,2);r.ce={k:'bap',t:40,c:C.id,a:pa[0],b:pa[1],kid:kid.id,g:pickAdults(r,6,pa)};say(r,'💧 Taufe am Taufbecken',C)}}}
  for(const a of r.ar){a.t-=dt;if(a.t<=0){if(a.tg.hp>0)a.tg.hp-=a.dmg;a.done=1}}r.ar=r.ar.filter(a=>!a.done);
  const dk=r.dr.filter(d=>d.hp<=0);if(dk.length){for(const d of dk)deerFall(r,d);r.dr=r.dr.filter(d=>d.hp>0)}
  const h0=r.hr;r.hr=(r.hr+(r.ev&&r.ev.cyc===0?0:dt*(24/1440)))%24;if(r.hr<h0)r.dy++;if(r.surv&&r.anDay!==r.dy){if(r.anDay!==undefined)animalDay(r);r.anDay=r.dy}
@@ -502,9 +524,15 @@ r.wt-=dt;if(r.wt<=0){
  for(const n of r.n){const T=NT[n.k];n.cd-=dt;n.aim=0;n.work=0;if(!T.job)n.cr=0;
   n.pr=0;n.ps=0;if(n.sk){sickTick(r,n,dt,stf);continue}
   if(lifeTick(r,n,dt))continue;
+  if(ceRole(r,n,dt))continue;
   if(n.k==='child'){play(r,n,dt);continue}
   if(n.k==='watch'){watchTick(r,n,dt);continue}
-  if(r.pray>0&&chap&&(T.job||n.k==='peasant')){const P=fp(chap,((n.i*3.7)%6)-3,BD[chap.t].d/2+2.2+((n.i*2.3)%3));if(dist(n,P)>.9)mv(n,P.x,P.z,3,dt);else{n.ry=Math.PI;n.pr=1}continue}
+  if(r.pray>0&&chap&&(T.job||n.k==='peasant')){const C=chapOf(r)||chap,I=Rules.interior(C.t),rr=(C.r||0)*Math.PI/2;
+   if(n.k==='priest'&&n.wb===C.id){if(enterBuilding(n,C,{...fp(C,I.altar[0],I.altar[1]+1.2),ry:rr},dt))n.ps=13;continue}
+   const att=r.n.filter(o=>(NT[o.k].job||o.k==='peasant')&&!o.sk&&o.hp>0&&!(o.k==='priest'&&o.wb===C.id)).sort((a,b)=>a.id-b.id),si=att.indexOf(n);
+   if(n.insideId&&n.insideId!==C.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))continue}
+   if(si<I.seats.length){const S=I.seats[si];if(enterBuilding(n,C,{...fp(C,S[0],S[1]),ry:S[2]+rr},dt))n.ps=12;continue}
+   const k=si-I.seats.length,P=fp(C,((k%6)-2.5)*.95,BD[C.t].d/2+2.2+Math.floor(k/6)*.95);if(dist(n,P)>.15)mv(n,P.x,P.z,3,dt);else{n.ry=Math.PI+rr;n.pr=1}continue}
   if(n.vis&&(T.job||n.k==='peasant')){const plaza=n.vis.kind==='plaza'&&r.plazaEvent?r.b.find(b=>b.t==='plaza'):null,mk=r.b.find(b=>b.t==='market'),spot=plaza||mk;if(!spot||r.hr<7||r.hr>18)n.vis=null;else{const P=plaza?fp(spot,Math.sin(n.i*2.1)*3.4,Math.cos(n.i*1.7)*3.2):fp(spot,((n.i*7)%5)-2,BD.market.d/2+1.5+(n.i%2));if(dist(n,P)>1.2)mv(n,P.x,P.z,2.6,dt);else{n.ry=plaza?((r.tk+n.id)%2?Math.PI*.5:-Math.PI*.5):Math.PI;n.pr=plaza&&r.plazaEvent==='maypole'?1:0;n.vis.t-=dt;if(n.vis.t<=0){n.vis=null;r.gold+=plaza?1:3}}continue}}
   if((T.job||n.k==='peasant')&&r.fires.length&&r.wells>0&&!n.tr){
     // Eimerkette: zum Brunnen → Wasser holen → zum Brand → löschen → wiederholen
@@ -576,7 +604,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT,r.map)+.1-Rules.height(n.x,n.z,r.map))+(n.fl||0):0;}else n.fl=0}
  const actors=[...r.pl.values(),...r.n.filter(n=>n.hp>0&&!n.ps&&!n.pr&&!n.slp),...r.e.filter(n=>n.hp>0),...r.dr,...r.w];const before=new Map([...r.pl.values()].map(p=>[p.id,[p.x,p.z]]));for(const actor of actors)actor.radius=actor.mt?.75:(r.dr.includes(actor)||r.w.includes(actor))?.6:.42;Rules.separate(actors);for(const p of r.pl.values()){const q=before.get(p.id);p.push=[r2(p.x-q[0]),r2(p.z-q[1])]}
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0,p.fc||0,p.tool==='sword'&&p.sh&&p.shields[p.sh]?p.sh:'',p.coa|0]),
-  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0]),
+  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.wb&&(r.b.find(b=>b.id===n.wb)||{}).t==='cathedral'?1:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
   w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),
   evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};

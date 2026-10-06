@@ -597,6 +597,11 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   const bm=hatMat('cloth',o.hatCol||0x2a2a4a);mesh(cg('beret',()=>lat([[0,1.55],[.7,1.58],[1.25,1.42],[1.45,1.22],[1.32,1.05],[1.08,.92],[1.02,.85],[1.0,.95],[1.2,1.08],[1.05,1.32],[.6,1.45],[0,1.48]],30)),bm,H,[0,0,0],[1,1,1]).rotation.z=-.12;
   mesh(cg('brooch',()=>new T.SphereGeometry(.12,10,8)),hatMat('gold'),H,[.95,1.15,.55]);
   const fw=hatMat('feather',0xf0ece2);for(let f=0;f<3;f++)mesh(cg('plf'+f,()=>{const pts=[];for(let k=0;k<=14;k++){const t=k/14;pts.push(new T.Vector3(.95+.4*t+f*.06,1.2+1.0*t-.6*t*t,.5-1.6*t))}return new T.TubeGeometry(new T.CatmullRomCurve3(pts),18,.11-.02*f,6,false)}),f?hatMat('feather',0xd8c090):fw,H)}
+ if(hat==='mitre'){      // Mitra: zwei spitze Schilde aus weißem Seidendamast mit Goldborten, Kreuz, herabhängende Bänder
+  const wm=hatMat('cloth',0xf2eee2),gm=hatMat('gold');mesh(cg('mitb',()=>lat([[0,.98],[1.02,.98],[1.04,.8],[0,.8]],28)),gm,H);
+  for(const zs of[1,-1]){const sh=new T.Shape();sh.moveTo(-.95,0);sh.lineTo(.95,0);sh.quadraticCurveTo(.9,1.2,0,2.1);sh.quadraticCurveTo(-.9,1.2,-.95,0);const q=new T.ExtrudeGeometry(sh,{depth:.06,bevelEnabled:false});q.translate(0,.95,zs*.42-(zs>0?0:.06));const m=mesh(q,wm,H);m.rotation.x=-zs*.12;
+   const b=new T.Mesh(new T.BoxGeometry(.16,1.9,.07),gm);b.position.set(0,1.85,zs*.47);b.rotation.x=-zs*.12;H.add(b);const c=new T.Mesh(new T.BoxGeometry(.7,.14,.07),gm);c.position.set(0,2.25,zs*.5);c.rotation.x=-zs*.12;H.add(c)}
+  for(const sx of[-.35,.35]){const t=new T.Mesh(new T.BoxGeometry(.22,1.4,.05),gm);t.position.set(sx,.2,-1.0);H.add(t)}}
  if(hat==='plague'){     // Pestdoktor: Lederkapuze, Schnabelmaske mit Glasaugen, breitkrempiger Hut
   const bk=garMat('leather',0x161412),bone=hatMat('cloth',0xe2d6b8),gl=new T.MeshStandardMaterial({color:0x1a2a2c,metalness:.5,roughness:.15}),br=hatMat('gold');
   buildCoif(g,H,geo,o,bk,{shellOff:.13,teeth:0,hem0:1.27,top1:1.6,top0:1.53,topR:.105});
