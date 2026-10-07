@@ -196,3 +196,6 @@
   wieder die Tastennamen.
 - Solange das Startmenü offen ist, wird die 3D-Welt dahinter nicht mehr gerendert (spart Leistung, wichtig für
   Konsolen-Browser und Handhelds).
+- **Dom (Nachtrag)**: Nur noch **ein Bischof** (der dienstälteste Priester am Dom), die anderen bleiben Priester.
+  Kreuzrippengewölbe mit verputzten Kappen jetzt auch im **Chorjoch**, als **Rippen-Halbkuppel in der Apsis**, in beiden
+  **Querhausarmen** und in allen Jochen der **Seitenschiffe** – nirgends mehr Blick in den Dachstuhl.

@@ -351,7 +351,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
   box(6,.2,12.5,0,12,2.75,H.floor);
   // Kreuzrippengewölbe im Mittelschiff – mit verputzten Gewölbekappen zwischen den Rippen (Kreuzgratgewölbe: max zweier Tonnen)
   const vaultM=COLM.get('vault')||(COLM.set('vault',(()=>{const m=(H.plaster||st).clone();m.side=T.DoubleSide;return m})()),COLM.get('vault'));
-  const webs=(x0,hw,zc,hz)=>{const N=22,P=[],U=[],I=[];for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const u=i/N*2-1,v=j/N*2-1,y=9.6+2.18*Math.max(Math.sqrt(Math.max(0,1-u*u)),Math.sqrt(Math.max(0,1-v*v)));P.push(x0+u*hw,y,zc+v*hz);U.push(u*hw/2,v*hz/2)}
+  const webs=(x0,hw,zc,hz,y0=9.6,hh=2.18)=>{const N=22,P=[],U=[],I=[];for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const u=i/N*2-1,v=j/N*2-1,y=y0+hh*Math.max(Math.sqrt(Math.max(0,1-u*u)),Math.sqrt(Math.max(0,1-v*v)));P.push(x0+u*hw,y,zc+v*hz);U.push(u*hw/2,v*hz/2)}
    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const a=j*(N+1)+i,b=a+1,c=a+N+1,d=c+1;I.push(a,c,b,b,c,d)}const q=new T.BufferGeometry();q.setAttribute('position',new T.Float32BufferAttribute(P,3));q.setAttribute('uv',new T.Float32BufferAttribute(U,2));q.setIndex(I);q.computeVertexNormals();staticMesh(q,vaultM)};
   for(let zb=-3.5;zb<9;zb+=2.5)webs(0,2.72,zb+1.25,1.25);webs(0,2.72,-5.5,2);
   const rib=(pts,r=.1)=>staticMesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts.map(p=>new T.Vector3(...p))),20,r,6,false),st);
@@ -361,6 +361,15 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    {const sh=new T.Shape();sh.moveTo(-2.4,0);sh.lineTo(2.4,0);sh.lineTo(0,4.4);sh.closePath();const q=new T.ExtrudeGeometry(sh,{depth:t,bevelEnabled:false});q.rotateY(Math.PI/2);q.translate(a*(8-t/2)-t/2,12,-5.5);staticMesh(q,st)}
    gothic(a*5.4,-7.5-t-.02,Math.PI,2.2,1.2,4.2);turret(a*8.1,-3.4,13.5);turret(a*8.1,-7.6,13.5)}
   groofX(-8.4,8.4,-7.5,-3.5,12,4.4,RM);box(16,.2,4,0,12,-5.5,H.floor);
+  // Gewölbe in Querhausarmen, Chorjoch und Seitenschiffen (Rippen + Kappen), Apsis als Rippenhalbkuppel
+  const bay=(cx,hw,zc,hz,y0,hh,r=.1)=>{webs(cx,hw,zc,hz,y0,hh);const zA=zc-hz,zB=zc+hz,xA=cx-hw,xB=cx+hw,top=y0+hh+.05;
+   rib([[xA,y0,zA],[cx-hw*.48,y0+hh*.88,zc-hz*.48],[cx,top,zc],[cx+hw*.48,y0+hh*.88,zc+hz*.48],[xB,y0,zB]],r);rib([[xB,y0,zA],[cx+hw*.48,y0+hh*.88,zc-hz*.48],[cx,top,zc],[cx-hw*.48,y0+hh*.88,zc+hz*.48],[xA,y0,zB]],r);
+   for(const z of[zA,zB])rib([[xA,y0,z],[cx,y0+hh*.97,z],[xB,y0,z]],r*1.2);staticMesh((()=>{const q=new T.SphereGeometry(r*1.9,10,8);q.translate(cx,top-.02,zc);return q})(),gold)};
+  for(const a of[-1,1]){bay(a*5.42,2.42,-5.5,1.95,9.6,2.18);for(let zb=-3.5;zb<9;zb+=2.5)bay(a*4.51,1.31,zb+1.25,1.25,4.45,1.82,.08)}
+  bay(0,2.72,-8.5,.98,9.6,2.18);
+  {const q=new T.SphereGeometry(2.86,20,10,Math.PI,Math.PI,0,Math.PI/2);q.scale(1,2.2/2.86,1);q.translate(0,9.6,-9.5);staticMesh(q,vaultM);
+   for(let k=0;k<=4;k++){const am=Math.PI+k*Math.PI/4,c=Math.cos(am),sn=Math.sin(am);rib([[c*2.8,9.6,-9.5+sn*2.8],[c*2.2,10.95,-9.5+sn*2.2],[c*1.1,11.65,-9.5+sn*1.1],[0,11.85,-9.5]],.09)}
+   staticMesh((()=>{const q=new T.SphereGeometry(.22,10,8);q.translate(0,11.8,-9.5);return q})(),gold)}
   // Vierungsgewölbe
   rib([[-2.72,9.6,-3.6],[0,11.85,-5.5],[2.72,9.6,-7.4]]);rib([[2.72,9.6,-3.6],[0,11.85,-5.5],[-2.72,9.6,-7.4]]);staticMesh((()=>{const q=new T.SphereGeometry(.3,12,8);q.translate(0,11.8,-5.5);return q})(),gold);
   // Chor mit polygonaler Apsis
