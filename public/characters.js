@@ -183,9 +183,10 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
   // Brotschieber mit Laiben, Hackbeil
   g._peel=new T.Group();const pr=new T.Mesh(new T.CylinderGeometry(.015,.015,1.5,6),wd);pr.position.y=.55;g._peel.add(pr);const pb=new T.Mesh(new T.BoxGeometry(.32,.3,.02),wd);pb.position.y=1.42;g._peel.add(pb);
   g._loaves=new T.Group();for(const dx of[-.08,.08]){const l=new T.Mesh(new T.SphereGeometry(.07,10,7),new T.MeshStandardMaterial({color:0xb07838,roughness:.9}));l.scale.set(1,1.3,.6);l.position.set(dx,1.42,.04);g._loaves.add(l)}g._peel.add(g._loaves);g._peel.position.set(0,-.06,.03);g.right.wrist.add(g._peel);
-  g._clv=new T.Group();const ch=new T.Mesh(new T.CylinderGeometry(.014,.016,.16,6),wd);ch.position.y=-.04;g._clv.add(ch);const cb=new T.Mesh(new T.BoxGeometry(.11,.09,.008),hoop);cb.position.set(.04,.07,0);g._clv.add(cb);g._clv.position.set(0,-.06,.03);g.right.wrist.add(g._clv);g._pcross=weapon('pcross');g.right.wrist.add(g._pcross)}
- if(g._props){g._mug.visible=ps===3||ps===7||ps===8;g._bowl.visible=ps===4;g._spoon.visible=ps===4;g._peel.visible=ps===9||ps===11;g._loaves.visible=ps===9||ps===11;g._clv.visible=ps===10;g._pcross.visible=ps===14}
- if(g.tool)g.tool.visible=!(ps>=1&&ps<=12&&ps!==6);
+  g._clv=new T.Group();const ch=new T.Mesh(new T.CylinderGeometry(.014,.016,.16,6),wd);ch.position.y=-.04;g._clv.add(ch);const cb=new T.Mesh(new T.BoxGeometry(.11,.09,.008),hoop);cb.position.set(.04,.07,0);g._clv.add(cb);g._clv.position.set(0,-.06,.03);g.right.wrist.add(g._clv);g._pcross=weapon('pcross');g.right.wrist.add(g._pcross);
+  g._platter=new T.Group();const pl=new T.Mesh(new T.CylinderGeometry(.24,.24,.025,16),new T.MeshStandardMaterial({color:0xd8d0c0,roughness:.6}));g._platter.add(pl);const pk=new T.Mesh(new T.SphereGeometry(.12,12,8),new T.MeshStandardMaterial({color:0xa0582a,roughness:.5}));pk.scale.set(1.6,.85,.9);pk.position.y=.09;g._platter.add(pk);const ap=new T.Mesh(new T.SphereGeometry(.035,8,6),new T.MeshStandardMaterial({color:0xb02a20}));ap.position.set(.2,.1,0);g._platter.add(ap);g._platter.position.set(-.17,-.02,.12);g._platter.rotation.x=Math.PI/2;g.right.wrist.add(g._platter)}
+ if(g._props){g._mug.visible=ps===3||ps===7||ps===8;g._bowl.visible=ps===4;g._spoon.visible=ps===4;g._peel.visible=ps===9||ps===11;g._loaves.visible=ps===9||ps===11;g._clv.visible=ps===10;g._pcross.visible=ps===14;g._platter.visible=ps===15}
+ if(g.tool)g.tool.visible=!((ps>=1&&ps<=12&&ps!==6)||ps===15);
  const br=Math.sin(g.t*1.7)*(1-k);
  let ux=.03+.08*run+.025*k+.006*br,uy=-.12*k*Math.cos(g.phase),uz=.012*Math.sin(g.t*.9)*(1-k),py=.06*k*Math.cos(g.phase),yawA=0;
  const none=type==='none',carry=type==='sword'||bow?.6:1,sw0=mounted?0:.65;
@@ -198,6 +199,7 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  else if(ps===6){const w=Math.sin(g.t*6);R=V(.28,1.75+.05*w,.12);Lh=V(-.28,1.75-.05*w,.12);q=Eu(0,0,0)}
  else if(ps===7){const ph=g.t*.7,tl=Math.max(0,Math.sin(ph));R=V(.18,1.12,.42);q=Eu(0,0,-1.1*tl);Lh=V(-.12,.98,.46)}
  else if(ps===8){R=V(.16,1.12,.4);q=Eu(0,0,0);Lh=V(-.2,.95,.3)}
+ else if(ps===15){R=V(.17,1.12,.42);Lh=V(-.17,1.12,.42);q=Eu(-Math.PI/2,0,0)}
  else if(ps===12){R=V(.06,1.12,.32);Lh=V(-.06,1.12,.32);q=Eu(0,0,0);ux+=.12}
  else if(ps===13){const w=Math.sin(g.t*1.3);R=V(.24,1.35+.12*w,.32);q=Eu(-.3,0,0);Lh=V(-.18,1.08,.36);ux-=.03}
  else if(ps===14){R=V(.08,1.3,.25);Lh=V(.0,1.0,.25);q=Eu(0,0,0)}

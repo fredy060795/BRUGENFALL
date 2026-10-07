@@ -184,6 +184,8 @@
    const tx=w>6?1.4:1.0;o={w,d:6,h0,SH,storeys:st,beds,stairs,table:[tx,-.3],seats:[[tx-.4,-.95,0,0],[tx+.4,-.95,0,0],[tx-.4,.35,Math.PI,0],[tx+.4,.35,Math.PI,0]],hearth:[-.6,-2.45]}}
   else if(t==='tavern'){const tb=[[-2.5,1.35],[2.5,1.35],[2.5,-.55]],seats=[];for(const[x,z]of tb)for(const dx of[-.42,.42]){seats.push([x+dx,z-.62,0,0]);seats.push([x+dx,z+.62,Math.PI,0])}
    o={tables:tb,seats,counter:[0,-1.75,3.2],tap:[0,-2.45]}}
+  else if(t==='keep'){const L=lv|0,w=L?10:9,seats=[];for(const x of[-2.4,-1.6,-.8,0,.8,1.6,2.4]){seats.push([x,-.05,0,0]);seats.push([x,1.25,Math.PI,0])}
+   o={w,d:8,floors:L===0?[]:L===1?[4.6]:[4.6,8.0],table:[0,.6,5.8],seats,throne:[0,-3.05],hearth:[-w/2+.45,1.6],servePts:[[-w/2+1.4,2.6],[-2.8,.6],[2.8,.6]],stairs:L?[{x:w/2-.75,z0:3.3,z1:-.5,e0:0,e1:4.6,wd:.9}].concat(L>=2?[{x:w/2-1.75,z0:-.5,z1:3.3,e0:4.6,e1:8.0,wd:.9}]:[]):[]}}
   else if(t==='chapel'||t==='church'||t==='cathedral'){const C={chapel:{rows:[-1.5,2.6,1.0],bx:1.2,bw:1.6,altar:[0,-3.2],font:[-2.1,2.9]},church:{rows:[-2.9,3.2,1.1],bx:1.65,bw:2.2,altar:[0,-4.6],font:[-3,3.3]},cathedral:{rows:[-1.6,8.3,1.15],bx:1.55,bw:2.2,altar:[0,-8.6],font:[-4.5,7.5]}}[t],pews=[],seats=[];
    for(let z=C.rows[0];z<C.rows[1];z+=C.rows[2]){pews.push(z);for(const sx of[-1,1]){const n=Math.max(2,Math.round(C.bw/.72));for(let q=0;q<n;q++)seats.push([sx*(C.bx-C.bw/2+C.bw*(q+.5)/n),z+.06,Math.PI,0])}}
    o={pews,bx:C.bx,bw:C.bw,seats,altar:C.altar,font:C.font}}

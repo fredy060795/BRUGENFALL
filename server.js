@@ -362,6 +362,11 @@ function startProc(r,c){const P=[fp(c,0,BD[c.t].d/2+3)];const stops=[...['plaza'
 function churchTick(r,dt){const c=chapOf(r);if(!c){r.ce=null;return}
  if(r.ce){r.ce.t-=dt;const e=r.ce;if(e.k==='proc'&&e.i>=e.pts.length)e.t=0;if(e.t<=0){r.ce=null;if(e.k==='wed')say(r,'💍 Das Brautpaar ist verheiratet – die Gäste gratulieren');if(e.k==='bap')say(r,'💧 Das Kind wurde getauft');if(e.k==='fun')say(r,'🕯 Die Trauernden verlassen das Grab');if(e.k==='proc')say(r,'✝ Die Prozession ist zurück in der Kirche')}}
  if(!r.ce&&r.pray<=0&&r.hr>=10.5&&r.hr<11&&r.prd!==r.dy&&r.dy%3===1&&priestOf(r,c)){r.prd=r.dy;startProc(r,c)}}
+function banquetRole(r,n,dt){const B=r.banq;if(!B||n.sk)return false;const kp=r.b.find(b=>b.id===B.c);if(!kp)return false;const I=Rules.interior('keep',kp.st|0),rr=(kp.r||0)*Math.PI/2,gi=B.g.indexOf(n.id),si=B.s.indexOf(n.id);if(gi<0&&si<0)return false;
+ if(n.insideId&&n.insideId!==kp.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true}
+ if(gi>=0){const S=I.seats[gi];if(enterBuilding(n,kp,{...fp(kp,S[0],S[1]),ry:S[2]+rr},dt))n.ps=(gi%3===0)?3:4;return true}
+ // Speisenträger: vom Kamin (Küche) mit Platte zur Tafel und zurück
+ n.bqi=n.bqi||0;const pts=I.servePts,P=pts[n.bqi%pts.length],W=fp(kp,P[0]+(si?.0:.3),P[1]+(si?.5:0));if(!enterBuilding(n,kp,{...W,ry:0},dt)){n.ps=15;return true}n.ps=n.bqi%pts.length?15:0;n.bqw=(n.bqw||0)+dt;if(n.bqw>2.5){n.bqw=0;n.bqi++}return true}
 function ceRole(r,n,dt){const e=r.ce;if(!e||n.sk)return false;const c=r.b.find(b=>b.id===e.c);if(!c)return false;const I=Rules.interior(c.t),rr=(c.r||0)*Math.PI/2,at=(x,z,ry)=>({...fp(c,x,z),ry:ry+rr}),pr=n.k==='priest'&&n.wb===c.id;
  const goIn=(P)=>{if(n.insideId&&n.insideId!==c.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return false}return enterBuilding(n,c,P,dt)};
  if(e.k==='wed'||e.k==='bap'){const ri=[e.a,e.b,e.kid].indexOf(n.id);
@@ -483,7 +488,7 @@ function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.d
  // Produktion und Wirkung der Gebäude
  const chap=r.b.find(b=>(b.t==='chapel'||b.t==='church'||b.t==='cathedral')&&stf[b.id]);r.holy=!!chap;r.healers=r.b.filter(b=>b.t==='apothecary'&&stf[b.id]).map(b=>({b,cap:4}));r.priests=r.b.filter(b=>(b.t==='chapel'||b.t==='church'||b.t==='cathedral')&&stf[b.id]).map(b=>({b,cap:priestCap(b)}));{const tf=r.b.some(b=>hasRoom(b,'torture')&&stf[b.id]);r.det=Math.max(tf?.15:0,(r.det||0)-.0015*dt)}
  if(chap&&r.hr>=9&&r.hr<9.4&&r.pd!==r.dy){r.pd=r.dy;r.pray=90;say(r,'🔔 Die Glocken läuten – alle Bewohner gehen zum Gebet')}
- churchTick(r,dt);if(r.pray>0){r.pray-=dt;if(r.pray<=0){r.bl=r.dy;say(r,'🙏 Der Priester spendet den Segen – die Bewohner fühlen sich gestärkt')}}
+ churchTick(r,dt);if(r.banq){r.banq.t-=dt;if(r.banq.t<=0){r.banq=null;r.dirty=true;say(r,'🍖 Das Bankett ist zu Ende – die Gäste gehen satt und zufrieden nach Hause')}}if(r.pray>0){r.pray-=dt;if(r.pray<=0){r.bl=r.dy;say(r,'🙏 Der Priester spendet den Segen – die Bewohner fühlen sich gestärkt')}}
  r.mk=(r.mk===undefined?rnd(25,50):r.mk)-dt;if(r.mk<=0){r.mk=rnd(100,260);const mkb=r.b.find(b=>b.t==='market'),plaza=r.b.find(b=>b.t==='plaza');if((mkb||plaza)&&r.hr>=7&&r.hr<18){const L=r.n.filter(n=>!n.sk&&!n.vis&&(NT[n.k].job||n.k==='peasant')),count=plaza&&r.plazaEvent?6:3;for(let i=0;i<count&&L.length;i++)L.splice(Math.random()*L.length|0,1)[0].vis={t:plaza&&r.plazaEvent?50:35,kind:plaza&&r.plazaEvent?'plaza':'market'}}}events(r,dt,bm,stf);tradeTick(r,dt);campTick(r,dt);
  for(const b of r.b){const B=BD[b.t];
   if(b.t==='tavern'&&stf[b.id]){b.pt=(b.pt||0)+dt;if(b.pt>=40){b.pt=0;const f=['bread','cheese','meat','fish','roast','sausage','smoked'].find(k=>r.inv[k]>=1);if(f)r.inv[f]--;r.beer=r.inv.beer>=1;if(r.beer)r.inv.beer--}}
@@ -492,7 +497,7 @@ function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.d
  for(const c of r.co)c.t+=dt;corpsePlague(r,dt);
  // Beliebtheit wie in Stronghold: jeder Faktor einzeln (fürs Stadtbuch), Wert pendelt langsam auf das Ziel
  const HF=[['Grundstimmung',40]],hf=(l,v)=>{if(v)HF.push([l,Math.round(v)])};let tv=0,rel=0;for(const b of r.b){if(b.t==='tavern'&&stf[b.id]&&food(r)>=1)tv=Math.max(tv,25+(r.beer?10:0));if(stf[b.id])rel=Math.max(rel,{chapel:20,church:25,cathedral:30}[b.t]||0)}
- hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);
+ hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);hf('Bankett im Bergfried',r.bqd!=null&&r.dy-r.bqd<=1?18:0);
  hf('Kranke',-Math.min(15,3*r.n.filter(n=>n.sk).length));hf('Böse Omen ohne Kirche',r.omen>0&&!r.holy?-15:0);hf('Unbestattete Tote',-Math.min(25,5*r.co.filter(c=>c.t>30).length));
  hf('Nahrungsvorrat knapp',food(r)<4?-20:0);hf('Fehlende Rationen',-Math.min(20,(r.foodShortage||0)*2));hf('Fehlendes Heizholz',-Math.min(15,(r.heatShortage||0)*3));hf('Ansehen',Math.min(10,r.fame*.5));
  hf('Steuern ('+['niedrig','mittel','hoch'][r.tax??1]+')',[12,0,-18][r.tax??1]);hf('Rationen ('+['großzügig','normal','hungern'][r.ration??1]+')',[15,0,-20][r.ration??1]);
@@ -535,6 +540,7 @@ r.wt-=dt;if(r.wt<=0){
  for(const p of r.pl.values()){p.food=Math.max(0,p.food-(r.creative?0:dt/24)*(season(r)===3?1.3:1));if(p.sl&&!(r.hr>=19||r.hr<5))p.sl=false;playerSick(r,p,dt);p.hp=p.food>0?(p.sk?p.hp-dt*(p.sk===2?.12:0):Math.min(100,p.hp+dt)):p.hp-dt*2;if(p.hp<=0){p.hp=100;p.food=100;p.sk=0;p.bd=1;const sp=spawnOf(r);p.x=sp.x;p.z=sp.z;p.ws.send(JSON.stringify({t:'rs'}));say(r,p.name+' wurde niedergestreckt',p)}}
  for(const n of r.n){const T=NT[n.k];n.cd-=dt;n.aim=0;n.work=0;if(!T.job)n.cr=0;
   n.pr=0;n.ps=0;if(n.sk){sickTick(r,n,dt,stf);continue}
+  if(banquetRole(r,n,dt))continue;
   if(lifeTick(r,n,dt))continue;
   if(ceRole(r,n,dt))continue;
   if(n.k==='child'){play(r,n,dt);continue}
@@ -623,7 +629,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
   n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.id===bishopId(r,n.wb)?1:0,n.torch&&SOLDIER.includes(n.k)?1:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
   w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),
-  evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
+  evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,bq:r.banq?1:0,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
  if(r.tk%10===1){m.act=r.b.filter(b=>b.act&&r.tk-b.act<25).map(b=>b.id);m.lg={};for(const b of r.b)if(b.lg)m.lg[b.id]=b.lg}
  if(r.tk%10===1){m.hapF=r.hapF||[];m.hapT=Math.round(r.hapT||0);m.imm2=r.immWhy||'';m.tax2=r.lastTax||0;m.food2=Math.round(food(r))}
  if(r.tk%20===1||r.decoT){r.decoT=false;m.eco=friendTowns(r).map(t=>{const e=ecoAt(r,t.n)||{st:{},pop:0,sp:0};return[t.n,e.pop,Math.round((e.sick||0)*100),e.omen?1:0,Math.round(e.st.food||0),SPEC[e.sp][0],Math.round(e.mood||0)]})}
@@ -858,6 +864,11 @@ wss.on('connection',ws=>{let r,p;
    const miss=Object.entries(need).filter(([k,n])=>n>0&&inv(r,k)<n);if(miss.length){ws.send(JSON.stringify({t:'prof',ch:p.ch}));return tell(p,'Noch nicht hergestellt: '+miss.map(([k,n])=>n+'× '+GN[k]).join(', ')+' – Weberei/Schmiede/Rüstungsmacher')}
    for(const k in need)r.inv[k]=(r.inv[k]||0)-need[k];r.dirty=true}p.ch=m.ch}
   else if(m.t==='bstaff'){const b=r.b.find(b=>b.id===m.b);if(!b||!jobsOf(b))return;b.off=m.on?0:1;r.dirty=true;if(b.off){for(const n of r.n)if(n.wb===b.id&&n.hp>0){n.hp=0;n.conv=1;const q=mkNpc(r,'peasant',n.x,n.z,n.o);q.ry=n.ry}say(r,'Besetzung von '+BN[b.t]+' abgeschaltet – Arbeiter sind wieder frei')}else say(r,'Besetzung von '+BN[b.t]+' automatisch')}
+  else if(m.t==='banquet'){const kp=r.b.find(b=>b.t==='keep');if(!kp||dist(kp,p)>30)return tell(p,'Ein Bankett richtest du im Bergfried aus');if(r.banq)return tell(p,'Das Bankett ist bereits im Gange');if(r.bqd!=null&&r.dy-r.bqd<2)return tell(p,'Das letzte Bankett ist erst kurz her – frühestens in '+(2-(r.dy-r.bqd))+' Tag(en) wieder');
+   const FOOD=['roast','meat','bread','apples','sausage','smoked','cheese'],have=r.creative?99:FOOD.reduce((a,k)=>a+(r.inv[k]|0),0);if(!r.creative&&r.gold<120)return tell(p,'Ein Bankett kostet 120 Gold');if(have<8)return tell(p,'Für ein Bankett braucht es 8 Speisen im Lager (Braten, Fleisch, Brot, Äpfel, Wurst, Käse …)');
+   if(!r.creative)r.gold-=120;let need=r.creative?0:8;for(const k of FOOD){if(!need)break;const t=Math.min(need,r.inv[k]|0);r.inv[k]-=t;need-=t}r.bqd=r.dy;r.fame=(r.fame||0)+3;
+   const I=Rules.interior('keep',kp.st|0),guests=pickAdults(r,I.seats.length).filter(id=>{const n=r.n.find(o=>o.id===id);return n&&!['cook','keeper'].includes(n.k)}),pool=r.n.filter(n=>n.hp>0&&!n.sk&&['cook','keeper'].includes(n.k)).map(n=>n.id),serv=(pool.length?pool:pickAdults(r,2,guests)).slice(0,2);
+   r.banq={t:150,g:guests,s:serv,c:kp.id};r.dirty=true;say(r,'🍖 Festbankett im Bergfried! Spanferkel, Äpfel und Wein werden aufgetragen – die Gäste feiern (Beliebtheit +18, Ansehen +3)',kp)}
   else if(m.t==='keepRoom'){const b=r.b.find(b=>b.id===m.b&&b.t==='keep');if(!b||dist(b,p)>26||!['dungeon','torture'].includes(m.k))return;const bit=m.k==='dungeon'?1:2;if((b.ext||0)&bit)return;if(bit===2&&b.st<2)return tell(p,'Folterkammer erst ab Stufe 3 (Steinbergfried)');const cost=BD[m.k].c;if(!r.creative&&!afford(r,cost))return tell(p,'Material fehlt: '+costStr(cost));if(!r.creative)pay(r,cost);b.ext=(b.ext||0)|bit;r.dirty=true;say(r,BN[m.k]+' im Bergfried eingerichtet');}
   else if(m.t==='upgrade'){const k=(m.b&&r.b.find(b=>b.id===m.b))||r.b.find(b=>b.t==='keep'&&dist(b,p)<16);if(!k||dist(k,p)>20+Math.max(BD[k.t].w,BD[k.t].d)/2)return tell(p,'Geh näher an das Gebäude (E)');
    if(['garrison','gate','portcullis'].includes(k.t)){if(k.lv)return tell(p,'Bereits zum Steinbau ausgebaut');const c={stone:45,wood:15};if(!r.creative&&!afford(r,c))return tell(p,'Zu wenig Material: '+costStr(c));if(!r.creative)pay(r,c);k.lv=1;k.hp=mh(k);r.dirty=true;say(r,'Steinausbau abgeschlossen: '+BN[k.t]);}
