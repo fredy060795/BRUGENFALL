@@ -57,7 +57,9 @@ export function createSteamer({seed=1}={}){const g=new T.Group();g.isShip=true;c
  const layer=(y0,h,m,sc=1)=>{const geo=new T.ExtrudeGeometry(plan,{depth:h,bevelEnabled:false});geo.rotateX(Math.PI/2);geo.scale(sc,1,1);geo.translate(0,y0+h,0);mesh(g,geo,m)};
  layer(-.35,.95,black,.94);layer(.6,.12,red);layer(.72,.4,white);
  {const dg=new T.ShapeGeometry(plan);dg.rotateX(Math.PI/2);dg.scale(.96,1,.98);dg.translate(0,1.13,0);const dm=mesh(g,dg,deck);dm.material=deck.clone();dm.material.side=T.DoubleSide}
- {const pr=[];for(const [x,z]of[[-hw*.85,-LS/2],[hw*.85,-LS/2],[hw,-LS/2+1.2],[hw,LS/2-3.2],[0,LS/2],[-hw,LS/2-3.2],[-hw,-LS/2+1.2]])pr.push(new T.Vector3(x*.97,1.55,z*.98));mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(pr,true),60,.03,5,true),white)}
+ {const P=[[-hw*.85,-LS/2],[hw*.85,-LS/2],[hw,-LS/2+1.2],[hw,LS/2-3.2],[0,LS/2],[-hw,LS/2-3.2],[-hw,-LS/2+1.2]].map(([x,z])=>[x*.95,z*.97]),curve=new T.CatmullRomCurve3(P.map(([x,z])=>new T.Vector3(x,1.55,z)),true);   // Reling mit Stützen auf dem Schanzkleid
+  mesh(g,new T.TubeGeometry(curve,60,.03,5,true),white);mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(curve.getPoints(60).map(v=>new T.Vector3(v.x,1.35,v.z)),true),60,.015,4,true),white);
+  const N=40;for(let i=0;i<N;i++){const v=curve.getPointAt(i/N);mesh(g,new T.CylinderGeometry(.018,.022,.44,5),white,[v.x,1.34,v.z])}}
  // Deckshaus mit Fenstern, Steuerhaus darüber
  box(g,2.4,1.1,4.2,white,0,1.65,-1.2);for(const s of[-1,1])for(let i=0;i<5;i++)box(g,.04,.42,.5,glass,s*1.21,1.75,-3.0+i*.85);box(g,2.7,.08,4.6,black,0,2.24,-1.2);
  box(g,1.5,.9,1.3,white,0,2.7,.2);box(g,1.52,.36,1.32,glass,0,2.85,.2);box(g,1.7,.08,1.5,black,0,3.18,.2);

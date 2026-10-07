@@ -254,7 +254,19 @@
   {id:'print',era:'renaissance',n:'Buchdruck',d:'Zufriedenheit +3 (Bildung)'},{id:'potato',era:'barock',n:'Kartoffel',d:'Bauern weitere +20 %'},
   {id:'vaccine',era:'napoleon',n:'Pockenimpfung',d:'Krankheiten breiten sich halb so schnell aus'},{id:'steam',era:'neuzeit',n:'Dampfmaschine',d:'Bergbau und Steinbruch +30 %'}];
  const eraIdx=e=>ERAS.findIndex(x=>x.id===eraOf(e).id),inventions=era=>INVENT.filter(i=>eraIdx(i.era)<=eraIdx(era)),has=(era,id)=>inventions(era).some(i=>i.id===id);
+ // Aufgaben je Epoche: b = Gebäude zählen (k, n), st = Ankerbau-Stufe, pop = Einwohner, sol = Soldaten, f = Fest gefeiert, w = Mauerstücke
+ const QUESTS={steinzeit:[{id:'s1',t:'b',k:'house',n:3,d:'Drei Grubenhäuser bauen'},{id:'s2',t:'b',k:'chapel',n:1,d:'Einen Steinkreis errichten'},{id:'s3',t:'pop',n:12,d:'Die Sippe wächst auf 12 Köpfe'}],
+  hallstatt:[{id:'h1',t:'b',k:'ironmine',n:1,d:'Eine Eisenmine erschließen'},{id:'h2',t:'b',k:'market',n:1,d:'Einen Tauschplatz für den Salzhandel'},{id:'h3',t:'st',n:1,d:'Den Fürstensitz ausbauen'}],
+  roemer:[{id:'r1',t:'b',k:'plaza',n:1,d:'Ein Forum anlegen'},{id:'r2',t:'b',k:'bighouse',n:3,d:'Drei Insulae bauen'},{id:'r3',t:'b',k:'church',n:1,d:'Einen Tempel weihen'}],
+  fruehmittelalter:[{id:'f1',t:'b',k:'church',n:1,d:'Eine Klosterkirche stiften'},{id:'f2',t:'b',k:'farm',n:2,d:'Zwei Bauernhöfe anlegen'},{id:'f3',t:'sol',n:5,d:'Eine Gefolgschaft von 5 Kriegern'}],
+  hochmittelalter:[{id:'m1',t:'f',k:'tnyH',d:'Ein Ritterturnier ausrichten'},{id:'m2',t:'b',k:'cathedral',n:1,d:'Einen Dom bauen'},{id:'m3',t:'st',n:2,d:'Den Steinbergfried errichten'}],
+  spaetmittelalter:[{id:'p1',t:'w',n:10,d:'Eine Stadtmauer aus 10 Mauerstücken'},{id:'p2',t:'b',k:'apothecary',n:1,d:'Eine Apotheke gegen die Pest'},{id:'p3',t:'pop',n:30,d:'30 Bürger in der Stadt'}],
+  renaissance:[{id:'n1',t:'b',k:'mint',n:1,d:'Eine Münzprägerei (Bankwesen)'},{id:'n2',t:'f',k:'fairH',d:'Einen Jahrmarkt veranstalten'},{id:'n3',t:'b',k:'weaver',n:2,d:'Zwei Webereien (Tuchhandel)'}],
+  barock:[{id:'b1',t:'st',n:3,d:'Das Schloss vollständig ausbauen'},{id:'b2',t:'b',k:'church',n:1,d:'Eine Barockkirche bauen'},{id:'b3',t:'b',k:'watchpost',n:1,d:'Ein Spritzenhaus einrichten'}],
+  napoleon:[{id:'o1',t:'sol',n:10,d:'Ein Regiment von 10 Soldaten'},{id:'o2',t:'b',k:'garrison',n:1,d:'Eine Kaserne bauen'},{id:'o3',t:'b',k:'apothecary',n:1,d:'Ein Lazarett einrichten'}],
+  neuzeit:[{id:'z1',t:'b',k:'watchpost',n:1,d:'Eine Feuerwache gründen'},{id:'z2',t:'pop',n:50,d:'50 Einwohner – eine Industriestadt'},{id:'z3',t:'b',k:'smithy',n:2,d:'Zwei Eisenwerke betreiben'}]};
+ const quests=era=>QUESTS[eraOf(era).id]||[];
  const fest=(era,k)=>{const T=FEST[k];if(!T)return null;const e=eraOf(era).id;return e in T?T[e]:T._}
- const api={INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ const api={quests,INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
