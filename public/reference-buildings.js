@@ -320,8 +320,23 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
  else if(k==='lodge'){for(const [x,z]of[[-1.5,-1],[1.5,-1],[-1.5,1.3],[1.5,1.3]])box(.16,2.5,.16,x,1.25,z,H.wood,true);roof(3.5,3.6,2.1,1.5,H.thatch,0,-.2,H.wood);box(3.5,2.1,.2,0,1.05,-2,H.wood,true);table(0,.5);beam([-2,0,1.6],[-2,2,1.6]);beam([2,0,1.6],[2,2,1.6]);beam([-2,2,1.6],[2,2,1.6]);const hide=new T.Mesh(new T.SphereGeometry(1,10,8),H.wood);hide.scale.set(.5,.8,.07);hide.position.set(.5,1.05,1.6);g.add(hide);}
  else if(['quarry','ironmine','coppermine'].includes(k)){const ore=k==='ironmine'?H.iron:k==='coppermine'?H.brass:H.stone;box(4.8,.18,3.8,0,.09,0,H.floor);for(const x of[-1.8,1.8]){box(.28,4,.28,x,2,0,H.wood,true);beam([x,0,-1.5],[x,3.4,0],.2);beam([x,0,1.5],[x,3.4,0],.2)}beam([-2.1,3.8,0],[2.1,3.8,0],.35);beam([0,3.8,0],[0,1.1,0],.065,H.iron);box(1.3,1,1.1,0,.6,0,ore,true);for(const x of[-1.6,1.6])box(.8,.45,.6,x,.35,1.2,ore,true);const wheel=new T.Mesh(new T.TorusGeometry(.65,.09,6,20),H.wood);wheel.position.set(-1.8,1.6,.25);g.add(wheel);orePile(-1.55,-1.1,4,ore);orePile(1.55,-1.15,4,ore);crate(1.9,1.75,.25,.9,.45,.65,H.wood)}
  else if(k==='keep'){
- if(lv===0){shell(9,8,4.2,H.wood,2.4);framing(9,8,4.2);roof(9,8,4.2,3,H.thatch);box(2.6,8,2.6,4.1,4,-2.7,H.wood,true);box(3,.2,3,4.1,8.05,-2.7,H.floor);crown(3,3,8.15,H.wood,4.1,-2.7);g.walkAreas.push([4.1,-2.7,1.5,1.5,8.15]);}
- else{const y=lv===1?9.3:11.3,mat=lv===1?H.wood:H.stone;shell(10,8,y,mat,2.4);box(10,.2,8,0,y-.1,0,H.floor);crown(10,8,y,mat);g.walkAreas.push([0,0,5,4,y]);for(const x of[-4.7,4.7])for(const z of[-3.7,3.7]){box(.5,y+.3,.5,x,y/2,z,mat);if(lv>=3){cylinder(.7,y+1.2,x,(y+1.2)/2,z,H.stone);crown(1.6,1.6,y+1.2,H.stone,x,z)}}for(const yy of[3.3,6.3,8.6]){
+ // Stil der Ausbaustufen je Epoche: wood (Steinzeit/Hallstatt), early (Motte), medieval, roman, palace (Renaissance–Napoleon), civic (Neuzeit-Rathaus)
+ const KE=['steinzeit','hallstatt'].includes(era)?'wood':era==='fruehmittelalter'?'early':era==='roemer'?'roman':['renaissance','barock','napoleon'].includes(era)?'palace':era==='neuzeit'?'civic':'medieval',
+  KM=l=>KE==='wood'?H.wood:['roman','palace','civic'].includes(KE)?H.plaster:l>=2?H.stone:H.wood,
+  pyr=(w,h,x,y,z,m,sides=4)=>{const c=new T.ConeGeometry(w,h,sides);if(sides===4)c.rotateY(Math.PI/4);c.translate(x,y+h/2,z);staticMesh(c,m)},
+  dome=(r,x,y,z,m)=>{const d=new T.SphereGeometry(r,14,8,0,Math.PI*2,0,Math.PI/2);d.translate(x,y,z);staticMesh(d,m)};
+ if(lv===0){const m0=KM(0);shell(9,8,4.2,m0,2.4);framing(9,8,4.2);roof(9,8,4.2,3,H.thatch);box(2.6,8,2.6,4.1,4,-2.7,m0,true);box(3,.2,3,4.1,8.05,-2.7,H.floor);crown(3,3,8.15,m0,4.1,-2.7);g.walkAreas.push([4.1,-2.7,1.5,1.5,8.15]);
+  // Seitenturm je Epoche: Ausguck mit Dach auf Pfosten (Holz/Römer), Kuppel (Schloss), Spitzhelm (Rathaus)
+  if(KE!=='medieval'){for(const sx of[-1,1])for(const sz of[-1,1])box(.14,1.5,.14,4.1+sx*1.2,8.9,-2.7+sz*1.2,KE==='wood'||KE==='early'?H.wood:H.stone);
+   if(KE==='wood')pyr(2.2,1.6,4.1,9.6,-2.7,H.thatch,10);else if(KE==='early')pyr(2.3,1.4,4.1,9.6,-2.7,H.shingle);else if(KE==='roman')pyr(2.3,1.1,4.1,9.6,-2.7,H.redRoof);
+   else if(KE==='palace'){box(2.9,.25,2.9,4.1,9.75,-2.7,H.stone);dome(1.3,4.1,9.85,-2.7,H.slate);cylinder(.08,.7,4.1,11.4,-2.7,H.brass,8)}else{box(2.9,.25,2.9,4.1,9.75,-2.7,H.stone);pyr(1.9,3,4.1,9.85,-2.7,H.slate,8)}}}
+ else{const y=lv===1?9.3:11.3,mat=KM(lv);shell(10,8,y,mat,2.4);box(10,.2,8,0,y-.1,0,H.floor);crown(10,8,y,mat);g.walkAreas.push([0,0,5,4,y]);for(const x of[-4.7,4.7])for(const z of[-3.7,3.7]){box(.5,y+.3,.5,x,y/2,z,mat);if(lv>=3){const ty=y+1.2;
+   if(KE==='wood'){cylinder(.75,ty,x,ty/2,z,H.wood,10);pyr(1.15,1.8,x,ty,z,H.thatch,10)}                                   // Holztürme mit Reetkegel
+   else if(KE==='early'){box(1.5,ty,1.5,x,ty/2,z,H.wood);pyr(1.25,1.5,x,ty,z,H.shingle)}                                      // Holztürme mit Schindeldach
+   else if(KE==='roman'){box(1.7,ty,1.7,x,ty/2,z,H.plaster);crown(1.7,1.7,ty,H.stone,x,z)}                                    // quadratische Kastelltürme
+   else if(KE==='palace'){box(1.9,ty,1.9,x,ty/2,z,H.plaster);box(2.1,.25,2.1,x,ty+.12,z,H.stone);dome(.9,x,ty+.25,z,H.slate);cylinder(.06,.6,x,ty+1.4,z,H.brass,8)}   // Eckpavillons mit Kuppel
+   else if(KE==='civic'){cylinder(.7,ty,x,ty/2,z,H.plaster,14);cylinder(.82,.25,x,ty+.12,z,H.stone,14);pyr(.85,2.6,x,ty+.25,z,H.slate,12)}   // Ecktürmchen mit Spitzhelm
+   else{cylinder(.7,ty,x,ty/2,z,H.stone);crown(1.6,1.6,ty,H.stone,x,z);if(era==='spaetmittelalter')pyr(1.0,2.2,x,ty+.9,z,H.slate,12)}}}for(const yy of[3.3,6.3,8.6]){
   // Vorne (bleiben)
   window(-2.6,yy,4.03,0,.6,1.1,lv>1);window(2.6,yy,4.03,0,.6,1.1,lv>1);
   // Rechts mittig (bleibt)

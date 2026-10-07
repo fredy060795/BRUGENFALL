@@ -64,6 +64,20 @@ export function eraClothes(o,era,r){if(!era||era==='hochmittelalter')return o;co
  if(sol&&globalThis.BFRules){const u=globalThis.BFRules.eraOf(era).units;if(u&&u[o.role])o.eraTitle=u[o.role]}
  return o}
 
+// ---- Spielerfigur je Epoche: Kleiderschrank-Wahl wird automatisch auf die Epoche übertragen (Farben bleiben, außer Steinzeit) ----
+const P_HEAD={steinzeit:['none'],hallstatt:['none','cap'],roemer:['none','strawhat'],fruehmittelalter:['none','cap','hood'],renaissance:['plume','cap','none'],barock:['tricorne','hunterhat','none'],napoleon:['tricorne','hunterhat','none'],neuzeit:['cap','hunterhat','none']};
+const P_HELM={steinzeit:'none',hallstatt:'helmet',roemer:'galea',fruehmittelalter:'nasal',renaissance:'sallet',barock:'tricorne',napoleon:'shako',neuzeit:'stahlhelm'};
+const MEDIEVAL_HATS=['chaperon','gugel','gugelL','gugelD','plume','hunterhat','cap','scarf','strawhat','none'],HELMS=['helmet','hood','sallet','visored','bascinet','nasal'];
+export function eraPlayer(o,era){if(!era||era==='hochmittelalter'||era==='spaetmittelalter')return o;const armed=HELMS.includes(o.head)||o.breast||o.mailShirt||o.outfit==='gambeson';
+ const hats=P_HEAD[era],h=o.head;if(HELMS.includes(h))o.head=P_HELM[era];else if(MEDIEVAL_HATS.includes(h)&&!hats.includes(h))o.head=hats[(MEDIEVAL_HATS.indexOf(h)+(o.seed|0))%hats.length];
+ if(o.head==='helmet'||o.head==='galea')o.noCoif=true;o.mailHood=false;
+ if(['steinzeit','hallstatt','roemer'].includes(era)){const lor=era==='roemer'&&armed;o.mailShirt=false;o.breast=false;o.arms=0;o.legs=0;o.hands=o.hands&&'lea';if(o.outfit==='gambeson'||o.outfit==='jerkin')o.outfit=o.female?'dress':'tunic';o.lorica=lor;
+  if(era==='steinzeit'){const FUR=[0x6a4e34,0x5a422c,0x7a5e40,0x4e3a28];o.cloth=FUR[(o.seed|0)%4];o.over=FUR[((o.seed|0)+1)%4];if(o.cloak)o.cloak=FUR[((o.seed|0)+2)%4]}}
+ else if(['barock','napoleon','neuzeit'].includes(era)){o.mailShirt=false;o.breast=false;o.arms=0;o.legs=0;if(o.outfit==='gambeson')o.outfit='jerkin';o.uni=true;if(era==='neuzeit'&&armed){o.cloth=o.over=0x6e735c}}
+ else if(era==='fruehmittelalter'){o.breast=false;o.arms=0;o.legs=0;if(armed)o.mailShirt=true}
+ else if(era==='renaissance'){o.legs=0;o.arms=Math.min(o.arms||0,1)}
+ return o}
+
 // ---- Geistliche je Epoche: vor dem Christentum Schamane, Druide, römischer Priester; ab Barock der Pfarrer im Talar ----
 const ERA_PRIEST={steinzeit:'Schamane',hallstatt:'Druide',roemer:'Flamen (Tempelpriester)',barock:'Pfarrer',napoleon:'Pfarrer',neuzeit:'Pfarrer'};
 export const priestTitle=(era,bishop)=>bishop?({steinzeit:'Oberschamane',hallstatt:'Oberdruide',roemer:'Pontifex Maximus'}[era]||'Bischof'):ERA_PRIEST[era]||null;

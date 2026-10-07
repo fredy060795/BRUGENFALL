@@ -24,7 +24,8 @@ export const OPT={skin:['Sehr hell','Hell','Mittel','Gebräunt','Braun','Dunkel'
 // Index: 0 gender,1 skin,2 hairStyle,3 hairColor,4 beard,5 outfit,6 cloth,7 belt,8 civHead,9 armor,10 armHead,11 cloak
 export const PROF_MAX=[1,5,3,8,3,1,13,13,9,7,6,5];
 export const defProf=g=>g?[1,1,0,5,0,0,5,10,2,0,0,0]:[0,2,0,2,1,0,0,9,0,0,0,0];
-function playerLook(id,P,fc){const r=rng(id*7919+99),A=k=>Math.max(0,Math.min(PROF_MAX[k],P[k]|0)),f=!!A(0),hs=(f?OPT.hsF:OPT.hsM)[A(2)][0],bd=f?'none':OPT.beard[A(4)][0];
+function playerLook(id,P,fc){return eraPlayer(playerLook0(id,P,fc),ERA)}
+function playerLook0(id,P,fc){const r=rng(id*7919+99),A=k=>Math.max(0,Math.min(PROF_MAX[k],P[k]|0)),f=!!A(0),hs=(f?OPT.hsF:OPT.hsM)[A(2)][0],bd=f?'none':OPT.beard[A(4)][0];
  const civHeads=['none','cap','scarf','strawhat','chaperon','plume','hunterhat','gugel','gugelL','gugelD'];
  let outfit=A(5)===1?'jerkin':(f?'dress':'tunic'),head=civHeads[A(8)]||'none';if(!f&&head==='scarf')head='cap';
  const ar=A(9);if(ar)outfit='gambeson';const knight=ar===3||ar===6;let hoodDown=false;if(head==='gugelD'){head='none';hoodDown=true}
@@ -79,7 +80,7 @@ function style(o,r){const R=o.role,P=a=>a[Math.floor(r()*a.length)],ch=p=>r()<p,
   if(rk==='poacher'){o.head='hood';o.liri=true;o.hoodCol=P(PW.green)}
   o.title={leader:'Bandenführer',brute:'Schläger',poacher:'Wilderer',cutthroat:'Halsabschneider'}[rk];break}}
  if(o.patches&&!['tunic','dress','jerkin','vest','smock'].includes(o.outfit))o.patches=0}
-import {eraClothes,eraShotOf} from './eras.js';
+import {eraClothes,eraShotOf,eraPlayer} from './eras.js';
 let ERA='hochmittelalter';export const setPeopleEra=e=>{ERA=e||'hochmittelalter'};
 export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook(id,prof,fc);const r=rng(id*7919+13+role.length*101);
  const jr=JR[role],female=role==='farmer'||role==='peasant'||role==='child'?r()<.5:jr&&jr.female?true:(jr&&['cook','keeper','shepherd','fisher'].includes(role)?r()<.35:role==='player'?(id>0&&r()<.4):false);
