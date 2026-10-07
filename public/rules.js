@@ -111,6 +111,29 @@
    towns:[Tn('Uferdorf',-10,-120),Tn('Schilfheim',-140,40),Tn('Nebelbande',140,150,'enemy')],ores:[O('iron',150,25),O('iron',-155,-140),O('iron',95,70),O('copper',-30,150),O('copper',150,-100),O('copper',-150,140)]}
 
 ];
+
+ // ===== Epochen-Edition: Startepoche je Welt (Namen hier, Optik/Kleidung im Browser in eras.js) =====
+ const ERAS=[
+  {id:'steinzeit',n:'Steinzeit',y:'ca. 5500–2200 v. Chr.',d:'Langhausdorf, Steinkreis, Werkzeug aus Stein und Knochen',
+   names:{keep:'Langhaus des Ältesten',house:'Grubenhaus',bighouse:'Langhaus',chapel:'Steinkreis',church:'Großer Steinkreis',cathedral:'Ahnen-Steinkreis',tavern:'Feuerhalle',market:'Tauschplatz',plaza:'Versammlungsplatz',garrison:'Kriegerhütte',smithy:'Steinschläger',storage:'Vorratsgrube',well:'Quellfassung',watchpost:'Hochstand',tower:'Wachgerüst',gate:'Palisadentor',mint:'Bernsteinschleifer',cemetery:'Gräberfeld',tannery:'Fellgerberei'}},
+  {id:'hallstatt',n:'Hallstattzeit',y:'ca. 800–450 v. Chr.',d:'Höhensiedlung mit Holz-Erde-Wall, Salzhandel, Fürstensitz',
+   names:{keep:'Fürstensitz',chapel:'Heiliger Hain',church:'Kultbezirk',cathedral:'Fürstengrabhügel',tavern:'Methalle',plaza:'Handelsplatz',garrison:'Kriegerhaus',smithy:'Eisenschmiede',quarry:'Salzbergwerk',storage:'Speicher',mint:'Goldschmiede',cemetery:'Hügelgräberfeld'}},
+  {id:'roemer',n:'Römerzeit',y:'ca. 15 v. Chr.–476 n. Chr.',d:'Kastell und Lagerdorf, Tempel, Forum, Thermen',
+   names:{keep:'Principia (Kastell)',house:'Domus',bighouse:'Insula',chapel:'Tempelchen',church:'Tempel',cathedral:'Kapitolstempel',tavern:'Taberna',market:'Marktstand',plaza:'Forum',garrison:'Kaserne (Castra)',well:'Brunnen',storage:'Horreum',granary:'Horreum',smithy:'Fabrica',mint:'Münzstätte',bakery:'Pistrinum',cemetery:'Gräberstraße',gate:'Lagertor',tower:'Turm am Limes',watchpost:'Wachposten am Limes'}},
+  {id:'fruehmittelalter',n:'Frühmittelalter',y:'ca. 500–1000',d:'Herrenhof und Turmhügelburg, Kloster, Holzkirche',
+   names:{keep:'Motte (Turmhügelburg)',chapel:'Holzkirche',church:'Klosterkirche',cathedral:'Pfalzkapelle',tavern:'Herberge',plaza:'Thingplatz',garrison:'Gefolgschaftshaus'}},
+  {id:'hochmittelalter',n:'Hochmittelalter',y:'ca. 1000–1250',d:'Steinburg mit Bergfried – das bisherige Spiel',names:{}},
+  {id:'spaetmittelalter',n:'Spätmittelalter',y:'ca. 1250–1500',d:'Stadt mit Mauer und Zünften, Pulver und erste Kanonen',
+   names:{keep:'Stadtburg',church:'Pfarrkirche',plaza:'Hauptplatz',garrison:'Zeughaus',tavern:'Ratskeller',storage:'Kaufhaus'}},
+  {id:'renaissance',n:'Renaissance',y:'ca. 1450–1600',d:'Bastionen, Stadtpalast, Buchdruck und Handelshäuser',
+   names:{keep:'Stadtpalast',church:'Stadtkirche',cathedral:'Dom',plaza:'Piazza',garrison:'Zeughaus',storage:'Handelshaus',mint:'Bank'}},
+  {id:'barock',n:'Frühe Neuzeit (Barock)',y:'ca. 1600–1790',d:'Sternfestung, Schloss, Manufakturen, stehendes Heer',
+   names:{keep:'Schloss',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
+  {id:'napoleon',n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
+   names:{keep:'Kommandantur',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
+  {id:'neuzeit',n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
+   names:{keep:'Rathaus',church:'Stadtkirche',cathedral:'Münster',plaza:'Marktplatz',garrison:'Gendarmerie',watchpost:'Feuerwache',weaver:'Textilfabrik',smithy:'Eisenwerk',tavern:'Wirtshaus',storage:'Lagerhalle',mint:'Sparkasse'}}];
+ const ERA_DEFAULT='hochmittelalter',eraOf=id=>ERAS.find(e=>e.id===id)||ERAS.find(e=>e.id===ERA_DEFAULT);
  function presetMaps(){return HAND.map(m=>sanitizeMap({river:BASE_MAP.river,...m}))}
  // Sonderkarten (z. B. Linz mit vorgebauter Altstadt): keine Standardkarten, sondern als bearbeitbare eigene Karten angeboten
  const EXAMPLES=[
@@ -206,6 +229,6 @@
  function bedPath(t,lv,bi){const I=interior(t,lv);if(!I||!I.beds.length)return null;const b=I.beds[bi%I.beds.length],P=[];
   for(const s of I.stairs){if(b[2]<s.e1-.01)break;P.push({x:s.x,z:s.z0,el:s.e0},{x:s.x,z:s.z1,el:s.e1})}
   P.push({x:b[0],z:b[1]+.85,el:b[2]});return{P,bed:b}}
- const api={interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ const api={interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

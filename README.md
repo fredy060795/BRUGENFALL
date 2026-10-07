@@ -1,3 +1,7 @@
+# Zeitreise 8.36 – Epochen-Edition (Teil 1)
+
+Startzeitalter wählbar (Steinzeit bis Neuzeit) mit eigenen Gebäudenamen, Wand- und Dachtexturen, Kleidung, römischem Tempel und Steinkreis. Siehe AENDERUNGEN_8_36.md.
+
 # Zeitreise 8.35 (vormals Burgenfall)
 
 Neuer Name „Zeitreise – Mittelalter Edition“. Späher auf Wachturm/Wachposten melden Überfälle 30 s vorher, Tribut zahlen im Bergfried oder in der Garnison, Überfallstärke nach Einwohnern und Gold. Siehe AENDERUNGEN_8_35.md.
