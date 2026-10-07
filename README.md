@@ -1,3 +1,7 @@
+# Zeitreise 8.39 – Epochen-Edition (Teil 4)
+
+Mauern je Epoche und die Dynastie: heiraten, Kinder bekommen, Erben bestimmen, abdanken – nach vier Generationswechseln springt die Welt in die nächste Epoche. Siehe AENDERUNGEN_8_39.md.
+
 # Zeitreise 8.38 – Epochen-Edition (Teil 3)
 
 Ankerbau je Epoche (Principia mit Portikus, Schloss mit Kuppel, Rathaus mit Uhrturm …) und Kirchen je Epoche (Holzkirche, Barockkirche mit Zwiebelturm) mit Bänken und Altar. Siehe AENDERUNGEN_8_38.md.
