@@ -266,7 +266,14 @@
   napoleon:[{id:'o1',t:'sol',n:10,d:'Ein Regiment von 10 Soldaten'},{id:'o2',t:'b',k:'garrison',n:1,d:'Eine Kaserne bauen'},{id:'o3',t:'b',k:'apothecary',n:1,d:'Ein Lazarett einrichten'}],
   neuzeit:[{id:'z1',t:'b',k:'watchpost',n:1,d:'Eine Feuerwache gründen'},{id:'z2',t:'pop',n:50,d:'50 Einwohner – eine Industriestadt'},{id:'z3',t:'b',k:'smithy',n:2,d:'Zwei Eisenwerke betreiben'}]};
  const quests=era=>QUESTS[eraOf(era).id]||[];
+ // Wahrzeichen je Epoche (Gebäude 'wonder', einmal pro Welt)
+ const WONDER={steinzeit:{n:'Großer Steinkreis (Stonehenge)',d:'Trilithen aus riesigen Sandsteinblöcken, Ausrichtung zur Sonnenwende'},hallstatt:{n:'Fürstengrabhügel',d:'Grabhügel mit Steinkranz, Prozessionsweg und Kriegerstatue'},
+  roemer:{n:'Kolosseum',d:'Amphitheater mit drei Bogenreihen und Arena'},fruehmittelalter:{n:'Pfalzkapelle',d:'Achteckiger Kuppelbau nach Aachener Vorbild'},
+  hochmittelalter:{n:'Kaiserpfalz',d:'Große Königshalle mit Arkadenfenstern und Bergfried'},spaetmittelalter:{n:'Stadttor mit Doppeltürmen',d:'Backsteintor mit zwei Rundtürmen wie das Holstentor'},
+  renaissance:{n:'Kuppeldom',d:'Achteckige Kuppel auf Tambour mit Laterne wie in Florenz'},barock:{n:'Lustschloss mit Fontäne',d:'Orangerie, Parterre und große Fontäne'},
+  napoleon:{n:'Triumphbogen',d:'Mächtiger Siegesbogen mit Attika und Reliefs'},neuzeit:{n:'Eiserner Aussichtsturm',d:'Genieteter Stahlturm mit Aussichtsplattform'}},
+  wonder=era=>WONDER[eraOf(era).id];
  const fest=(era,k)=>{const T=FEST[k];if(!T)return null;const e=eraOf(era).id;return e in T?T[e]:T._}
- const api={quests,INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ const api={wonder,quests,INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

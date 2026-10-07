@@ -50,7 +50,7 @@ const BD={wall:J(4,1,{stone:6},800),battle:J(4,1,{stone:8},900),palisade:J(4,.6,
 const BN={wall:'Mauer',battle:'Zinnenmauer',palisade:'Palisade',tower:'Wachturm',gate:'Torhaus',watchpost:'Wachposten',house:'Wohnhaus',bighouse:'Großes Wohnhaus',keep:'Bergfried',garrison:'Garnison',dungeon:'Kerker',farm:'Bauernhof',field:'Weizenfeld',lumber:'Holzfällerhütte',quarry:'Steinbruchhütte',lodge:'Jägerhütte',bakery:'Bäckerei',dairy:'Käserei',sheep:'Schafstall',cow:'Kuhstall',weaver:'Weberei',fishery:'Fischerei',smithy:'Schmiede',apothecary:'Apotheke',tavern:'Taverne',chapel:'Kapelle',market:'Marktstand',storage:'Lagerhaus',cemetery:'Friedhof',bridge:'Brücke',bench:'Werkbank',bed:'Bett',fire:'Lagerfeuer'};
 // Gebäudenamen je Epoche (Ereignis-Log); Katalognamen bleiben die des Hochmittelalters
 const unitName=(r,k)=>(r&&Rules.eraOf(r.era).units||{})[k]||SOLN[k];
-const nm=(r,k)=>(r&&Rules.eraOf(r.era).names[k])||BN[k];
+const nm=(r,k)=>k==='wonder'&&r?Rules.wonder(r.era).n:(r&&Rules.eraOf(r.era).names[k])||BN[k];
 const BA=(r,k,c,cap)=>Rules.bart(r&&r.era,k,c,cap),MED=r=>!r||!r.era||r.era==='hochmittelalter';   // Gebäudename mit Artikel je Epoche
 const JN={minter:'Münzer',farmer:'Bauer',wood:'Holzfäller',hunter:'Jäger',mason:'Steinmetz',cook:'Bäcker/Metzger',smith:'Schmied',priest:'Priester',healer:'Heiler',keeper:'Wirt',shepherd:'Hirte/Imker',weaver:'Weber',fisher:'Fischer',gravedigger:'Totengräber',trader:'Händler',miner:'Bergmann',tanner:'Gerber',miller:'Müller',hangman:'Henker'};
 const JOBS=Object.keys(JN),GN={wood:'Holz',stone:'Stein',wheat:'Weizen',meat:'Fleisch',bread:'Brot',roast:'Braten',wool:'Wolle',cloth:'Tuch',gambeson:'Gambeson',milk:'Milch',cheese:'Käse',fish:'Fisch',weapons:'Waffen',armor:'Rüstungen',potions:'Heiltränke',flour:'Mehl',iron:'Eisen',copper:'Golderz',honey:'Honig',hides:'Felle',leather:'Leder',apples:'Äpfel',hops:'Hopfen',beer:'Bier',sausage:'Wurst',smoked:'Geräuchertes',herbs:'Kräuter',clothes:'Kleidung',helmet:'Helme',mail:'Kettenhemden',breast:'Brustpanzer',plate:'Plattenharnische',carcass:'Wildkadaver'},STOCK=Object.keys(GN);
@@ -79,12 +79,12 @@ Object.assign(BD,{well:J(2,2,{stone:10,wood:5},300,{well:1}),moat:J(4,4,{wood:2,
  butcher:J(5,4,{wood:20,stone:10},350,{jobs:{cook:1},prod:{every:30,in:{meat:2},out:{sausage:3}}}),tannery:J(5,4,{wood:25,stone:5},350,{jobs:{tanner:1},prod:{every:35,in:{hides:2},out:{leather:1}}}),
  orchard:J(8,8,{wood:20},300,{jobs:{farmer:2},prod:{every:35,out:{apples:2}}}),hopfield:J(4,4,{wood:8},150,{jobs:{farmer:1},prod:{every:40,out:{hops:1}}}),
  brewery:J(6,5,{wood:30,stone:10},400,{jobs:{cook:1},prod:{every:30,in:{hops:2,wheat:1},out:{beer:2}}}),smokehouse:J(4,4,{wood:15,stone:5},300,{jobs:{cook:1},prod:{every:30,in:{fish:2},out:{smoked:3}}}),
- cathedral:J(16,25,{stone:150,wood:60},3000,{jobs:{priest:3}}),torture:J(6,6,{stone:25,wood:10},800),portcullis:J(6,1.6,{stone:15,wood:15},1500,{post:{n:2,y:5}}),harbor:J(8,6,{wood:50,stone:20},800,{harbor:1})});
+ cathedral:J(16,25,{stone:150,wood:60},3000,{jobs:{priest:3}}),wonder:J(20,20,{stone:250,wood:150,iron:20},5000),torture:J(6,6,{stone:25,wood:10},800),portcullis:J(6,1.6,{stone:15,wood:15},1500,{post:{n:2,y:5}}),harbor:J(8,6,{wood:50,stone:20},800,{harbor:1})});
 BD.smithy.prod={every:40,in:{iron:2,wood:1},out:{weapons:1}};
 Object.assign(BD,{mill:J(4,4,{wood:30,stone:10},400,{jobs:{miller:1},prod:{every:14,in:{wheat:3},out:{flour:3}}})});
 BD.bakery.prod={every:18,in:{flour:2},out:{bread:3}};BD.smithy.prod={every:36,in:{iron:2,wood:1},out:{weapons:1},dest:'garrison'};BD.torture.jobs={hangman:1};BD.keep.c={wood:60};BD.keep.post={n:2,y:9};BD.keep.w=13;BD.keep.d=11;BD.house.w=6;BD.chapel.w=12;BD.chapel.d=16;
 BD.church=J(12,16,{stone:80,wood:40},1500,{jobs:{priest:2}});BD.stairs=J(2,6,{stone:30,wood:10},600,{});
-Object.assign(BN,{church:'Kirche',stairs:'Treppe zum Wehrgang',mill:'Mühle',well:'Brunnen',moat:'Wassergraben',ironmine:'Eisenmine',coppermine:'Goldmine',pigsty:'Schweinestall',apiary:'Imkerei',butcher:'Metzgerei',tannery:'Gerberei',orchard:'Obstplantage',hopfield:'Hopfenfeld',brewery:'Brauerei',smokehouse:'Räucherei',cathedral:'Kathedrale',torture:'Folterkammer',portcullis:'Torhaus mit Fallgitter',harbor:'Hafen'});
+Object.assign(BN,{church:'Kirche',stairs:'Treppe zum Wehrgang',mill:'Mühle',well:'Brunnen',moat:'Wassergraben',ironmine:'Eisenmine',coppermine:'Goldmine',pigsty:'Schweinestall',apiary:'Imkerei',butcher:'Metzgerei',tannery:'Gerberei',orchard:'Obstplantage',hopfield:'Hopfenfeld',brewery:'Brauerei',smokehouse:'Räucherei',cathedral:'Kathedrale',wonder:'Wahrzeichen',torture:'Folterkammer',portcullis:'Torhaus mit Fallgitter',harbor:'Hafen'});
 BD.gate.w=BD.portcullis.w=8;BD.gate.d=BD.portcullis.d=4;BD.gate.post.y=BD.portcullis.post.y=4;BD.church.w=8;BD.church.d=12;BD.farm.w=18;BD.farm.d=16;
 Object.assign(BD,{bower:J(5,5,{wood:25,stone:8},420,{jobs:{smith:1},prod:{every:45,in:{wood:3},out:{weapons:1},dest:'garrison'}}),armorer:J(5,5,{wood:25,stone:20,iron:5},600,{jobs:{smith:1}}),armory:J(6,5,{stone:30,wood:15},900,{store:150}),granary:J(6,5,{wood:30,stone:10},500,{store:250})});
 BD.mint=J(6,5,{stone:45,wood:20,iron:6},900,{jobs:{minter:2},prod:{every:45,in:{copper:2},out:{}}});
@@ -291,7 +291,7 @@ function dipAct(r,p,town,act){const T=townsOf(r).find(t=>t.n===town);if(!T)retur
  else if(act==='trade'){if(D.tr)return;if(D.rel<40)return tell(p,'Für einen Handelsvertrag braucht es Beziehung 40 ('+D.rel+')');D.tr=1;say(r,'🤝 Handelsvertrag mit '+T.n+': täglich 15 Gold aus dem Handel');chron(r,'Handelsvertrag mit '+T.n)}
  else if(act==='ally'){if(D.al)return;if(!D.tr||D.rel<80)return tell(p,'Ein Bündnis braucht einen Handelsvertrag und Beziehung 80 ('+D.rel+')');D.al=1;say(r,'⚜ Bündnis mit '+T.n+' – Verbündete schicken bei Überfällen Hilfe (weniger Angreifer)');chron(r,'Bündnis mit '+T.n)}
  r.dirty=true}
-function dipDay(r){let g=0;for(const T of friendTowns(r)){const D=dipOf(r,T.n);if(D.tr)g+=15;if(!D.al)D.rel=Math.max(0,D.rel-1)}if(g){r.gold+=g;say(r,'🤝 Handelsverträge bringen '+g+' Gold')}}
+function dipDay(r){if(r.b.some(b=>b.t==='wonder')){r.gold+=25;r.fame=(r.fame||0)+1;say(r,'🏛 Besucher bestaunen '+Rules.wonder(r.era).n+': 25 Gold Eintritt, Ansehen +1')}let g=0;for(const T of friendTowns(r)){const D=dipOf(r,T.n);if(D.tr)g+=15;if(!D.al)D.rel=Math.max(0,D.rel-1)}if(g){r.gold+=g;say(r,'🤝 Handelsverträge bringen '+g+' Gold')}}
 const allies=r=>friendTowns(r).filter(T=>dipOf(r,T.n).al).length;
 function villageDay(r,day){if(!r.creative){
   const tax=r.tax??1,ration=r.ration??1;
@@ -626,7 +626,7 @@ function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.d
  for(const c of r.co)c.t+=dt;corpsePlague(r,dt);
  // Beliebtheit wie in Stronghold: jeder Faktor einzeln (fürs Stadtbuch), Wert pendelt langsam auf das Ziel
  const HF=[['Grundstimmung',40]],hf=(l,v)=>{if(v)HF.push([l,Math.round(v)])};let tv=0,rel=0;for(const b of r.b){if(b.t==='tavern'&&stf[b.id]&&food(r)>=1)tv=Math.max(tv,25+(r.beer?10:0));if(stf[b.id])rel=Math.max(rel,{chapel:20,church:25,cathedral:30}[b.t]||0)}
- hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Barocke Lebensfreude',r.era==='barock'?5:0);hf('Buchdruck (Bildung)',Rules.has(r.era,'print')?3:0);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);hf('Bankett '+BA(r,'keep','in'),r.bqd!=null&&r.dy-r.bqd<=1?18:0);{const F=r.fests||{};hf('Ritterturnier',F.tnyH!=null&&r.dy-F.tnyH<=1?15:0);hf('Jahrmarkt',r.plazaEvent==='circus'||(F.fairH!=null&&r.dy-F.fairH<=1)?10:0)}
+ hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Barocke Lebensfreude',r.era==='barock'?5:0);hf('Wahrzeichen',r.b.some(b=>b.t==='wonder')?10:0);hf('Buchdruck (Bildung)',Rules.has(r.era,'print')?3:0);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);hf('Bankett '+BA(r,'keep','in'),r.bqd!=null&&r.dy-r.bqd<=1?18:0);{const F=r.fests||{};hf('Ritterturnier',F.tnyH!=null&&r.dy-F.tnyH<=1?15:0);hf('Jahrmarkt',r.plazaEvent==='circus'||(F.fairH!=null&&r.dy-F.fairH<=1)?10:0)}
  hf('Kranke',-Math.min(15,3*r.n.filter(n=>n.sk).length));hf('Böse Omen ohne Kirche',r.omen>0&&!r.holy?-15:0);hf('Unbestattete Tote',-Math.min(25,5*r.co.filter(c=>c.t>30).length));
  hf('Nahrungsvorrat knapp',food(r)<4?-20:0);hf('Fehlende Rationen',-Math.min(20,(r.foodShortage||0)*2));hf('Fehlendes Heizholz',-Math.min(15,(r.heatShortage||0)*3));hf('Ansehen',Math.min(10,r.fame*.5));
  hf('Steuern ('+['niedrig','mittel','hoch'][r.tax??1]+')',[12,0,-18][r.tax??1]);hf('Rationen ('+['großzügig','normal','hungern'][r.ration??1]+')',[15,0,-20][r.ration??1]);
@@ -831,6 +831,7 @@ function siteFeed(r,cs,p){const miss=siteMissing(cs);let any=false;for(const k i
 function siteHit(r,cs,amount,p){const miss=siteMissing(cs);if(Object.keys(miss).length){if(p)tell(p,'🧱 '+STAGEN[cs.S[cs.i].n]+': es fehlen '+costStr(miss)+(r.b.some(b=>b.t==='storage')?' – der Holzkarren bringt sie aus dem Lagerhaus':' – im Rucksack herbringen (Taste I: '+BA(r,'keep','an')+' aus der Truhe nehmen)'));return false}
  cs.pr+=amount/hitsOf(cs.t);r.dcs=true;if(cs.pr>=1){cs.pr=0;cs.got={};cs.i++;if(cs.i>=cs.S.length){finishSite(r,cs);return true}say(r,'🔨 '+nm(r,cs.t)+': '+STAGEN[cs.S[cs.i-1].n]+' fertig – jetzt '+STAGEN[cs.S[cs.i].n],cs)}return true}
 function placeBuilding(r,t,x,z,rot,v,id){const B=BD[t];r.b.push({id:id||uid++,t,x,z,r:rot,hp:t==='keep'?1200:B.hp,st:0,lv:0,v,tm:0});r.dirty=true;
+ if(t==='wonder'){r.fame=(r.fame||0)+10;say(r,'🏛 '+Rules.wonder(r.era).n+' ist vollendet! Ansehen +10 – Besucher kommen von weit her',{x,z});chron(r,Rules.wonder(r.era).n+' vollendet')}
  if(t==='keep'){migrateRooms(r);r.next=r.set.interval*2;if(!r.surv)for(let i=0;i<3;i++)mkNpc(r,'peasant',x+rnd(-5,5),z+B.d/2+rnd(3,8));say(r,'🏰 '+BA(r,'keep','dein')+' steht! Die ersten Siedler sind eingetroffen. Weitere kommen, wenn Häuser, Essen und Zufriedenheit stimmen.')}}
 function finishSite(r,cs){r.cs=r.cs.filter(o=>o!==cs);r.dcs=true;placeBuilding(r,cs.t,cs.x,cs.z,cs.r,cs.v,cs.id);if(cs.t!=='keep')say(r,'🏠 '+nm(r,cs.t)+' ist fertig gebaut',cs)}
 // Holzkarren: bringt fehlendes Baumaterial vom Lagerhaus zur Baustelle
@@ -991,6 +992,7 @@ wss.on('connection',ws=>{let r,p;
    const why=canPlace(r,m.k,x,z,rot);if(why)return tell(p,why);
    const keepAny=r.b.some(b=>b.t==='keep')||r.ru.some(b=>b.t==='keep')||r.cs.some(c=>c.t==='keep');
    if(m.k==='keep'&&keepAny)return tell(p,'Es kann nur '+BA(r,'keep','ein')+' geben');
+   if(m.k==='wonder'&&(r.b.some(b=>b.t==='wonder')||r.cs.some(c=>c.t==='wonder')))return tell(p,'Es kann nur ein Wahrzeichen geben: '+Rules.wonder(r.era).n);
    if(m.k!=='keep'&&!r.b.some(b=>b.t==='keep'))return tell(p,r.cs.some(c=>c.t==='keep')?'Baue zuerst '+BA(r,'keep','akk')+' fertig (Hammer, Taste 6)':'Zuerst '+BA(r,'keep','akk')+' platzieren – '+BA(r,'keep','er')+' ist das Herz deiner Siedlung');
    if(r.b.length+r.cs.length>=600)return tell(p,'Zu viele Gebäude');const v=(Math.random()*4)|0;
    if(r.creative||INSTANT.includes(m.k)){if(!r.creative&&!haveAll(r,p,B.c))return tell(p,'Zu wenig Material (Rucksack + Lager): '+costStr(B.c));if(!r.creative)takeGoods(r,p,B.c);placeBuilding(r,m.k,x,z,rot,v);return}
