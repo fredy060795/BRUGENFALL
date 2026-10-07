@@ -241,3 +241,6 @@
 ## Brücke
 - Neue Brücken sind zuerst **Holzbrücken** (Pfahljoche mit Eisbrechern, Bohlenbelag, Geländer, flache Rampen);
   Ausbau zur **steinernen Bogenbrücke** (50 Stein, 10 Holz) im Gebäudemenü. Bestehende Brücken bleiben aus Stein.
+- **Bergfried-Gewölbe (Nachtrag)**: Mittlere **Gurtrippe** zwischen den beiden Jochen und Schildrippen an den Wänden
+  ergänzt. Das Gewölbe endet jetzt vor dem Treppenjoch (abgetrennt durch eine Schildwand), sodass die Treppe frei durch
+  die Deckenöffnung ins Obergeschoss führt; der rechte Wandteppich hängt nicht mehr hinter der Treppe.
