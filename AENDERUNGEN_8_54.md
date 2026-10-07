@@ -26,3 +26,16 @@ Neue Bau-Kategorie **Wahrzeichen**: ein Prachtbau pro Welt (20 × 20 m, 250 Stei
 * Stonehenge: Decksteine liegen bündig auf, Eingangslücke, Wall um den Kreis. Grabhügel: Eingang zur Grabkammer, Holzpfähle.
 * Pfalzkapelle: Pultdach über dem Umgang schließt an den Tambour an, Bogenfenster. Dom: Rosenfenster, Fassadengiebel, Marmorstreifen.
 * Eisenturm: jedes Bein aus vier Eckstielen mit Andreaskreuzen, Zierbögen auf allen Seiten, Restaurant-Plattform mit Glas, Turmspitze.
+
+## Detailstufe der Wahrzeichen angehoben (Texturen, weiche Kanten, Bauschmuck)
+* Alle Wahrzeichen nutzen jetzt die Spieltexturen (Stein, Putz, Schiefer, Ziegel, Holz mit Normal-Maps und Verwitterung) statt glatter Farben;
+  Backstein, Marmor-Inkrustation (Florenz), Inschriften, Reliefs und Reichsadler-Banner als eigene Texturen.
+* Weiche Kanten: abgerundete Quader, gefaste Bögen, Giebel und Dächer.
+* Texturen liegen weltbezogen je Fläche (keine verzerrten Kacheln); alle Teile werden je Material zusammengefasst (wenige Draw-Calls).
+* Neu u. a.: Kolosseum mit Archivolten, Schlusssteinen, Säulenordnungen je Rang, Statuen in den Bögen, Velarium-Masten, Rängen mit Mundlöchern,
+  Podium und Inschrift; Pfalzkapelle mit rot-weißen Bogensteinen, Faltkuppel mit Rippen, Bronzetür; Kaiserpfalz mit Lisenen und Rundbogenfries,
+  Eckquadern, Kaminen, Stufenportal, Treppenwangen, Apsis-Kapelle, Fackeln; Holstentor mit Glasurbändern, Inschrift, Fallgitter und Gauben;
+  Dom mit Campanile, Exedren, Portalgiebeln und Statuen; Lustschloss mit Pilastern, Balustrade, Vasen, Mansarde mit Gauben, Säulenportikus,
+  Broderie-Parterre, Orangenbäumchen und Fontäne mit Wasserbögen; Triumphbogen mit Kassettengewölbe, kannelierten Säulen, Statuen und
+  Bronze-Quadriga; Eisenturm mit Aufzugskabinen, Galerien, Laternen, Restaurant und Kassenhäuschen; Stonehenge mit unregelmäßigen Steinen,
+  Avenue und Feuerstelle; Grabhügel mit Trockenmauer-Eingang, Pfostenreihen und Opferfeuern.
