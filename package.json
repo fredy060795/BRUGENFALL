@@ -1,6 +1,6 @@
 {
-  "name": "burgenfall",
-  "version": "8.34.0",
+  "name": "zeitreise",
+  "version": "8.35.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,5 +10,5 @@
     "ws": "^8.18.0",
     "three": "^0.170.0"
   },
-  "description": "Burgenfall Mittelalter Edition – Texturen und Spielstart"
+  "description": "Zeitreise – Mittelalter Edition: Koop-Burgenbau im Browser"
 }

@@ -1,5 +1,5 @@
 const Rules=require('./public/rules.js');
-// Burgenfall – Koop-Server (HTTPS + WebSocket auf Port 5035)
+// Zeitreise – Koop-Server (HTTPS + WebSocket auf Port 5035)
 const fs=require('fs'),path=require('path'),http=require('http'),https=require('https');
 const {WebSocketServer}=require('ws');
 const PORT=+process.env.PORT||5035,PUB=path.join(__dirname,'public');
@@ -217,9 +217,18 @@ const tell=(p,m)=>p.ws.send(JSON.stringify({t:'ev',m})),say=(r,m,pos)=>tx(r,JSON
 function raidArmed(r){if(r.raidArmed)return true;if(!r.b.some(b=>b.t==='garrison'))return false;
  if(!(r.legacyRaid||r.n.some(n=>n.rec&&SOLDIER.includes(n.k)&&n.hp>0)))return false;
  r.raidArmed=1;r.rt=300;r.dirty=true;if(!r.legacyRaid)say(r,'👁 Banditen haben deine Garnison bemerkt – in etwa 5 Minuten ist mit einem Überfall zu rechnen');return true}
-function raid(r){if(r.set.max<1||r.cq>0||!hasEnemy(r))return;const sol=r.n.filter(n=>SOLDIER.includes(n.k)).length,det=r.det||0,cap=Math.max(2,Math.floor(1.5*sol)),lim=Math.max(1,Math.min(r.set.max,Math.ceil(cap*(1-.5*det)))),n=1+Math.floor(Math.random()*lim),en=enemyTown(r),a=rnd(0,6.28);r.warned=false;
+// Überfallstärke nach Größe und Reichtum der Siedlung, gedeckelt durch Menüwert und Soldaten (1,5× + 1), Abschreckung senkt sie
+function raidSize(r){const sol=r.n.filter(n=>SOLDIER.includes(n.k)).length,pop=r.n.filter(n=>n.k!=='watch'&&!SOLDIER.includes(n.k)).length,det=r.det||0;
+ const lure=1+pop/5+(r.gold||0)/250,cap=Math.max(1,Math.min(r.set.max,Math.floor(1.5*sol)+1,Math.round(lure*(1-.5*det))));return Math.max(1,Math.ceil(cap/2)+Math.floor(Math.random()*(cap-Math.ceil(cap/2)+1)))}
+const TRIBUTE=n=>Math.max(40,25*n),scouts=r=>r.b.some(b=>['tower','watchpost'].includes(b.t))||r.n.some(n=>n.m==='post');
+// Überfall auslösen: mit Wachturm/Wachposten melden Späher die Banditen 30 s vorher (Zeit für Tribut oder Verteidigung)
+function raid(r,now){if(r.set.max<1||r.cq>0||!hasEnemy(r)||r.inbound)return;const n=raidSize(r),en=enemyTown(r);
+ if(!now&&scouts(r)){r.inbound={n,en:{n:en.n,x:en.x,z:en.z},t:30,c:TRIBUTE(n)};r.dirty=true;say(r,'🔭 Späher melden: '+(n===1?'Ein Bandit':n+' Banditen')+' aus '+en.n+(n===1?' rückt':' rücken')+' an – Ankunft in 30 s. Tribut ('+r.inbound.c+' Gold) im Bergfried oder in der Garnison abwenden');return}
+ raidSpawn(r,n,en)}
+function raidSpawn(r,n,en){const a=rnd(0,6.28);r.warned=false;
  for(let i=0;i<n;i++){const x=RD?Math.cos(a)*RD+rnd(-5,5):en.x+rnd(-8,8),z=RD?Math.sin(a)*RD+rnd(-5,5):en.z+rnd(-8,8);r.e.push({id:uid++,x,z,hp:70,cd:0,ry:0})}
- say(r,'⚠ Banditen aus '+en.n+' greifen an! ('+n+' Gegner, höchstens 1,5× deine Soldaten)');if(r.n.some(n=>n.m==='post'))say(r,'🔔 Wachposten sichten Banditen im Anmarsch!')}
+ say(r,'⚠ Banditen aus '+en.n+' greifen an! ('+n+' Gegner)');if(r.n.some(n=>n.m==='post'))say(r,'🔔 Wachposten sichten Banditen im Anmarsch!')}
+function inboundTick(r,dt){const I=r.inbound;if(!I)return;I.t-=dt;if(I.t<=0){r.inbound=null;raidSpawn(r,I.n,I.en)}}
 function mv(o,x,z,sp,dt){const dx=x-o.x,dz=z-o.z,d=Math.hypot(dx,dz);if(d>.05){const s=Math.min(d,sp*dt);o.x+=dx/d*s;o.z+=dz/d*s;o.ry=Math.atan2(dx,dz)}return d}
 function near(o,l,max){let b=null;for(const e of l){const d=dist(o,e);if(d<max){max=d;b=e}}return b}
 const mkNpc=(r,k,x,z,o=0)=>{const n={id:uid++,k,o,x,z,ry:0,hp:NT[k].hp,cd:0,m:'guard',p:{x,z},i:rnd(0,6.28)};r.n.push(n);return n};
@@ -586,7 +595,7 @@ r.wt-=dt;if(r.wt<=0){
  r.deerTimer=(r.deerTimer||0)+dt;if(r.deerTimer>=60){r.deerTimer=0;if(r.dr.length<Math.min(120,14*SC(r)*SC(r))){for(let attempt=0;attempt<30;attempt++){const d=newDeer(r);if(!r.b.some(b=>dist(d,b)<reach(b)+4)&&![...r.pl.values()].some(p=>dist(d,p)<18)){r.dr.push(d);break}}}}
  deerTick(r,dt);for(const d of r.dr){if(d.hp<deerMax(d)&&![...r.pl.values(),...r.n.filter(n=>n.k==='hunter')].some(p=>dist(p,d)<18)){d.rest=(d.rest||0)+dt;if(d.rest>=30){d.hp=deerMax(d);d.rest=0}}else d.rest=0;d.x=Math.max(-DEER_LIMIT_(r),Math.min(DEER_LIMIT_(r),d.x));d.z=Math.max(-DEER_LIMIT_(r),Math.min(DEER_LIMIT_(r),d.z));if(inRiver(r,d.x,d.z,3)){d.w=null;const rx=d.x;d.x=rx+(Math.random()<.5?-10:10)}}
  fieldGrow(r,dt);regrow(r,dt);looseTick(r,dt);cartTick(r,dt);ecoTick(r,dt);herbTick(r,dt);watchSpawn(r);
- if(kp0&&r.set.interval>0&&r.set.max>0&&raidArmed(r)){r.rt=(r.rt===undefined?240:r.rt)-dt;if(r.rt<=0&&Math.random()<dt/r.set.interval*(1-(r.det||0))){raid(r);r.rt=90}}
+ inboundTick(r,dt);if(kp0&&r.set.interval>0&&r.set.max>0&&raidArmed(r)){r.rt=(r.rt===undefined?240:r.rt)-dt;if(r.rt<=0&&Math.random()<dt/r.set.interval*(1-(r.det||0))){raid(r);r.rt=90}}
  for(const p of r.pl.values()){p.food=Math.max(0,p.food-(r.creative?0:dt/24)*(season(r)===3?1.3:1));if(p.sl&&!(r.hr>=19||r.hr<5))p.sl=false;playerSick(r,p,dt);p.hp=p.food>0?(p.sk?p.hp-dt*(p.sk===2?.12:0):Math.min(100,p.hp+dt)):p.hp-dt*2;if(p.hp<=0){p.hp=100;p.food=100;p.sk=0;p.bd=1;const sp=spawnOf(r);p.x=sp.x;p.z=sp.z;p.ws.send(JSON.stringify({t:'rs'}));say(r,p.name+' wurde niedergestreckt',p)}}
  for(const n of r.n){const T=NT[n.k];n.cd-=dt;n.aim=0;n.work=0;if(!T.job)n.cr=0;
   n.pr=0;n.ps=0;if(n.sk){sickTick(r,n,dt,stf);continue}
@@ -678,7 +687,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0,p.fc||0,p.tool==='sword'&&p.sh&&p.shields[p.sh]?p.sh:'',p.coa|0]),
   n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.id===bishopId(r,n.wb)?1:0,n.torch&&SOLDIER.includes(n.k)?1:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
-  w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),ra:r.raidArmed?1:0,
+  w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),ra:r.raidArmed?1:0,ib:r.inbound?[Math.ceil(r.inbound.t),r.inbound.n,r.inbound.c,r.inbound.en.n]:0,
   evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,tny:r.tny?{k:r.tny.k.map(q=>[q.n,q.c,q.od,q.pl?1:0,q.a]),ph:r.tny.ph,t:Math.round(r.tny.t),pr:r.tny.pairs[Math.min(r.tny.m,r.tny.pairs.length-1)],p:r.tny.pass,pt:+r.tny.pt.toFixed(2),o:r.tny.o,sc:r.tny.sc,ch:r.tny.ch,b:r.tny.bets}:0,fair:r.plazaEvent==='circus'?r.fairG|0:-1,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,bq:r.banq?1:0,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
  if(r.tk%10===1){m.act=r.b.filter(b=>b.act&&r.tk-b.act<25).map(b=>b.id);m.lg={};for(const b of r.b)if(b.lg)m.lg[b.id]=b.lg}
  if(r.tk%10===1){m.hapF=r.hapF||[];m.hapT=Math.round(r.hapT||0);m.imm2=r.immWhy||'';m.tax2=r.lastTax||0;m.food2=Math.round(food(r))}
@@ -1029,9 +1038,10 @@ wss.on('connection',ws=>{let r,p;
   else if(m.t==='buy'||m.t==='sell'){if(!BASEP[m.k])return;if(!r.b.some(b=>b.t==='market'))return tell(p,'Du brauchst einen Marktstand für den Handel');const q=10,pr=priceOf(r,m.k)/10*q,sh=r.cv.some(c=>c.st==='wait'&&c.kind==='ship'),ca=r.cv.some(c=>c.st==='wait'),PS=sh?1.4:ca?1.25:1,PB=sh?.8:ca?.85:1;
    if(m.t==='buy'){const c=Math.ceil(pr*1.25*PB*(1-Math.min(.2,r.fame*.005)));if(r.gold<c)return tell(p,'Zu wenig Gold ('+c+')');if(r.inv[m.k]+q>stockCap(r))return tell(p,'Lager voll – Lagerhaus bauen');r.gold-=c;r.inv[m.k]+=q}
    else{if(r.inv[m.k]<q)return tell(p,'Zu wenig '+GN[m.k]+' im Lager');r.inv[m.k]-=q;r.gold+=Math.floor(pr*.8*PS*(1+Math.min(.25,r.fame*.01)))}}
+  else if(m.t==='tribute'){const I=r.inbound;if(!I)return tell(p,'Gerade rücken keine Banditen an');if(!r.b.some(b=>(b.t==='keep'||b.t==='garrison')&&dist(b,p)<30))return tell(p,'Tribut zahlst du im Bergfried oder in der Garnison');if(!r.creative&&r.gold<I.c)return tell(p,'Zu wenig Gold – der Tribut beträgt '+I.c+' Gold');if(!r.creative)r.gold-=I.c;r.inbound=null;r.rt=Math.max(r.rt||0,Math.max(120,(r.set.interval||120)*1.5));r.fame=Math.max(0,(r.fame||0)-1);r.dirty=true;say(r,'🪙 '+p.name+' zahlt '+I.c+' Gold Tribut – die Banditen aus '+I.en.n+' ziehen ab (Ansehen -1)')}
   else if(m.t==='ransom'){if(r.pr<1)return tell(p,'Keine Gefangenen');r.pr--;r.gold+=40;say(r,'💰 Lösegeld für einen Gefangenen erhalten (+40 Gold)')}
   else if(m.t==='release'){if(r.pr<1)return tell(p,'Keine Gefangenen');r.pr--;r.fame++;say(r,'🕊 Ein Gefangener wurde freigelassen (Ansehen '+r.fame+')')}
   else if(m.t==='save'){r.lastSave=Date.now();say(r,save()?'💾 Spielstand gespeichert':'Speichern fehlgeschlagen')}
   else if(m.t==='equip'){if(['none','torch'].includes(m.tool)||(TOOLN[m.tool]&&p.tools[m.tool]))p.tool=m.tool;else if(TOOLN[m.tool])tell(p,'Du besitzt kein(e) '+TOOLN[m.tool]+' – im Inventar (I) herstellen');p.bd=1}
-  else if(m.t==='raidnow')raid(r)});
+  else if(m.t==='raidnow')raid(r,true)});
  ws.on('close',()=>{if(r&&p){r.bags[p.name]={bag:p.bag,tools:p.tools,shields:p.shields,sh:p.sh};r.pl.delete(p.id);for(const n of r.n)if(n.o===p.id){n.o=0;if(!NT[n.k].job){n.m='guard';n.p={x:n.x,z:n.z}}}save();say(r,p.name+' hat das Spiel verlassen')}})});

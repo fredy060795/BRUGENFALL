@@ -1,3 +1,7 @@
+# Zeitreise 8.35 (vormals Burgenfall)
+
+Neuer Name „Zeitreise – Mittelalter Edition“. Späher auf Wachturm/Wachposten melden Überfälle 30 s vorher, Tribut zahlen im Bergfried oder in der Garnison, Überfallstärke nach Einwohnern und Gold. Siehe AENDERUNGEN_8_35.md.
+
 # Burgenfall 8.34
 
 Banditenüberfälle erst nach Garnison und ausgebildetem Soldaten; Nachtwächter unverwundbar, wolfsicher, mit fester Runde, Stundenruf und Löscheinsatz bei nächtlichen Bränden. Siehe AENDERUNGEN_8_34.md.
