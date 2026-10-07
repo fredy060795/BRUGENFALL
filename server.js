@@ -98,11 +98,12 @@ const TNY_FIRST=['Konrad','Ulrich','Heinrich','Gottfried','Rudolf','Albrecht','L
 const TNY_HIT=['verfehlt','bricht die Lanze am Schild von','trifft den Helm von','wirft aus dem Sattel:'];
 // Siegchance grob ∝ Geschick³ → Wettquote
 function tnyOdds(T){const W=T.k.map(q=>Math.pow(q.s,3)),S=W.reduce((a,b)=>a+b,0);T.k.forEach((q,i)=>q.od=Math.max(1.3,Math.round(.9/(W[i]/S)*10)/10))}
+const ROM_P=['Marcus','Gaius','Lucius','Titus','Quintus','Publius','Aulus','Gnaeus'],ROM_G=['Valerius','Cornelius','Iulius','Claudius','Flavius','Aurelius','Fabius','Antonius'],KELT=['Brennos','Ambiorix','Orgetorix','Dumnorix','Vercassos','Togirix','Camulos','Esugenos'];
 function startTourney(r,why){const pick=a=>a.splice(Math.random()*a.length|0,1)[0],first=[...TNY_FIRST],orig=[...((r.map&&r.map.towns)||[]).map(t=>t.n),'Falkenau','Steinach','Wolfsegg','Rabenhorst','Greifenberg'],cols=[0,1,2,3,4,5,8,9];
- const k=[];while(k.length<4)k.push({n:'Ritter '+pick(first)+' von '+pick(orig),s:+(.42+Math.random()*.3).toFixed(2),c:pick(cols),a:Math.random()*8|0});
+ const k=[];while(k.length<4)k.push({n:r.era==='roemer'?pick([...ROM_P])+' '+pick([...ROM_G]):r.era==='hallstatt'?pick([...KELT])+' vom '+pick(['Salzberg','Dürrnberg','Heuneburg','Glauberg']):Rules.fest(r.era,'rider')+' '+pick(first)+' von '+pick(orig),s:+(.42+Math.random()*.3).toFixed(2),c:pick(cols),a:Math.random()*8|0});
  r.tny={k,bets:{},ph:'intro',t:TNY_INTRO,m:0,pairs:[[0,1],[2,3]],pass:0,pt:0,o:[0,0],sc:[0,0],res:false,w:[],ch:-1};tnyOdds(r.tny);
  r.plazaEvent='tourney';r.plazaEventT=999;const pl=r.b.find(b=>b.t==='plaza');
- say(r,'🏇 '+(why||'Ritterturnier')+' auf dem Marktplatz! Es treten an: '+k.map(q=>q.n+' (Quote '+q.od+')').join(', ')+' – Wetten am Marktplatz, zu Pferd selbst antreten',pl)}
+ say(r,'🏇 '+(why||Rules.fest(r.era,'tourney'))+' auf '+BA(r,'plaza','dat')+'! Es treten an: '+k.map(q=>q.n+' (Quote '+q.od+')').join(', ')+' – Wetten '+BA(r,'plaza','an')+', zu Pferd selbst antreten',pl)}
 function tnyPass(T){const roll=s=>{if(Math.random()>s)return 0;const x=Math.random();return x<.12?3:x<.38?2:1},[a,b]=T.pairs[T.m];T.o=[roll(T.k[a].s),roll(T.k[b].s)];T.pt=0;T.res=false}
 function tnyMatchEnd(r,T){const [a,b]=T.pairs[T.m];let w;if(T.o[0]===3&&T.o[1]!==3)w=a;else if(T.o[1]===3&&T.o[0]!==3)w=b;else if(T.sc[0]!==T.sc[1])w=T.sc[0]>T.sc[1]?a:b;else return false;
  T.w.push(w);const l=w===a?b:a;say(r,'🏆 '+T.k[w].n+' besiegt '+T.k[l].n+' ('+Math.max(...T.sc)+':'+Math.min(...T.sc)+')'); 
@@ -120,7 +121,7 @@ function tourneyTick(r,dt){const T=r.tny;if(!T){if(r.plazaEvent==='tourney'){r.p
  if(!T.res&&T.pt>=TNY_CLASH){T.res=true;T.sc[0]+=T.o[0];T.sc[1]+=T.o[1];const f=(x,y,v)=>v?T.k[x].n.split(' von ')[0]+' '+TNY_HIT[v]+' '+T.k[y].n.split(' von ')[0]:'';const s=[f(a,b,T.o[0]),f(b,a,T.o[1])].filter(Boolean);say(r,'⚔ '+(T.pass+1)+'. Lanzengang: '+(s.length?s.join(' · '):'beide verfehlen')+' – Punkte '+T.sc[0]+':'+T.sc[1])}
  if(T.pt>=TNY_PASS){const unh=T.o.includes(3);if(unh||T.pass>=2){if(tnyMatchEnd(r,T))return;if(T.pass>=4){T.sc[Math.random()<T.k[a].s/(T.k[a].s+T.k[b].s)?0:1]+=1;tnyMatchEnd(r,T);return}say(r,'🔁 Gleichstand – Stechen!')}
   if(T.ph==='joust'){T.pass++;tnyPass(T)}}}
-function fairTick(r,dt){if(r.plazaEvent!=='circus'){if(r.fairOn){r.fairOn=0;(r.fests||(r.fests={})).fairH=r.dy;say(r,'🎪 Der Jahrmarkt ist vorbei – Standgebühren insgesamt: '+(r.fairG|0)+' Gold, die Leute reden noch lange davon')}return}
+function fairTick(r,dt){if(r.plazaEvent!=='circus'){if(r.fairOn){r.fairOn=0;(r.fests||(r.fests={})).fairH=r.dy;say(r,'🎪 '+Rules.fest(r.era,'fair')+' ist vorbei – Standgebühren insgesamt: '+(r.fairG|0)+' Gold, die Leute reden noch lange davon')}return}
  if(!r.fairOn){r.fairOn=1;r.fairG=0;r.fairT=0}r.fairT+=dt;if(r.fairT>=15){r.fairT=0;const g=3+Math.min(6,r.n.filter(n=>n.vis&&n.vis.kind==='plaza').length);r.gold+=g;r.fairG+=g;r.dirty=true}}
 // Zuschauerplätze (lokal): Turnier = hinter der Absperrung auf der Südseite, Jahrmarkt = Gasse zwischen den Ständen
 function plazaSpot(r,n){const T=r.plazaEvent;if(T==='tourney'){const i=n.i|0,side=i%2?1:-1,col=(i>>1)%6;return{lx:side*(3.4+col*.85),lz:3.1+((i>>3)%2)*.8,fx:side*(3.4+col*.85),fz:0}}
@@ -310,8 +311,12 @@ function triggerOmenVictim(r){
  const v=victims[Math.random()*victims.length|0],mode=omenChoice(r);
  v.hp=0;v.conv=1;v.om=0;v.omT=0;r.omenVictims=(r.omenVictims||0)+1;r.omen=Math.min(240,Math.max(r.omen||0,60)+30);r.sup=Math.min(100,(r.sup||0)+10);
  r.plazaEvent=mode;r.plazaEventT=Math.max(r.plazaEventT||0,45);
- if(mode==='burn')say(r,'🔥 Aberglaube eskaliert! '+(v.k==='peasant'?'Ein Dorfbewohner':'Ein Bewohner')+' wird auf dem Scheiterhaufen geopfert.');
- else say(r,'🪢 Aberglaube eskaliert! '+(v.k==='peasant'?'Ein Dorfbewohner':'Ein Bewohner')+' wird am Galgen geopfert.');
+ const who=v.k==='peasant'?'Ein Dorfbewohner':'Ein Bewohner',E=Rules.eraOf(r.era).id;   // je Epoche: Opfer an die Götter, Verbannung, Hexenwahn, Mob
+ if(E==='steinzeit'||E==='hallstatt'){r.plazaEvent=0;r.plazaEventT=0;say(r,'🌑 Aberglaube eskaliert! '+who+' wird '+(E==='hallstatt'?'den Göttern im Moor':'den Geistern')+' geopfert.')}
+ else if(E==='roemer'){r.plazaEvent=0;r.plazaEventT=0;say(r,'⚖ Aberglaube eskaliert! '+who+' wird als Verfluchter aus der Stadt verbannt.')}
+ else if(E==='napoleon'||E==='neuzeit'){r.plazaEvent=0;r.plazaEventT=0;say(r,'⚠ Aberglaube eskaliert! Ein aufgebrachter Mob jagt '+(v.k==='peasant'?'einen Dorfbewohner':'einen Bewohner')+' aus dem Ort.')}
+ else if(mode==='burn')say(r,'🔥 Aberglaube eskaliert! '+who+' wird '+(E==='barock'?'als Hexe ':'')+'auf dem Scheiterhaufen verbrannt.');
+ else say(r,'🪢 Aberglaube eskaliert! '+who+' wird am Galgen gehängt.');
  return true;
 }
 function omenPriestCycle(r,n,dt){
@@ -500,10 +505,10 @@ function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.fires=r.b.filter(b=>b.
    const se=season(r); // 0 Frühling 1 Sommer 2 Herbst 3 Winter
    // Feste nur einmal im Jahr: Maibaum im Frühling, Jahrmarkt mit Gauklern im Sommer, Weihnachtsbaum im Winter
    const yr=Math.floor((r.dy||0)/(4*((r.ev&&r.ev.sl)||4))),F=r.fests||(r.fests={}),pl=r.b.find(b=>b.t==='plaza'),once=k=>F[k]!==yr;
-   if(se===0&&once('maypole')&&r.hr>10&&r.hr<14&&Math.random()<.004){F.maypole=yr;r.plazaEvent='maypole';r.plazaEventT=120;say(r,'🌳 Maibaum auf dem Marktplatz – die Dorfbewohner tanzen!',pl)}
-   else if(se===1&&once('circus')&&r.hr>9&&r.hr<16&&Math.random()<.004){F.circus=yr;r.plazaEvent='circus';r.plazaEventT=240;say(r,'🎪 Jahrmarkt! Gaukler und Zirkus besuchen den Marktplatz (einmal im Jahr)',pl)}
-   else if(se===2&&once('tourney')&&r.hr>9&&r.hr<14&&Math.random()<.004){F.tourney=yr;startTourney(r,'Herbstturnier')}
-   else if(se===3&&once('tree')&&r.hr>14&&r.hr<18&&Math.random()<.004){F.tree=yr;r.plazaEvent='tree';r.plazaEventT=160;say(r,'🎄 Weihnachtsbaum auf dem Marktplatz',pl)}
+   if(se===0&&once('maypole')&&r.hr>10&&r.hr<14&&Math.random()<.004){F.maypole=yr;r.plazaEvent='maypole';r.plazaEventT=120;say(r,Rules.fest(r.era,'maypole'),pl)}
+   else if(se===1&&once('circus')&&r.hr>9&&r.hr<16&&Math.random()<.004){F.circus=yr;r.plazaEvent='circus';r.plazaEventT=240;say(r,Rules.fest(r.era,'circus'),pl)}
+   else if(se===2&&Rules.fest(r.era,'tourney')&&once('tourney')&&r.hr>9&&r.hr<14&&Math.random()<.004){F.tourney=yr;startTourney(r,'Herbst-'+Rules.fest(r.era,'tourney'))}
+   else if(se===3&&once('tree')&&r.hr>14&&r.hr<18&&Math.random()<.004){F.tree=yr;r.plazaEvent='tree';r.plazaEventT=160;say(r,Rules.fest(r.era,'tree'),pl)}
  }
 }
 function trigger(r,k){if(k==='fire'){const L=r.b.filter(FLAM);if(L.length)ignite(r,L[Math.random()*L.length|0],'Ein Funke!')}
@@ -990,11 +995,11 @@ wss.on('connection',ws=>{let r,p;
    const miss=Object.entries(need).filter(([k,n])=>n>0&&inv(r,k)<n);if(miss.length){ws.send(JSON.stringify({t:'prof',ch:p.ch}));return tell(p,'Noch nicht hergestellt: '+miss.map(([k,n])=>n+'× '+GN[k]).join(', ')+' – Weberei/Schmiede/Rüstungsmacher')}
    for(const k in need)r.inv[k]=(r.inv[k]||0)-need[k];r.dirty=true}p.ch=m.ch}
   else if(m.t==='bstaff'){const b=r.b.find(b=>b.id===m.b);if(!b||!jobsOf(b))return;b.off=m.on?0:1;r.dirty=true;if(b.off){for(const n of r.n)if(n.wb===b.id&&n.hp>0){n.hp=0;n.conv=1;const q=mkNpc(r,'peasant',n.x,n.z,n.o);q.ry=n.ry}say(r,'Besetzung von '+nm(r,b.t)+' abgeschaltet – Arbeiter sind wieder frei')}else say(r,'Besetzung von '+nm(r,b.t)+' automatisch')}
-  else if(m.t==='tnyHost'||m.t==='fairHost'){const pl=r.b.find(b=>b.t==='plaza');if(!pl||dist(pl,p)>40)return tell(p,'Feste richtest du auf dem Marktplatz aus');if(r.plazaEvent)return tell(p,'Auf dem Marktplatz ist bereits etwas im Gange');if(r.hr<8||r.hr>16)return tell(p,'Feste beginnen nur tagsüber (8–16 Uhr)');
-   const F=r.fests||(r.fests={}),fair=m.t==='fairHost',key=fair?'fairD':'tnyD',cost=fair?FAIR_HOST:TNY_HOST;if(F[key]!=null&&r.dy-F[key]<2)return tell(p,(fair?'Der letzte Jahrmarkt':'Das letzte Turnier')+' ist erst kurz her – frühestens in '+(2-(r.dy-F[key]))+' Tag(en) wieder');if(!r.creative&&r.gold<cost)return tell(p,(fair?'Ein Jahrmarkt':'Ein Turnier')+' kostet '+cost+' Gold');
-   if(!r.creative)r.gold-=cost;F[key]=r.dy;r.dirty=true;if(fair){r.plazaEvent='circus';r.plazaEventT=240;say(r,'🎪 '+p.name+' lädt zum Jahrmarkt: Händler und Aussteller bauen ihre Stände auf dem Marktplatz auf!',pl)}else startTourney(r,p.name+' richtet ein Ritterturnier aus')}
+  else if(m.t==='tnyHost'||m.t==='fairHost'){const pl=r.b.find(b=>b.t==='plaza');if(!pl||dist(pl,p)>40)return tell(p,'Feste richtest du auf '+BA(r,'plaza','dat')+' aus');if(r.plazaEvent)return tell(p,'Auf '+BA(r,'plaza','dat')+' ist bereits etwas im Gange');if(r.hr<8||r.hr>16)return tell(p,'Feste beginnen nur tagsüber (8–16 Uhr)');
+   const F=r.fests||(r.fests={}),fair=m.t==='fairHost',key=fair?'fairD':'tnyD',cost=fair?FAIR_HOST:TNY_HOST;if(!fair&&!Rules.fest(r.era,'tourney'))return tell(p,'In der Steinzeit gibt es noch keine Reitpferde – kein Reiterwettkampf');if(F[key]!=null&&r.dy-F[key]<2)return tell(p,(fair?'Der letzte Markt':'Der letzte Wettkampf')+' ist erst kurz her – frühestens in '+(2-(r.dy-F[key]))+' Tag(en) wieder');if(!r.creative&&r.gold<cost)return tell(p,(fair?Rules.fest(r.era,'fair'):Rules.fest(r.era,'tourney'))+' kostet '+cost+' Gold');
+   if(!r.creative)r.gold-=cost;F[key]=r.dy;r.dirty=true;if(fair){r.plazaEvent='circus';r.plazaEventT=240;say(r,'🎪 '+p.name+' lädt ein – '+Rules.fest(r.era,'fair')+': Händler und Aussteller bauen ihre Stände auf!',pl)}else startTourney(r,p.name+' lädt ein – '+Rules.fest(r.era,'tourney'))}
   else if(m.t==='tnyBet'){const T=r.tny,i=m.i|0;if(!T||T.ph!=='intro')return tell(p,'Wetten nimmt der Herold nur vor dem ersten Lanzengang an');if(!T.k[i])return;if(T.bets[p.name]!=null)return tell(p,'Du hast bereits gewettet');if(!r.creative&&r.gold<TNY_BET)return tell(p,'Eine Wette kostet '+TNY_BET+' Gold');if(!r.creative)r.gold-=TNY_BET;T.bets[p.name]=i;r.dirty=true;say(r,'🪙 '+p.name+' wettet '+TNY_BET+' Gold auf '+T.k[i].n+' (Quote '+T.k[i].od+')')}
-  else if(m.t==='tnyJoin'){const T=r.tny,pl=r.b.find(b=>b.t==='plaza');if(!T||T.ph!=='intro')return tell(p,'Anmelden kann man sich nur vor dem ersten Lanzengang');if(!p.mt)return tell(p,'Zum Tjost musst du zu Pferd sitzen');if(!pl||dist(pl,p)>40)return tell(p,'Melde dich beim Herold am Marktplatz an');if(T.k.some(q=>q.pl===p.name))return tell(p,'Du bist bereits angemeldet');const i=T.k.findIndex(q=>!q.pl);if(i<0)return tell(p,'Alle Plätze sind besetzt');
+  else if(m.t==='tnyJoin'){const T=r.tny,pl=r.b.find(b=>b.t==='plaza');if(!T||T.ph!=='intro')return tell(p,'Anmelden kann man sich nur vor dem ersten Lanzengang');if(!p.mt)return tell(p,'Zum Tjost musst du zu Pferd sitzen');if(!pl||dist(pl,p)>40)return tell(p,'Melde dich beim Herold '+BA(r,'plaza','an')+' an');if(T.k.some(q=>q.pl===p.name))return tell(p,'Du bist bereits angemeldet');const i=T.k.findIndex(q=>!q.pl);if(i<0)return tell(p,'Alle Plätze sind besetzt');
    const bag=p.bag||{},arm=(bag.plate?.12:0)+(bag.mail?.06:0)+(bag.breast?.05:0)+(bag.helmet?.03:0);T.k[i]={n:p.name,s:+Math.min(.85,.55+arm).toFixed(2),c:p.fc|0,a:p.coa|0,pl:p.name};tnyOdds(T);for(const nm in T.bets)if(T.bets[nm]===i)delete T.bets[nm];say(r,'🛡 '+p.name+' tritt selbst im Turnier an!');r.dirty=true}
   else if(m.t==='banquet'){const kp=r.b.find(b=>b.t==='keep');if(!kp||dist(kp,p)>30)return tell(p,'Ein Bankett richtest du '+BA(r,'keep','in')+' aus');if(r.banq)return tell(p,'Das Bankett ist bereits im Gange');if(r.bqd!=null&&r.dy-r.bqd<2)return tell(p,'Das letzte Bankett ist erst kurz her – frühestens in '+(2-(r.dy-r.bqd))+' Tag(en) wieder');
    const FOOD=['roast','meat','bread','apples','sausage','smoked','cheese'],have=r.creative?99:FOOD.reduce((a,k)=>a+(r.inv[k]|0),0);if(!r.creative&&r.gold<120)return tell(p,'Ein Bankett kostet 120 Gold');if(have<8)return tell(p,'Für ein Bankett braucht es 8 Speisen im Lager (Braten, Fleisch, Brot, Äpfel, Wurst, Käse …)');
