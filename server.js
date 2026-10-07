@@ -243,6 +243,7 @@ const WALLK=['wall','battle','palisade','tower','gate','portcullis','stairs'],po
  mh=b=>b.t==='keep'?[1200,2200,3500,5200][b.st|0]:BD[b.t].hp,capOf=b=>b.t==='house'?2+2*(b.lv|0):(BD[b.t].cap||0)+(b.t==='keep'?4*(b.st|0):0),HOUSEUP=[{wood:12,stone:4,shingles:10},{wood:15,stone:6,shingles:12}],HOUSEN=['Kleines Wohnhaus','Mittleres Wohnhaus','Großes Wohnhaus'],UPG=[{wood:30,stone:80},{stone:160,wood:40,iron:20},{stone:240,iron:60,wood:60}],UPN=['Holzhalle','Holzbergfried','Steinbergfried','Verstärkter Steinbergfried'];
 const popCap=r=>4+r.b.reduce((s,b)=>s+capOf(b),0),food=r=>r.inv.wheat+r.inv.meat+r.inv.bread+r.inv.roast+r.inv.cheese+r.inv.fish+r.inv.honey+r.inv.apples+r.inv.sausage+r.inv.smoked;
 // Epochen-Boni: Arbeitstempo je Beruf, Lager, Ausbildung, Zufriedenheit (Beschreibung in rules.js ERA_BONUS)
+const invWork=(r,n)=>{const H=id=>Rules.has(r.era,id);let f=1;if(H('bronze')&&n.k==='smith')f*=1.2;if(H('mill')&&['miller','cook'].includes(n.k))f*=1.4;if(H('threefield')&&n.k==='farmer')f*=1.3;if(H('potato')&&n.k==='farmer')f*=1.2;if(H('wheel')&&n.k==='weaver')f*=1.3;if(H('steam')&&['miner','mason'].includes(n.k))f*=1.3;return f};
 const eraWork=(r,n)=>{const e=r.era;if(e==='steinzeit'&&n.k==='hunter')return 1.5;if(e==='hallstatt'&&['miner','mason'].includes(n.k))return 1.3;if(e==='roemer')return 1.1;if(e==='renaissance'&&['healer','priest','weaver'].includes(n.k))return 1.3;if(e==='neuzeit'&&!['priest','healer','gravedigger','hangman','trader'].includes(n.k))return 1.3;return 1},
  eraTrain=r=>({fruehmittelalter:7,napoleon:6}[r.era]||10);
 const stockCap=r=>(r.era==='roemer'?1.25:1)*(300+r.b.reduce((s,b)=>s+(b.t==='keep'?300+200*(b.st|0):0)+(BD[b.t].store||0),0));
@@ -486,7 +487,7 @@ const FW_ERA={roemer:'Die Vigiles',barock:'Die Spritzenmannschaft',napoleon:'Die
 function fwTick(r,dt){const E=FW_ERA[r.era],st=E&&r.b.find(b=>b.t==='watchpost');if(!st){r.fw=null;return}const home={x:st.x+2.4,z:st.z+2.4};let F=r.fw;
  if(!F||F.s===3){if(!r.fires.length){r.fw={x:home.x,z:home.z,ry:0,s:3,tx:home.x,tz:home.z};return}F=r.fw={x:home.x,z:home.z,ry:0,s:0,tx:home.x,tz:home.z};say(r,'🚒 '+E+(r.era==='roemer'?' rücken mit der Siphon-Pumpe aus!':' rückt mit der Handdruckspritze aus!'),st)}
  if(r.fires.length){const fb=near(F,r.fires,1e9);F.tx=fb.x;F.tz=fb.z;if(dist(F,fb)>reach(fb)+2.5){F.s=0;mv(F,fb.x,fb.z,3,dt)}
-  else{F.s=1;F.ry=Math.atan2(fb.x-F.x,fb.z-F.z);if(r.wells>0){fb.fire-=16*dt;r.dirty=true}else if(!F.dry){F.dry=1;say(r,'🚒 Kein Wasser – ohne Brunnen kann auch die Spritze nicht löschen',fb)}}}
+  else{F.s=1;F.ry=Math.atan2(fb.x-F.x,fb.z-F.z);if(r.wells>0){fb.fire-=(Rules.has(r.era,'aqueduct')?24:16)*dt;r.dirty=true}else if(!F.dry){F.dry=1;say(r,'🚒 Kein Wasser – ohne Brunnen kann auch die Spritze nicht löschen',fb)}}}
  else{F.s=2;F.dry=0;if(mv(F,home.x,home.z,2.6,dt)<.8){F.s=3;F.ry=0;say(r,'🚒 '+E+(r.era==='roemer'?' sind zurück':' ist zurück'),st)}}}
 function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.fires=r.b.filter(b=>b.fire>0);if(!r.fires.length)r.alarmIds=null;fwTick(r,dt);
  if(r.omen>0){r.omen-=dt;const targets=omenTargets(r);for(const n of targets)n.omT=(n.omT||0)+dt;
@@ -499,7 +500,7 @@ function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.fires=r.b.filter(b=>b.
   b.sp=(b.sp||0)+dt;
   if(b.sp>3&&!held){b.sp=0;for(const o of r.b)if(o!==b&&!o.fire&&FLAM(o)&&dist(o,b)<7&&Math.random()<.22)ignite(r,o,'Das Feuer greift über!')}
   if(b.fire<=0){b.fire=0;r.dirty=true;say(r,'💧 Das Feuer am '+nm(r,b.t)+' ist gelöscht')}}
- const sk=r.n.filter(n=>n.sk);for(const a of sk)for(const o of r.n)if(!o.sk&&!((o.imm|0)>r.dy)&&!SICK_IMMUNE.has(o.k)&&dist(a,o)<4&&Math.random()<.015*dt*(r.bl===r.dy?.3:1)){o.sk=Math.min(2,Math.max(1,a.sk|0));o.sickStage=0;say(r,'🤒 Ein weiterer Bewohner ist erkrankt')}
+ const sk=r.n.filter(n=>n.sk);for(const a of sk)for(const o of r.n)if(!o.sk&&!((o.imm|0)>r.dy)&&!SICK_IMMUNE.has(o.k)&&dist(a,o)<4&&Math.random()<.015*dt*(r.bl===r.dy?.3:1)*(Rules.has(r.era,'vaccine')?.5:1)){o.sk=Math.min(2,Math.max(1,a.sk|0));o.sickStage=0;say(r,'🤒 Ein weiterer Bewohner ist erkrankt')}
  r.et-=dt;if(r.ev.on&&r.ev.every>0&&r.et<=0){r.et=r.ev.every*rnd(.7,1.3);const kinds=['fire','sick','omen','rats','thieves','ambush'].filter(k=>r.ev[k]);if(kinds.length)trigger(r,kinds[Math.random()*kinds.length|0])}
  // Marktplatz-Saison / Events
  tourneyTick(r,dt);fairTick(r,dt);
@@ -608,7 +609,7 @@ function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.d
  for(const c of r.co)c.t+=dt;corpsePlague(r,dt);
  // Beliebtheit wie in Stronghold: jeder Faktor einzeln (fürs Stadtbuch), Wert pendelt langsam auf das Ziel
  const HF=[['Grundstimmung',40]],hf=(l,v)=>{if(v)HF.push([l,Math.round(v)])};let tv=0,rel=0;for(const b of r.b){if(b.t==='tavern'&&stf[b.id]&&food(r)>=1)tv=Math.max(tv,25+(r.beer?10:0));if(stf[b.id])rel=Math.max(rel,{chapel:20,church:25,cathedral:30}[b.t]||0)}
- hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Barocke Lebensfreude',r.era==='barock'?5:0);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);hf('Bankett '+BA(r,'keep','in'),r.bqd!=null&&r.dy-r.bqd<=1?18:0);{const F=r.fests||{};hf('Ritterturnier',F.tnyH!=null&&r.dy-F.tnyH<=1?15:0);hf('Jahrmarkt',r.plazaEvent==='circus'||(F.fairH!=null&&r.dy-F.fairH<=1)?10:0)}
+ hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Barocke Lebensfreude',r.era==='barock'?5:0);hf('Buchdruck (Bildung)',Rules.has(r.era,'print')?3:0);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);hf('Bankett '+BA(r,'keep','in'),r.bqd!=null&&r.dy-r.bqd<=1?18:0);{const F=r.fests||{};hf('Ritterturnier',F.tnyH!=null&&r.dy-F.tnyH<=1?15:0);hf('Jahrmarkt',r.plazaEvent==='circus'||(F.fairH!=null&&r.dy-F.fairH<=1)?10:0)}
  hf('Kranke',-Math.min(15,3*r.n.filter(n=>n.sk).length));hf('Böse Omen ohne Kirche',r.omen>0&&!r.holy?-15:0);hf('Unbestattete Tote',-Math.min(25,5*r.co.filter(c=>c.t>30).length));
  hf('Nahrungsvorrat knapp',food(r)<4?-20:0);hf('Fehlende Rationen',-Math.min(20,(r.foodShortage||0)*2));hf('Fehlendes Heizholz',-Math.min(15,(r.heatShortage||0)*3));hf('Ansehen',Math.min(10,r.fame*.5));
  hf('Steuern ('+['niedrig','mittel','hoch'][r.tax??1]+')',[12,0,-18][r.tax??1]);hf('Rationen ('+['großzügig','normal','hungern'][r.ration??1]+')',[15,0,-20][r.ration??1]);
@@ -678,11 +679,11 @@ r.wt-=dt;if(r.wt<=0){
       // voll: zum Brand
       if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.2,dt);continue}
       n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);
-      if(n.cd<=0){n.cd=.55;fb.fire-=8;n.bucket=0;r.dirty=true} // gießen, dann neu holen
+      if(n.cd<=0){n.cd=.55;fb.fire-=Rules.has(r.era,'aqueduct')?12:8;n.bucket=0;r.dirty=true} // gießen, dann neu holen
       continue;
     }
   }
-  if(T.job){work(r,n,dt*eraWork(r,n));continue}
+  if(T.job){work(r,n,dt*eraWork(r,n)*invWork(r,n));continue}
   // Patrouille: Soldaten stürmen Banditen aktiv entgegen (größere Suchreichweite)
   if(SOLDIER.includes(n.k))n.torch=0;
   const patrolCharge=(n.m==='patrol'&&SOLDIER.includes(n.k));

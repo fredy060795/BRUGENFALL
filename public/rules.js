@@ -247,7 +247,14 @@
  const ERA_BONUS={steinzeit:'Jäger arbeiten 50 % schneller',hallstatt:'Bergleute und Steinmetze +30 % (Salzbergbau)',roemer:'Alle Arbeiten +10 %, Lager +25 % (Horreum)',fruehmittelalter:'Soldaten in 7 statt 10 s ausgebildet',hochmittelalter:'Ritterturniere bringen Ansehen',spaetmittelalter:'Feuerwaffen (Büchsen) im Kampf',renaissance:'Heiler, Priester und Weber +30 %',barock:'Zufriedenheit +5 (Lebensfreude)',napoleon:'Soldaten in 6 s ausgebildet',neuzeit:'Fabriken: Produktion +30 %'},bonus=era=>ERA_BONUS[eraOf(era).id];
  // Bauten, die es in einer Epoche nicht gibt (keine Hinrichtungsstätten in Vorzeit und Neuzeit)
  const NOBUILD={steinzeit:['pyre','gallows'],hallstatt:['pyre','gallows'],napoleon:['pyre','gallows'],neuzeit:['pyre','gallows']},allowed=(era,k)=>!(NOBUILD[eraOf(era).id]||[]).includes(k);
+ // Erfindungen: gelten ab ihrer Epoche dauerhaft (auch in allen späteren) – anders als die Epochen-Boni
+ const INVENT=[{id:'fire',era:'steinzeit',n:'Feuerstein & Funken',d:'Lagerfeuer und Kochen'},{id:'bronze',era:'hallstatt',n:'Eisenverhüttung',d:'Schmied +20 %'},
+  {id:'aqueduct',era:'roemer',n:'Aquädukt & Wasserleitung',d:'Löschen mit Wasser +50 %'},{id:'mill',era:'fruehmittelalter',n:'Wassermühle',d:'Müller und Bäcker +40 %'},
+  {id:'threefield',era:'hochmittelalter',n:'Dreifelderwirtschaft',d:'Bauern +30 %'},{id:'wheel',era:'spaetmittelalter',n:'Spinnrad',d:'Weber +30 %'},
+  {id:'print',era:'renaissance',n:'Buchdruck',d:'Zufriedenheit +3 (Bildung)'},{id:'potato',era:'barock',n:'Kartoffel',d:'Bauern weitere +20 %'},
+  {id:'vaccine',era:'napoleon',n:'Pockenimpfung',d:'Krankheiten breiten sich halb so schnell aus'},{id:'steam',era:'neuzeit',n:'Dampfmaschine',d:'Bergbau und Steinbruch +30 %'}];
+ const eraIdx=e=>ERAS.findIndex(x=>x.id===eraOf(e).id),inventions=era=>INVENT.filter(i=>eraIdx(i.era)<=eraIdx(era)),has=(era,id)=>inventions(era).some(i=>i.id===id);
  const fest=(era,k)=>{const T=FEST[k];if(!T)return null;const e=eraOf(era).id;return e in T?T[e]:T._}
- const api={allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ const api={INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
