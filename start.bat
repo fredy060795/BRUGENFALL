@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title Burgenfall 8.7
+title Zeitreise
 cd /d "%~dp0"
 where node >nul 2>nul
 if errorlevel 1 (
@@ -18,7 +18,7 @@ if not exist node_modules\three\build\three.module.js (
 )
 set PORT=5035
 set HTTP=1
-echo Burgenfall startet auf http://localhost:5035
+echo Zeitreise startet auf http://localhost:5035
 echo Dieses Fenster offen lassen. Beenden mit Strg+C.
 start "" /b powershell -NoProfile -Command "for($i=0;$i -lt 30;$i++){try{$r=Invoke-WebRequest 'http://localhost:5035/health' -UseBasicParsing -TimeoutSec 1;if($r.StatusCode -eq 200){Start-Process 'http://localhost:5035';break}}catch{};Start-Sleep -Seconds 1}"
 node server.js
