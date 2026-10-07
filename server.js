@@ -48,8 +48,8 @@ const BD={wall:J(4,1,{stone:6},800),battle:J(4,1,{stone:8},900),palisade:J(4,.6,
  market:J(6,4,{wood:25},300,{jobs:{trader:1}}),storage:J(6,5,{wood:30},350,{store:250}),cemetery:J(10,8,{wood:15,stone:10},300,{jobs:{gravedigger:1},graves:20}),
  bridge:J(24,4,{wood:50,stone:15},700,{bridge:1}),bench:J(2,1,{stick:4,stone:2},100),bed:J(1.2,2.1,{wood:8},80),fire:J(1.6,1.6,{wood:5},60)};
 const BN={wall:'Mauer',battle:'Zinnenmauer',palisade:'Palisade',tower:'Wachturm',gate:'Torhaus',watchpost:'Wachposten',house:'Wohnhaus',bighouse:'Großes Wohnhaus',keep:'Bergfried',garrison:'Garnison',dungeon:'Kerker',farm:'Bauernhof',field:'Weizenfeld',lumber:'Holzfällerhütte',quarry:'Steinbruchhütte',lodge:'Jägerhütte',bakery:'Bäckerei',dairy:'Käserei',sheep:'Schafstall',cow:'Kuhstall',weaver:'Weberei',fishery:'Fischerei',smithy:'Schmiede',apothecary:'Apotheke',tavern:'Taverne',chapel:'Kapelle',market:'Marktstand',storage:'Lagerhaus',cemetery:'Friedhof',bridge:'Brücke',bench:'Werkbank',bed:'Bett',fire:'Lagerfeuer'};
-const JN={farmer:'Bauer',wood:'Holzfäller',hunter:'Jäger',mason:'Steinmetz',cook:'Bäcker/Metzger',smith:'Schmied',priest:'Priester',healer:'Heiler',keeper:'Wirt',shepherd:'Hirte/Imker',weaver:'Weber',fisher:'Fischer',gravedigger:'Totengräber',trader:'Händler',miner:'Bergmann',tanner:'Gerber',miller:'Müller',hangman:'Henker'};
-const JOBS=Object.keys(JN),GN={wood:'Holz',stone:'Stein',wheat:'Weizen',meat:'Fleisch',bread:'Brot',roast:'Braten',wool:'Wolle',cloth:'Tuch',gambeson:'Gambeson',milk:'Milch',cheese:'Käse',fish:'Fisch',weapons:'Waffen',armor:'Rüstungen',potions:'Heiltränke',flour:'Mehl',iron:'Eisen',copper:'Kupfer',honey:'Honig',hides:'Felle',leather:'Leder',apples:'Äpfel',hops:'Hopfen',beer:'Bier',sausage:'Wurst',smoked:'Geräuchertes',herbs:'Kräuter',clothes:'Kleidung',helmet:'Helme',mail:'Kettenhemden',breast:'Brustpanzer',plate:'Plattenharnische',carcass:'Wildkadaver'},STOCK=Object.keys(GN);
+const JN={minter:'Münzer',farmer:'Bauer',wood:'Holzfäller',hunter:'Jäger',mason:'Steinmetz',cook:'Bäcker/Metzger',smith:'Schmied',priest:'Priester',healer:'Heiler',keeper:'Wirt',shepherd:'Hirte/Imker',weaver:'Weber',fisher:'Fischer',gravedigger:'Totengräber',trader:'Händler',miner:'Bergmann',tanner:'Gerber',miller:'Müller',hangman:'Henker'};
+const JOBS=Object.keys(JN),GN={wood:'Holz',stone:'Stein',wheat:'Weizen',meat:'Fleisch',bread:'Brot',roast:'Braten',wool:'Wolle',cloth:'Tuch',gambeson:'Gambeson',milk:'Milch',cheese:'Käse',fish:'Fisch',weapons:'Waffen',armor:'Rüstungen',potions:'Heiltränke',flour:'Mehl',iron:'Eisen',copper:'Golderz',honey:'Honig',hides:'Felle',leather:'Leder',apples:'Äpfel',hops:'Hopfen',beer:'Bier',sausage:'Wurst',smoked:'Geräuchertes',herbs:'Kräuter',clothes:'Kleidung',helmet:'Helme',mail:'Kettenhemden',breast:'Brustpanzer',plate:'Plattenharnische',carcass:'Wildkadaver'},STOCK=Object.keys(GN);
 // ===== Survival: Rezepte am Gebäude (Spieler arbeitet selbst), Tiere, Kleiderschrank =====
 const RECIPE={potion:{at:'apothecary',in:{herbs:3},out:{potions:1},n:'Heiltrank (Alchemie)'},cloth:{at:'weaver',in:{wool:2},out:{cloth:1},n:'Tuch weben'},
  clothes:{at:'weaver',in:{cloth:2},out:{clothes:1},n:'Kleidung schneidern'},gambeson:{at:'weaver',in:{cloth:3,wool:1},out:{gambeson:1},n:'Gambeson steppen'},
@@ -80,10 +80,11 @@ BD.smithy.prod={every:40,in:{iron:2,wood:1},out:{weapons:1}};
 Object.assign(BD,{mill:J(4,4,{wood:30,stone:10},400,{jobs:{miller:1},prod:{every:14,in:{wheat:3},out:{flour:3}}})});
 BD.bakery.prod={every:18,in:{flour:2},out:{bread:3}};BD.smithy.prod={every:36,in:{iron:2,wood:1},out:{weapons:1},dest:'garrison'};BD.torture.jobs={hangman:1};BD.keep.c={wood:60};BD.keep.post={n:2,y:9};BD.keep.w=13;BD.keep.d=11;BD.house.w=6;BD.chapel.w=12;BD.chapel.d=16;
 BD.church=J(12,16,{stone:80,wood:40},1500,{jobs:{priest:2}});BD.stairs=J(2,6,{stone:30,wood:10},600,{});
-Object.assign(BN,{church:'Kirche',stairs:'Treppe zum Wehrgang',mill:'Mühle',well:'Brunnen',moat:'Wassergraben',ironmine:'Eisenmine',coppermine:'Kupfermine',pigsty:'Schweinestall',apiary:'Imkerei',butcher:'Metzgerei',tannery:'Gerberei',orchard:'Obstplantage',hopfield:'Hopfenfeld',brewery:'Brauerei',smokehouse:'Räucherei',cathedral:'Kathedrale',torture:'Folterkammer',portcullis:'Torhaus mit Fallgitter',harbor:'Hafen'});
+Object.assign(BN,{church:'Kirche',stairs:'Treppe zum Wehrgang',mill:'Mühle',well:'Brunnen',moat:'Wassergraben',ironmine:'Eisenmine',coppermine:'Goldmine',pigsty:'Schweinestall',apiary:'Imkerei',butcher:'Metzgerei',tannery:'Gerberei',orchard:'Obstplantage',hopfield:'Hopfenfeld',brewery:'Brauerei',smokehouse:'Räucherei',cathedral:'Kathedrale',torture:'Folterkammer',portcullis:'Torhaus mit Fallgitter',harbor:'Hafen'});
 BD.gate.w=BD.portcullis.w=8;BD.gate.d=BD.portcullis.d=4;BD.gate.post.y=BD.portcullis.post.y=4;BD.church.w=8;BD.church.d=12;BD.farm.w=18;BD.farm.d=16;
 Object.assign(BD,{bower:J(5,5,{wood:25,stone:8},420,{jobs:{smith:1},prod:{every:45,in:{wood:3},out:{weapons:1},dest:'garrison'}}),armorer:J(5,5,{wood:25,stone:20,iron:5},600,{jobs:{smith:1}}),armory:J(6,5,{stone:30,wood:15},900,{store:150}),granary:J(6,5,{wood:30,stone:10},500,{store:250})});
-Object.assign(BN,{bower:'Bogenbauer',armorer:'Rüstungsmacher',armory:'Waffenkammer',granary:'Nahrungsmittellager'});
+BD.mint=J(6,5,{stone:45,wood:20,iron:6},900,{jobs:{minter:2},prod:{every:45,in:{copper:2},out:{}}});
+Object.assign(BN,{mint:'Münzprägerei',bower:'Bogenbauer',armorer:'Rüstungsmacher',armory:'Waffenkammer',granary:'Nahrungsmittellager'});
 Object.assign(BD,{pyre:J(3,3,{wood:20,stone:5},200),gallows:J(3,2,{wood:25},180),plaza:J(12,12,{stone:40,wood:15},500,{plaza:1})});
 Object.assign(BN,{pyre:'Scheiterhaufen',gallows:'Galgen',plaza:'Marktplatz'});
 BD.chapel.w=6;BD.chapel.d=8;BD.market.d=8;
@@ -152,7 +153,7 @@ const frac=(c,f)=>Object.fromEntries(Object.entries(c).map(([k,n])=>[k,Math.max(
 function canPlace(r,t,x,z,rot){const B=BD[t],[w,d]=dims(t,rot);if(['dungeon','torture'].includes(t))return'Als Erweiterung im Bergfried einrichten';if(Math.abs(x)>BUILD_LIMIT_(r)||Math.abs(z)>BUILD_LIMIT_(r))return'Außerhalb der Karte';const wr=Rules.riverDist(x,z,r.map||DEFAULT_MAP);if(Rules.FARMS.includes(t)){const G=Rules.groundAt(x,z,r.map||DEFAULT_MAP);if(G.sand>.5||G.rock>.5)return'Auf Sand und Fels wächst nichts – auf Wiese anlegen'}
  if(B.bridge){if(Math.abs(Math.sin(rot*Math.PI/2))>.02)return'Brücke nur quer zum Fluss';if(wr>4)return'Die Brücke muss den Fluss kreuzen'}
  else{if(wr<6+w/2)return'Im Wasser kann nicht gebaut werden';if(B.water&&(wr<9||wr>20))return'Fischerei muss am Flussufer stehen';if(B.harbor&&(wr<9.5||wr>13.5))return'Der Hafen muss direkt am Ufer stehen'}
- if(B.ore&&!r.or.some(o=>o.k===B.ore&&Math.hypot(o.x-x,o.z-z)<9))return'Kein '+(B.ore==='iron'?'Eisen':'Kupfer')+'-Vorkommen in der Nähe (siehe Karte)'
+ if(B.ore&&!r.or.some(o=>o.k===B.ore&&Math.hypot(o.x-x,o.z-z)<9))return'Kein '+(B.ore==='iron'?'Eisen':'Gold')+'-Vorkommen in der Nähe (siehe Karte)'
  for(const o of[...r.b,...r.ru,...(r.cs||[])]){if(Rules.passOverlap(t,o.t))continue;const[w2,d2]=dims(o.t,o.r);if(Math.abs(x-o.x)<(w+w2)/2-.2&&Math.abs(z-o.z)<(d+d2)/2-.2)return'Hier ist kein Platz (anderes Gebäude oder Ruine)'}
  for(const o of r.tr)if(Math.abs(x-o.x)<w/2+.6&&Math.abs(z-o.z)<d/2+.6)return o.st?'Ein Wurzelstock steht im Weg – mit Axt oder Spitzhacke entfernen':'Ein Baum steht im Weg';
  if(t==='quarry'&&!r.rk.some(o=>{const [lx,lz]=Rules.local({x,z,r:rot},o.x,o.z);return Math.abs(lx)<=B.w/2&&Math.abs(lz)<=B.d/2}))return'Steinbruch muss auf einem Steinvorkommen stehen';
@@ -205,9 +206,9 @@ function play(r,n,dt){const year=4*((r.ev&&r.ev.sl)||4);if((r.dy|0)-(n.born|0)>=
  if(n.w&&mv(n,n.w.x,n.w.z,2.8,dt)<.6)n.w=null}
 function idle(r,n,dt){if(r.hr>=7&&r.hr<18&&gatherIdle(r,n,dt))return;const c=r.b.find(b=>b.t==='keep')||{x:0,z:6};if(n.pz>0){n.pz-=dt;return}if(!n.w||mv(n,n.w.x,n.w.z,1.6,dt)<.8){n.w={x:c.x+rnd(-9,9),z:c.z+rnd(-2,10)};n.pz=rnd(2,7)}}
 function homeOf(r,n){let h=n.hid&&r.b.find(b=>b.id===n.hid);if(!h){let best=null,bs=9;for(const b of r.b){const c=capOf(b);if(!c)continue;const u=(r.res[b.id]||0)/c;if(u<1&&u<bs){bs=u;best=b}}if(best){n.hid=best.id;r.res[best.id]=(r.res[best.id]||0)+1}h=best}return h}
-const WK={smith:2,miner:2};
+const WK={smith:2,miner:2,minter:2};
 function storeAt(r,from){const s=near(from,r.b.filter(b=>b.t==='storage'),1e9)||r.b.find(b=>b.t==='keep')||from;return BD[s.t]?fp(s,0,BD[s.t].d/2+1.8):{x:s.x,z:s.z}}
-const WORKSPOTS={smithy:[[-1.6,1.25,0]],bakery:[[1.35,.65,0]],bower:[[1.45,-.2,0]],armorer:[[1.3,-.45,0]],dairy:[[-1.5,.35,Math.PI]],butcher:[[-1.4,.3,Math.PI]],smokehouse:[[0,.2,Math.PI]],brewery:[[0,-.7,Math.PI]],tannery:[[0,-.6,Math.PI/2]],weaver:[[-1.1,.2,Math.PI]],tavern:[[0,-2.4,0]],apothecary:[[0,-.8,Math.PI]],mill:[[0,-.3,Math.PI/2]],keep:[[2.1,-1.7,Math.PI/2]],chapel:[[0,-2,Math.PI]],church:[[0,-4,Math.PI]],cathedral:[[0,-7.2,Math.PI]]};
+const WORKSPOTS={mint:[[-1.5,-.9,Math.PI],[1.2,-.4,Math.PI/2]],smithy:[[-1.6,1.25,0]],bakery:[[1.35,.65,0]],bower:[[1.45,-.2,0]],armorer:[[1.3,-.45,0]],dairy:[[-1.5,.35,Math.PI]],butcher:[[-1.4,.3,Math.PI]],smokehouse:[[0,.2,Math.PI]],brewery:[[0,-.7,Math.PI]],tannery:[[0,-.6,Math.PI/2]],weaver:[[-1.1,.2,Math.PI]],tavern:[[0,-2.4,0]],apothecary:[[0,-.8,Math.PI]],mill:[[0,-.3,Math.PI/2]],keep:[[2.1,-1.7,Math.PI/2]],chapel:[[0,-2,Math.PI]],church:[[0,-4,Math.PI]],cathedral:[[0,-7.2,Math.PI]]};
 function workPoint(r,b,n){const slots=WORKSPOTS[b.t]||[[0,0,Math.PI]],index=r.n.filter(o=>o.wb===b.id&&o.hp>0).findIndex(o=>o.id===n.id),q=slots[Math.max(0,index)%slots.length],p=fp(b,q[0]+(index>0?.85*index:0),q[1]);return {...p,ry:q[2]+(b.r||0)*Math.PI/2};}
 function enterBuilding(n,b,target,dt){const [x,z]=Rules.local(b,n.x,n.z),B=BD[b.t],inside=Math.abs(x)<B.w/2-.25&&Math.abs(z)<B.d/2-.25;
  if(!inside){const side=b.t==='church',door=side?fp(b,4.8,3.5):fp(b,0,B.d/2+.7);if(!n.entry||n.entry!==b.id){if(dist(n,door)>.18){mv(n,door.x,door.z,2.8,dt);return false;}n.entry=b.id;}const threshold=side?fp(b,3.1,3.5):fp(b,0,B.d/2-.7);if(dist(n,threshold)>.15){mv(n,threshold.x,threshold.z,2.8,dt);return false;}}
@@ -274,7 +275,7 @@ function armorerCycle(r,n,wb,dt,X,Z){
  if(c.st==='fetch'){n.cr=0;
   if(!Object.entries(P.in).every(([k,q])=>r.inv[k]>=q)){if(wb.t==='apothecary'&&herbGather(r,n,wb,dt))return;wb.msg='wartet auf '+MAT.filter(k=>r.inv[k]<P.in[k]).map(k=>GN[k]).join(' / ');if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,2.8,dt);return}
   if(!exitBuilding(n,wb,dt))return;const S=storeAt(r,wb);if(dist(n,S)>1.6){mv(n,S.x,S.z,3,dt);return}for(const k in P.in)r.inv[k]-=P.in[k];c.st='work';c.t=0;c.carry=MAT[0]}
- if(c.st==='work'){wb.act=r.tk;if(!enterBuilding(n,wb,workPoint(r,wb,n),dt)){n.cr=c.carry||0;return}n.cr=0;wb.msg='stellt '+P.name+' her';n.work=WK[n.k]||1;c.t+=dt;if(n.work===2&&c.t%1.1<dt)n.cd=1;if(c.t>=P.every){c.st='deliver';c.out=Object.keys(P.out)[0]}return}
+ if(c.st==='work'){wb.act=r.tk;if(!enterBuilding(n,wb,workPoint(r,wb,n),dt)){n.cr=c.carry||0;return}n.cr=0;wb.msg='stellt '+P.name+' her';n.work=WK[n.k]||1;c.t+=dt;if(n.work===2&&c.t%1.1<dt)n.cd=1;if(c.t>=P.every){c.st='deliver';c.out=Object.keys(P.out)[0]||0}return}
  if(c.st==='deliver'){n.cr=c.out;if(!exitBuilding(n,wb,dt))return;const A=near(n,r.b.filter(b=>b.t==='armory'),1e9),D=A?fp(A,0,BD.armory.d/2+1.8):storeAt(r,wb);if(dist(n,D)>1.6){mv(n,D.x,D.z,3,dt);return}for(const k in P.out)r.inv[k]=Math.min(stockCap(r),r.inv[k]+P.out[k]);n.cr=0;c.st='fetch';c.recipe=null;wb.msg='liefert '+P.name}}
 const CARC={every:26,in:{carcass:1},out:{meat:4,hides:1}};
 function cycle(r,n,wb,B,dt,X,Z){if(n.k==='hangman')return torment(r,n,wb,B,dt,X,Z);if(wb.t==='butcher'){const c0=n.cy||(n.cy={st:'fetch',t:0});if(c0.st==='fetch')c0.rc=(r.inv.carcass||0)>=1?'carc':''}const P=wb.t==='butcher'&&n.cy&&n.cy.rc==='carc'?CARC:B.prod,target=workPoint(r,wb,n);if(!P||P.annual){if(enterBuilding(n,wb,target,dt))n.work=P?.annual?1:0;return}
@@ -288,10 +289,11 @@ function cycle(r,n,wb,B,dt,X,Z){if(n.k==='hangman')return torment(r,n,wb,B,dt,X,
   if(wb.t==='bakery'){const f=c.t/P.every,at=(x,z,ry)=>({...fp(wb,x,z),ry:ry+rr});if(f<.3)tg=at(1.4,.95,0);else if(f<.42){tg=at(-1.75,-.12,Math.PI);pose=9}else if(f<.78)tg=at(-.8,-.3,Math.PI);else if(f<.9){tg=at(-1.75,-.12,Math.PI);pose=11}else{tg=at(1.4,.95,0);pose=11}}
   if(wb.t==='butcher'&&c.rc==='carc')pose=10;   // Metzger zerteilt das Reh auf dem Tisch
   if(!enterBuilding(n,wb,tg,dt)){n.cr=c.carry||0;if(pose===11)n.ps=11;return}n.ry=tg.ry;n.cr=0;c.carry=0;wb.msg='stellt '+Object.keys(P.out||{}).map(k=>GN[k]).join(' / ');n.work=pose?0:(WK[n.k]||1);n.ps=pose||n.ps;if(wb.t==='bakery'&&c.t/P.every>=.3&&c.t/P.every<.78&&!pose)n.work=0;c.t+=dt;if(n.work===2&&c.t%1.1<dt)n.cd=1;if(c.t>=P.every){c.st='deliver';c.out=Object.keys(P.out)[0]}return}
+ if(c.st==='deliver'&&wb.t==='mint'){const coin=20+Math.round(Math.random()*10);wb.chest=(wb.chest||0)+coin;wb.msg='prägt Taler und Groschen ('+(wb.chest|0)+' Gold in den Truhen)';c.st='fetch';return}
  if(c.st==='deliver'){n.cr=c.out;if(!exitBuilding(n,wb,dt))return;const g=P.dest==='garrison'?near(n,r.b.filter(b=>b.t==='garrison'),1e9):null,D=g?fp(g,0,BD.garrison.d/2+1.8):storeAt(r,wb);
   if(dist(n,D)>1.6){mv(n,D.x,D.z,3,dt);return}for(const k in P.out)r.inv[k]=Math.min(stockCap(r),r.inv[k]+P.out[k]);wb.msg='liefert '+Object.keys(P.out||{}).map(k=>GN[k]).join(' / ');n.cr=0;c.st='fetch'}}
 function autoAssign(r){const peas=r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk&&!n.manualIdle),kp=r.b.find(b=>b.t==='keep');let avail=peas.length-(r.b.some(b=>b.t==='garrison')?1:0);if(avail<=0||!kp)return;
- const ORD=['farmer','wood','miller','cook','miner','mason','smith','hunter','shepherd','weaver','tanner','fisher','keeper','priest','healer','trader','gravedigger','hangman'],o=[...r.pl.keys()][0]||0;let did=true;
+ const ORD=['minter','farmer','wood','miller','cook','miner','mason','smith','hunter','shepherd','weaver','tanner','fisher','keeper','priest','healer','trader','gravedigger','hangman'],o=[...r.pl.keys()][0]||0;let did=true;
  while(avail>0&&did){did=false;for(const j of ORD){if(avail<=0)break;const wb=freeSlot(r,j,kp);if(!wb)continue;const pe=peas.shift();pe.hp=0;pe.conv=1;const n=mkNpc(r,j,pe.x,pe.z,o);n.wb=wb.id;n.ry=pe.ry;avail--;did=true}}}
 function woodCycle(r,n,wb,B,dt,X,Z){const c=n.cy||(n.cy={st:'seek'}),blk=fp(wb,-2.4,B.d/2+.8);
  if(c.st==='seek'){n.cr=0;const t=near(n,r.tr.filter(o=>!o.st),80);if(!t){if(dist(n,{x:X,z:Z})>2.5)mv(n,X,Z,2.5,dt);return}c.t=t;c.st='chop';c.h=0}
@@ -456,7 +458,7 @@ function campTick(r,dt){if(!hasEnemy(r))return;const en=enemyTown(r);
  const alive=r.e.some(e=>e.camp);
  if(!alive&&!r.campOn){r.cr-=dt;if(r.cr<=0)spawnCamp(r);return}
  if(!alive&&r.campOn&&r.n.some(n=>n.m==='attack'&&Math.hypot(n.x-en.x,n.z-en.z)<18)){r.campOn=false;r.cq=600;r.gold+=300;r.fame+=5;r.inv.iron+=20;r.inv.copper+=10;r.inv.weapons+=3;
-  say(r,'🏴 '+en.n+' wurde erobert! Beute: 300 Gold, Eisen, Kupfer, Waffen. Überfälle ruhen 10 Minuten.');for(const n of r.n)if(n.m==='attack'){n.m='follow'}}
+  say(r,'🏴 '+en.n+' wurde erobert! Beute: 300 Gold, Eisen, Golderz, Waffen. Überfälle ruhen 10 Minuten.');for(const n of r.n)if(n.m==='attack'){n.m='follow'}}
  else if(!alive&&r.campOn){r.campOn=false;r.cr=30}}
 function tradeTick(r,dt){for(const c of r.cv){c.t-=dt;
   if(c.kind==='caravan'){const m=r.b.find(b=>b.t==='market');if(c.st==='go'){if(!m){c.st='leave'}else if(mv(c,m.x,m.z+BD.market.d/2+3.5,3.6,dt)<2){c.st='wait';c.t=75;say(r,'🛒 Handelskarawane aus '+c.from+' ist am Marktstand eingetroffen (75 s, bessere Preise)');ecoArrive(r,c.from)}}
@@ -631,7 +633,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  r.an=[];
  if(r.dcs){m.cs=r.cs.map(c=>{const S=c.S[c.i]||{n:3};return[c.id,c.t,c.x,c.z,c.r,c.v,S.n,Math.round(c.pr*100),siteMissing(c),c.i,c.S.length,c.got]});r.dcs=false}
  if(r.dl){m.lo=r.lo.map(o=>[o.id,o.k,o.x,o.z,o.n,o.ry||0,o.sc||1]);r.dl=false}if(r.dhb&&r.hb){m.hb=r.hb.map(o=>[o.id,o.x,o.z,o.g,o.k]);r.dhb=false}if(r.dsw){m.sw=r.sw.map(o=>[o.id,o.x,o.z,o.g]);r.dsw=false}
- m.ca=r.ca.map(c=>[c.id,r2(c.x),r2(c.z),r2(c.ry),Object.values(c.load).some(v=>v>0)?1:0]);
+ m.ca=r.ca.map(c=>[c.id,r2(c.x),r2(c.z),r2(c.ry),Object.values(c.load).some(v=>v>0)?1:0]);if(r.tc)m.ca.push([r.tc.id,r2(r.tc.x),r2(r.tc.z),r2(r.tc.ry),r.tc.amt>0?1:0,1]);
  for(const p of r.pl.values())if(p.bd)sendMe(p);
  // Ressourcen immer mitsenden (Bäume/Felsen/Erze), damit Clients sie zuverlässig sehen
 // Ressourcen nur bei Änderung (und gelegentlich zur Sicherheit) senden – spart Bandbreite und Rechenzeit
@@ -695,7 +697,14 @@ function placeBuilding(r,t,x,z,rot,v,id){const B=BD[t];r.b.push({id:id||uid++,t,
  if(t==='keep'){migrateRooms(r);r.next=r.set.interval*2;if(!r.surv)for(let i=0;i<3;i++)mkNpc(r,'peasant',x+rnd(-5,5),z+B.d/2+rnd(3,8));say(r,'🏰 Dein Bergfried steht! Die ersten Siedler sind eingetroffen. Weitere kommen, wenn Häuser, Essen und Zufriedenheit stimmen.')}}
 function finishSite(r,cs){r.cs=r.cs.filter(o=>o!==cs);r.dcs=true;placeBuilding(r,cs.t,cs.x,cs.z,cs.r,cs.v,cs.id);if(cs.t!=='keep')say(r,'🏠 '+BN[cs.t]+' ist fertig gebaut',cs)}
 // Holzkarren: bringt fehlendes Baumaterial vom Lagerhaus zur Baustelle
-function cartTick(r,dt){r.ca=r.ca||[];const stores=r.b.filter(b=>b.t==='storage');
+// Schatzkarren: täglich um 10 Uhr fährt ein Karren mit vier Wachen vom Bergfried zur Münzprägerei, lädt die Truhen und bringt das Gold zurück
+function treasureTick(r,dt){const kp=r.b.find(b=>b.t==='keep');if(!kp){r.tc=null;return}
+ if(!r.tc&&r.hr>=10&&r.hr<10.5&&r.tcd!==r.dy){const mints=r.b.filter(b=>b.t==='mint'&&(b.chest|0)>0);if(mints.length){r.tcd=r.dy;const P=fp(kp,0,BD.keep.d/2+3);r.tc={id:uid++,x:P.x,z:P.z,ry:0,st:'go',q:mints.map(b=>b.id),amt:0};say(r,'💰 Der Schatzkarren verlässt mit vier Wachen den Bergfried, um die Münzen abzuholen',kp)}}
+ const c=r.tc;if(!c)return;
+ if(c.st==='go'){const b=r.b.find(b=>b.id===c.q[0]);if(!b){c.q.shift();if(!c.q.length)c.st='back';return}const D=fp(b,0,BD[b.t].d/2+3.2);if(mv(c,D.x,D.z,2.4,dt)<.6){c.st='load';c.t=4}return}
+ if(c.st==='load'){c.t-=dt;if(c.t<=0){const b=r.b.find(b=>b.id===c.q[0]);if(b){c.amt+=b.chest|0;b.chest=0}c.q.shift();c.st=c.q.length?'go':'back'}return}
+ if(c.st==='back'){const D=fp(kp,0,BD.keep.d/2+3);if(mv(c,D.x,D.z,2.4,dt)<.6){r.gold+=c.amt;r.dirty=true;say(r,'💰 Der Schatzkarren ist zurück: '+c.amt+' Gold in die Schatzkammer des Bergfrieds',kp);r.tc=null}}}
+function cartTick(r,dt){treasureTick(r,dt);r.ca=r.ca||[];const stores=r.b.filter(b=>b.t==='storage');
  if(stores.length&&(r.ct=(r.ct||0)-dt)<=0){r.ct=3;for(const cs of r.cs){if(r.ca.some(c=>c.to===cs.id)||r.ca.length>=stores.length*2)continue;const miss=siteMissing(cs),load={};let cap=40;for(const k in miss){const q=Math.min(miss[k],Math.floor(r.inv[k]||0),cap);if(q>0){load[k]=q;cap-=q}}if(!Object.keys(load).length)continue;
   const s=near(cs,stores,1e9),P=fp(s,0,BD.storage.d/2+2);for(const k in load)r.inv[k]-=load[k];r.ca.push({id:uid++,x:P.x,z:P.z,ry:0,to:cs.id,home:s.id,load,st:'go'});say(r,'🐴 Ein Holzkarren bringt '+costStr(load)+' zur Baustelle ('+BN[cs.t]+')',s)}}
  for(const c of r.ca){const cs=r.cs.find(o=>o.id===c.to),home=r.b.find(b=>b.id===c.home);

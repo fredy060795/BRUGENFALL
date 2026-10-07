@@ -148,6 +148,7 @@ function swingPose(kind,u){const K=SWK[kind];let i=1;while(i<K.length-1&&u>K[i][
 function toolQ(d,hint){const y=d.clone().normalize(),x=hint.clone().addScaledVector(y,-hint.dot(y));if(x.lengthSq()<1e-4)x.set(1,0,0).addScaledVector(y,-y.x);x.normalize();const z=new T.Vector3().crossVectors(x,y);return new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(x,y,z))}
 function workPose(role,t,type){
  const s=Math.sin(t*6),c=Math.cos(t*5);
+ if(role==='minter')role='smith';
  if(role==='smith')return{R:V(.18,1.18,.35+.06*s),Lh:V(.03,1.02,.18-.03*s),q:Eu(.55,.1,-.28),ux:.28,uy:-.08,py:.02};
  if(role==='weaver')return{R:V(.3,1.03,.38+.09*s),Lh:V(-.32,.98,.28-.07*s),q:Eu(.02,.08,.04),ux:.16,uy:.03*s,py:0};
  if(role==='healer')return{R:V(.16,1.06,.34+.03*s),Lh:V(-.12,.95,.24-.04*c),q:Eu(.22,-.12,.18),ux:.19,uy:.05,py:-.03};
