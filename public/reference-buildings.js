@@ -6,12 +6,12 @@ import {eraBuild} from './eras.js';
 
 // Material tiles are copied into independent canvases: no atlas-neighbour bleeding.
 const atlasCache=new Map(),COLM=new Map();
-// Beschriftete Tafel (Kaserne, Depot) als Material, je Text einmal erzeugt
-function signMat(text,bg='#e8e2d0',fg='#1a1a1a'){const key='sign:'+text+bg;if(COLM.has(key))return COLM.get(key);const c=document.createElement('canvas');c.width=512;c.height=96;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,512,96);x.strokeStyle=fg;x.lineWidth=6;x.strokeRect(6,6,500,84);
- x.fillStyle=fg;x.font='bold 60px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,52);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set(key,m);return m}
 // Schilderhaus: schräg schwarz-weiß-rot gestreift
 function stripeMat(){if(COLM.has('stripes'))return COLM.get('stripes');const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),C=['#141414','#f0f0ea','#b8201c'];
  for(let i=-8;i<16;i++){x.fillStyle=C[(i%3+3)%3];x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16+16,0);x.lineTo(i*16+16-128,128);x.lineTo(i*16-128,128);x.fill()}const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set('stripes',m);return m}
+// Beschriftete Tafel (Kaserne, Depot) als Material, je Text einmal erzeugt
+function signMat(text,bg='#e8e2d0',fg='#1a1a1a'){const key='sign:'+text+bg;if(COLM.has(key))return COLM.get(key);const c=document.createElement('canvas');c.width=512;c.height=96;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,512,96);x.strokeStyle=fg;x.lineWidth=6;x.strokeRect(6,6,500,84);
+ x.fillStyle=fg;x.font='bold 60px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,52);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set(key,m);return m}
 function atlasTile(file,index,fallback,linear=false){
  const c=document.createElement('canvas');c.width=c.height=2;const ctx=c.getContext('2d');ctx.fillStyle=fallback;ctx.fillRect(0,0,2,2);
  const texture=new T.CanvasTexture(c);texture.colorSpace=linear?T.NoColorSpace:T.SRGBColorSpace;texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.anisotropy=8;   // Kacheln sind jetzt nahtlos -> kein Spiegeln mehr
@@ -386,18 +386,18 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   for(const x of[-2.0,-.4,.4,2.0])fm(new T.SphereGeometry(.09,10,8),bread,tx+x,.9,tz+.25,1.4,.8,1);for(const x of[-2.6,-1.0,1.0,2.6]){fm(new T.CylinderGeometry(.06,.08,.25,10),jug,tx+x,.97,tz+.2)}
   for(const x of[-2.4,-1.6,-.8,0,.8,1.6,2.4])for(const z of[-.25,.25]){fm(new T.CylinderGeometry(.12,.12,.015,12),plate,tx+x,.855,tz+z);fm(new T.CylinderGeometry(.04,.035,.12,8),cm('cup',0x9a8a6a,{metalness:.4}),tx+x+.18,.92,tz+z)}}
  }
- else if(k==='garrison'&&era==='neuzeit'){g._bunker=1;   // Neuzeit: Betonbunker mit Erdabdeckung, Schießscharten, Sandsäcken, Munitionsdepot und Waffenkammer
-  const cmB=(n,c,o={})=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.95,...o})),COLM.get(n)),C=cmB('concrete',0x8e8c84),E=cmB('earthcover',0x5a6a36),SB=cmB('sandbag',0xb5a478),DK=cmB('slit',0x111111),OL=cmB('ammobox',0x4e5832),BR=cmB('shellbrass',0xb8903c,{metalness:.7,roughness:.35}),ST=cmB('steeldoor',0x4a4e48,{metalness:.5,roughness:.5});
-  shell(8,6,3,C,2.2);box(8.7,.6,6.7,0,3.1,0,C);box(7.6,.35,5.6,0,3.575,0,E);g.walkAreas.push([0,0,3.8,2.8,3.75]);                       // Decke mit Erdabdeckung (begehbar)
-  for(const sx of[-1,1]){box(.6,2.6,.5,sx*1.45,1.3,3.25,C,true);box(.06,2.1,1.0,sx*1.12,1.05,3.6,ST)}box(3.5,.5,.6,0,2.85,3.25,C);         // Eingangsbunker, offene Stahltür
-  for(const x of[-2.7,2.7]){box(1.3,.22,.06,x,1.85,3.03,DK);box(1.5,.12,.2,x,2.02,3.08,C)}for(const z of[-1.2,1.2])for(const sx of[-1,1])box(.06,.22,1.1,sx*4.03,1.85,z,DK);for(const x of[-2,0,2])box(1.1,.22,.06,x,1.85,-3.03,DK);   // Schießscharten
+ else if(k==='armory'&&era==='neuzeit'){g._bunker=1;   // Neuzeit: Rüstkammer als Betonbunker mit Erdabdeckung, Schießscharten, Sandsäcken und Munitionsdepot
+  const W=6,D=5,hw=W/2,hd=D/2,cmB=(n,c,o={})=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.95,...o})),COLM.get(n)),C=cmB('concrete',0x8e8c84),E=cmB('earthcover',0x5a6a36),SB=cmB('sandbag',0xb5a478),DK=cmB('slit',0x111111),OL=cmB('ammobox',0x4e5832),BR=cmB('shellbrass',0xb8903c,{metalness:.7,roughness:.35}),ST=cmB('steeldoor',0x4a4e48,{metalness:.5,roughness:.5});
+  shell(W,D,3,C,1.9);box(W+.7,.6,D+.7,0,3.1,0,C);box(W-.4,.35,D-.4,0,3.575,0,E);g.walkAreas.push([0,0,hw-.2,hd-.2,3.75]);             // Decke mit Erdabdeckung (begehbar)
+  for(const sx of[-1,1]){box(.5,2.6,.45,sx*1.3,1.3,hd+.22,C,true);box(.06,2.0,.9,sx*1.0,1.0,hd+.55,ST)}box(3.1,.5,.55,0,2.85,hd+.22,C);        // Eingangsbau, offene Stahltür
+  for(const x of[-hw+.8,hw-.8])box(.8,.22,.06,x,1.85,hd+.03,DK);for(const sx of[-1,1])box(.06,.22,1.1,sx*(hw+.03),1.85,0,DK);for(const x of[-1.4,1.4])box(1.0,.22,.06,x,1.85,-hd-.03,DK);   // Schießscharten
   const bag=(x,y,z,ry)=>{const geo=new T.BoxGeometry(.52,.17,.3);geo.rotateY(ry);geo.translate(x,y,z);staticMesh(geo,SB)};
-  for(let r=0;r<4;r++){const o=r%2*.26;for(let i=0;i<5;i++){bag(-3.9+o+i*.5,.09+r*.17,3.75,0);bag(3.9-o-i*.5,.09+r*.17,3.75,0)}for(let i=0;i<2;i++)for(const sx of[-1,1])bag(sx*4.3,.09+r*.17,3.3-o-i*.5,Math.PI/2)}
-  for(let i=0;i<3;i++)for(let j=0;j<2-(i>1?1:0);j++){box(.75,.38,.42,-3.3+i*.82,.19+j*.4,-3.6,OL);box(.77,.05,.44,-3.3+i*.82,.36+j*.4,-3.6,cmB('ammostripe',0xc8a830))}   // Munitionskisten
-  for(let i=0;i<5;i++)for(let j=0;j<2;j++){const x=1.6+i*.24,z=-3.5-j*.24;cylinder(.08,.5,x,.25,z,BR,10);const tip=new T.ConeGeometry(.08,.22,10);tip.translate(x,.61,z);staticMesh(tip,cmB('shelltip',0x3a3a36))}   // Granaten
-  for(const x of[-2.4,2.4]){cylinder(.07,.8,x,3.95,-1.6,C,8);cylinder(.12,.1,x,4.38,-1.6,C,8)}                                          // Lüftungsrohre
-  const sg=new T.PlaneGeometry(2.4,.45);sg.translate(0,3.0,3.56);staticMesh(sg,signMat('DEPOT','#d8d2c0'));
-  if(weapon)for(const x of[-.6,.6]){const rf=weapon('rifle');rf.position.set(x,.9,2.6);rf.rotation.z=x<0?.2:-.2;g.add(rf)}furniture()}
+  for(let r=0;r<4;r++){const o=r%2*.26;for(let i=0;i<3;i++){bag(-hw+.1+o+i*.5,.09+r*.17,hd+.75,0);bag(hw-.1-o-i*.5,.09+r*.17,hd+.75,0)}}       // Sandsackwälle
+  for(let i=0;i<3;i++)for(let j=0;j<2-(i>1?1:0);j++){box(.75,.38,.42,-hw+.6+i*.82,.19+j*.4,-hd-.55,OL);box(.77,.05,.44,-hw+.6+i*.82,.36+j*.4,-hd-.55,cmB('ammostripe',0xc8a830))}   // Munitionskisten
+  for(let i=0;i<4;i++)for(let j=0;j<2;j++){const x=.9+i*.24,z=-hd-.45-j*.24;cylinder(.08,.5,x,.25,z,BR,10);const tip=new T.ConeGeometry(.08,.22,10);tip.translate(x,.61,z);staticMesh(tip,cmB('shelltip',0x3a3a36))}   // Granaten
+  for(const x of[-1.8,1.8]){cylinder(.07,.8,x,3.95,-1.2,C,8);cylinder(.12,.1,x,4.38,-1.2,C,8)}                                          // Lüftungsrohre
+  const sg=new T.PlaneGeometry(2.2,.42);sg.translate(0,3.0,hd+.51);staticMesh(sg,signMat('DEPOT','#d8d2c0'));
+  for(const x of[-1.6,0,1.6]){box(1.2,1.6,.3,x,.8,-hd+.7,H.wood,true);if(weapon)for(let n=0;n<3;n++){const rf=weapon('rifle');rf.position.set(x-.4+n*.4,1.1,-hd+.95);g.add(rf)}}}   // Gewehrständer innen
  else if(k==='garrison'){const mat=lv?H.stone:H.wood;shell(8,6,4,mat,2.2);box(8,.2,6,0,3.9,0,H.floor);crown(8,6,4,mat);g.walkAreas.push([0,0,4,3,4]);if(!lv)for(let x=-3.8;x<4;x+=.48)box(.2,4.7,.2,x,2.35,-2.95,H.wood);for(const x of[-3,3]){cylinder(.1,2.3,x,1.15,3.5,H.wood);const target=new T.Mesh(new T.CylinderGeometry(.42,.42,.12,16),H.thatch);target.rotation.x=Math.PI/2;target.position.set(x,1.5,3.5);g.add(target)}for(const x of[-2.2,0,2.2]){const sw=weapon(x?x<0?'sword':'bow':'sword');sw.position.set(x,.95,2.2);if(x>0)sw.rotation.y=.35;else sw.rotation.z=Math.PI;g.add(sw)}for(const x of[-1.8,1.8]){const shield=new T.Mesh(new T.CylinderGeometry(.22,.28,.12,16,1,true),x<0?H.redRoof:H.green);shield.position.set(x,1.05,-2.25);shield.rotation.z=Math.PI/2;g.add(shield)}furniture();}
  else if(k==='gate'||k==='portcullis'){const mat=lv?H.stone:H.wood;for(const x of[-2.85,2.85])box(2.3,4,4,x,2,0,mat,true);box(7.9,.65,3.9,0,3.675,0,lv?H.stone:H.floor);g.colliders.push([0,0,4,2,4,3.35]);crown(8,4,4,mat);g.walkAreas.push([0,0,4,2,4]);if(lv){for(const x of[-3.6,3.6])for(const z of[-1.6,1.6]){cylinder(.46,4.55,x,2.275,z,H.stone);crown(.95,.95,4.55,H.stone,x,z)}arch(0,0,2.02,3.2,3.35);const sh=new T.Shape();sh.moveTo(-1.7,3.7);sh.lineTo(1.7,3.7);sh.lineTo(1.7,2);sh.lineTo(1.6,2);sh.quadraticCurveTo(1,2.85,0,3.35);sh.quadraticCurveTo(-1,2.85,-1.6,2);sh.lineTo(-1.7,2);sh.closePath();for(const z of[-2,1.65]){const geo=new T.ExtrudeGeometry(sh,{depth:.35,bevelEnabled:false});geo.translate(0,0,z);staticMesh(geo,H.stone);}}else{for(const x of[-3.8,-1.7,1.7,3.8])for(const z of[-1.8,1.8])cylinder(.2,4.8,x,2.4,z,H.wood);beam([-3.8,4.15,2],[3.8,4.15,2],.35)}gateMechanism();}
  else if(k==='tower'){shell(4.6,4.6,11,H.stone,1.5);
@@ -755,6 +755,13 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   const firepit=(x,z)=>{for(let i=0;i<8;i++){const a=i/8*6.283,geo=new T.DodecahedronGeometry(.13,0);geo.translate(x+Math.cos(a)*.42,.1,z+Math.sin(a)*.42);staticMesh(geo,H.stone)}cylinder(.3,.06,x,.04,z,cm('ash',0x2a2420),10)};
   const pot=(x,z,s=1)=>{const geo=new T.SphereGeometry(.22*s,10,8);geo.scale(1,1.25,1);geo.translate(x,.27*s,z);staticMesh(geo,cm('clay',0x9a5a36))};
   const amphora=(x,z)=>{const geo=new T.LatheGeometry([[0,0],[.08,.05],[.2,.3],[.2,.55],[.08,.78],[.07,.95],[.1,.98]].map(q=>new T.Vector2(q[0],q[1])),10);geo.translate(x,0,z);staticMesh(geo,cm('amph',0xb06a40))};
+  if(k==='garrison'&&X==='industry'){const KC=cm('kcorn',0xd8d0bc);                                                 // Neuzeit-Garnison als Kaserne: Risalit, Inschrift, Fahne, Schilderhäuschen
+   box(3.0,h-2.55,.45,0,2.55+(h-2.55)/2,F+.22,H.plaster);for(const sx of[-1,1])box(.4,2.6,.45,sx*1.3,1.3,F+.22,H.plaster);box(3.3,.25,.65,0,h+.12,F+.22,KC);
+   const tri=new T.Shape();tri.moveTo(-1.65,0);tri.lineTo(1.65,0);tri.lineTo(0,.9);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.45,bevelEnabled:false});tg.translate(0,h+.25,F);staticMesh(tg,KC);
+   const sg=new T.PlaneGeometry(2.6,.45);sg.translate(0,3.0,F+.46);staticMesh(sg,signMat('KASERNE'));
+   for(const sz of[-1,1])box(w+.2,.18,.14,0,2.9,sz*(F+.05),KC);for(const sx of[-1,1])box(.14,.18,d+.2,sx*(w/2+.05),2.9,0,KC);
+   box(.09,5,.09,w/2-.5,h+2.5,-F+.5,H.iron);for(const[i2,c]of[[0,0x141414],[1,0xf0f0ea],[2,0xb8201c]])box(1.6,.35,.03,w/2+.35,h+4.6-i2*.35,-F+.5,cm('flagKR'+i2,c));
+   for(const sx of[-1,1]){const x=sx*2.1,z=F+.75;box(.85,2.2,.85,x,1.1,z,stripeMat());const pr=new T.ConeGeometry(.7,.55,4);pr.rotateY(Math.PI/4);pr.translate(x,2.48,z);staticMesh(pr,H.slate)}}
   if(k==='keep'){const top=g._h||4.2,cm2=cm;
    if(X==='roman'){const ph=Math.min(top-.5,4.2);for(let i=0;i<6;i++){const cx=-w/2+.9+i*(w-1.8)/5;cylinder(.24,ph,cx,ph/2,F+1.3,H.plaster,14);box(.6,.18,.6,cx,.09,F+1.3,H.stone);box(.62,.2,.62,cx,ph-.1,F+1.3,H.stone)}
     box(w+.2,.4,2.0,0,ph+.2,F+.75,H.stone);const tri=new T.Shape();tri.moveTo(-w/2-.1,0);tri.lineTo(w/2+.1,0);tri.lineTo(0,1.3);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.3,bevelEnabled:false});tg.translate(0,ph+.4,F+1.6);staticMesh(tg,H.plaster);
@@ -763,14 +770,8 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
     const dome=new T.LatheGeometry([[1.1,0],[1.15,.4],[1.0,.9],[.6,1.4],[.15,1.75],[.06,2.1],[0,2.2]].map(q=>new T.Vector2(q[0],q[1])),16);dome.translate(0,top+1.0,-d/4);staticMesh(dome,H.slate);cylinder(1.15,1,0,top+.5,-d/4,H.plaster,16);
     window(0,top+.6,F+.47,0,.9,1.4)}
    if(X==='cornice'&&era==='napoleon'){box(.12,8,.12,w/2-.6,top+4,-F+.6,H.wood);box(1.6,1.0,.03,w/2+.2,top+7.3,-F+.6,cm2('flagB',0x1f3a7a));box(.53,1.0,.035,w/2+.2-.53,top+7.3,-F+.6,cm2('flagB',0x1f3a7a));box(.53,1.0,.035,w/2+.2,top+7.3,-F+.6,cm2('flagW',0xeeeeee));box(.53,1.0,.035,w/2+.73,top+7.3,-F+.6,cm2('flagR',0xb01e1e))}
-   if(X==='industry'){                                                                                                   // Kaserne: Mittelrisalit mit Giebel, Inschrift, Fahnenmast, Schilderhäuschen
-    box(3.2,top-1.6,.5,0,3+(top-1.6)/2,F+.25,H.plaster);for(const sx of[-1,1])box(.4,3,.5,sx*1.4,1.5,F+.25,H.plaster);box(3.5,.3,.7,0,top+1.5,F+.25,H.stone);const tri=new T.Shape();tri.moveTo(-1.75,0);tri.lineTo(1.75,0);tri.lineTo(0,1.0);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.5,bevelEnabled:false});tg.translate(0,top+1.65,F);staticMesh(tg,H.stone);
-    const sg=new T.PlaneGeometry(2.8,.5);sg.translate(0,Math.min(top-.6,3.2),F+.51);staticMesh(sg,signMat('KASERNE'));
-    for(let yy=4.2;yy<top-1;yy+=3)window(0,yy,F+.51,0,.8,1.4);
-    const KC=cm2('kcorn',0xd8d0bc);for(let yy=2.95;yy<top-.5;yy+=3){for(const sz of[-1,1])box(w+.2,.2,.14,0,yy,sz*(F+.05),KC);for(const sx of[-1,1])box(.14,.2,d+.2,sx*(w/2+.05),yy,0,KC)}   // Geschossgesimse
-    for(const sx of[-1,1])for(const sz of[-1,1])for(let yy=.3;yy<top;yy+=.6)box(yy%1.2<.6?.5:.36,.5,yy%1.2<.6?.36:.5,sx*(w/2-.1),yy+.25,sz*(F-.1),KC);   // Eckquader
-    box(.1,7,.1,0,top+1.65+3.5,F-.1,H.iron);for(const[i2,c]of[[0,0x141414],[1,0xf0f0ea],[2,0xb8201c]])box(1.8,.4,.03,.95,top+7.6-i2*.4,F-.1,cm2('flagKR'+i2,c));
-    for(const sx of[-1,1]){const x=sx*2.1,z=F+.9;box(.9,2.3,.9,x,1.15,z,stripeMat());const pr=new T.ConeGeometry(.75,.6,4);pr.rotateY(Math.PI/4);pr.translate(x,2.6,z);staticMesh(pr,H.slate)}}}
+   if(X==='industry'){const tw=2.4,ty=top+1;box(tw,8,tw,0,ty+4-1,-d/4,H.plaster);box(tw+.3,.3,tw+.3,0,ty+7,-d/4,H.stone);for(const[a,b,ry]of[[0,tw/2+.02,0],[0,-tw/2-.02,Math.PI],[tw/2+.02,0,Math.PI/2],[-tw/2-.02,0,-Math.PI/2]]){const c=new T.CircleGeometry(.75,24);c.rotateY(ry);c.translate(a,ty+5.6,-d/4+b);staticMesh(c,cm2('clockface',0xf2ecd8));const hand=new T.BoxGeometry(.06,.6,.02);hand.translate(0,.25,0);hand.rotateY(ry);hand.translate(a*1.02,ty+5.6,-d/4+b*1.02);staticMesh(hand,H.dark)}
+    const sp=new T.ConeGeometry(1.5,3.2,4);sp.rotateY(Math.PI/4);sp.translate(0,ty+8.75,-d/4);staticMesh(sp,H.slate)}}
   else if(X==='stone'){if(home){firepit(w/2-1.3,F+1.6);wattle(-w/2,-dw,F+.9)}else{hides(w/2-1,F+1.2)}for(let i=0;i<2;i++)pot(-w/2+.5+i*.5,F+.5,.8)}
   else if(X==='iron'){wattle(-w/2,-dw,F+.9);if(!home)for(let i=0;i<3;i++)sack(w/2-.5-i*.5,F+.6,.3,0xe8e4dc);else pot(w/2-.6,F+.6)}
   else if(X==='early'){wattle(-w/2,-dw,F+1);wattle(dw,w/2,F+1)}
