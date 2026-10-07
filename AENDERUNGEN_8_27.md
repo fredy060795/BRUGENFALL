@@ -199,3 +199,5 @@
 - **Dom (Nachtrag)**: Nur noch **ein Bischof** (der dienstälteste Priester am Dom), die anderen bleiben Priester.
   Kreuzrippengewölbe mit verputzten Kappen jetzt auch im **Chorjoch**, als **Rippen-Halbkuppel in der Apsis**, in beiden
   **Querhausarmen** und in allen Jochen der **Seitenschiffe** – nirgends mehr Blick in den Dachstuhl.
+- **Lagerhaus**: Das Zunftschild schwebte vor der Fassade, weil seine Position aus allen Hindernissen (auch den Kisten
+  vor dem Haus) berechnet wurde. Schild und Gewerbe-Gegenstände richten sich jetzt nach den echten Mauermaßen.
