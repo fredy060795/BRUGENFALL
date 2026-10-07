@@ -201,3 +201,6 @@
   **Querhausarmen** und in allen Jochen der **Seitenschiffe** – nirgends mehr Blick in den Dachstuhl.
 - **Lagerhaus**: Das Zunftschild schwebte vor der Fassade, weil seine Position aus allen Hindernissen (auch den Kisten
   vor dem Haus) berechnet wurde. Schild und Gewerbe-Gegenstände richten sich jetzt nach den echten Mauermaßen.
+- **Zunftschilder aller Läden und Handwerker** (Rüstungsmacher, Schmied, Bäcker, Taverne, Lager …): Das Schild saß
+  über dem Vordach bzw. an der Hausecke und wirkte freischwebend. Es hängt jetzt an einem Eisenausleger mit Wandplatte
+  an der freien Seitenwand nahe der Front, quer zur Straße und von vorn lesbar.

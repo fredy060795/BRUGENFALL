@@ -578,7 +578,8 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
   // Zunftschild am Ausleger über/neben der Tür
   const EMB={smithy:'anvil',armorer:'helmet',bower:'bow',bakery:'pretzel',tavern:'mug',brewery:'barrel',weaver:'spool',apothecary:'mortar',butcher:'cleaver',tannery:'hide',smokehouse:'fish',dairy:'cheese',lumber:'axe',mill:'sack',granary:'sack',storage:'sack',market:'coin',lodge:'antler',fishery:'fish',quarry:'pick',ironmine:'pick',coppermine:'pick'}[k];
   const SOLID=['house','bighouse','apothecary','bakery','smithy','armorer','armory','bower','weaver','tavern','butcher','dairy','brewery','tannery','smokehouse','granary','storage','keep','garrison','lodge','mill'].includes(k);
-  if(EMB&&SOLID){const sx=bw/2-.12,sz=front+.06,sy=2.45;beam([sx,sy+.45,sz],[sx,sy+.45,sz+.75],.05,H.iron);beam([sx,sy+.2,sz],[sx,sy+.45,sz+.4],.04,H.iron);
+  if(EMB&&SOLID){const snap0=new Map([...batches].map(([m,l])=>[m,l.length])),sx=0,sz=0,sy=2.45;   // Schild in lokalen Koordinaten (Ausleger entlang +z), danach an die Seitenwand nahe der Front gesetzt
+   box(.26,.62,.08,sx,sy+.25,sz+.04,H.wood);beam([sx,sy+.45,sz],[sx,sy+.45,sz+.75],.05,H.iron);beam([sx,sy+.2,sz],[sx,sy+.45,sz+.4],.04,H.iron);
    box(.06,.5,.62,sx,sy,sz+.45,H.wood);for(const dz of[.2,.7])beam([sx,sy+.25,sz+dz],[sx,sy+.45,sz+dz],.015,H.iron);
    for(const sd of[1,-1]){const ex=sx+sd*.045,ez=sz+.45,ey=sy,met=H.iron,gold=H.brass||met;   // Symbol auf beiden Seiten der Tafel
    if(EMB==='anvil'){box(.04,.1,.32,ex,ey-.05,ez,met);box(.04,.08,.14,ex,ey+.04,ez-.04,met);box(.04,.05,.1,ex,ey+.1,ez+.07,met)}
@@ -594,7 +595,10 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    if(EMB==='fish')geo(new T.SphereGeometry(.1,10,6),ex,ey,ez,col(0x8a9aa8),0,0,0,.3,.55,1.6);
    if(EMB==='sack')geo(new T.SphereGeometry(.13,10,8),ex,ey-.03,ez,col(0xd8cfb8),0,0,0,.4,1.2,.9);
    if(EMB==='coin')geo(new T.CylinderGeometry(.12,.12,.02,14),ex,ey,ez,gold,0,0,Math.PI/2);
-   if(EMB==='antler')for(const d of[-1,1])beam([ex,ey-.1,ez],[ex,ey+.15,ez+d*.14],.02,col(0xd8c8a8))}}
+   if(EMB==='antler')for(const d of[-1,1])beam([ex,ey-.1,ez],[ex,ey+.15,ez+d*.14],.02,col(0xd8c8a8))}
+   // Ausleger sitzt auf der freien Seitenwand, 0,7 m hinter der Vorderkante; Tafel hängt quer zur Straße und ist von vorn lesbar
+   const side=(attach|0)&2?-1:1,M4=new T.Matrix4().makeRotationY(side*Math.PI/2).premultiply(new T.Matrix4().makeTranslation(side*bw/2,0,front-.7));
+   for(const[m,l]of batches){const n0=snap0.get(m)||0;for(let i=n0;i<l.length;i++)l[i].applyMatrix4(M4)}}
   // Laterne an der Front (leuchtet)
   // Gewerbe-typische Gegenstände
   const T2={
