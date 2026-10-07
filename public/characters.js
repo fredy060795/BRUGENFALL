@@ -274,7 +274,14 @@ function heraldTex(col,coa=0){const key=col+':'+coa;if(HERALD.has(key))return HE
   x.fillStyle='#fff2b0';for(let y=12;y<H;y+=26){x.beginPath();x.arc(W/2,y,2.6,0,7);x.fill()}for(let X=12;X<W;X+=26){x.beginPath();x.arc(X,H*.45,2.6,0,7);x.fill()}
   eagle(W/2,H*.45,1,'#4a4a48',true)}
  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;const m=new T.MeshStandardMaterial({map:t,roughness:.55,metalness:.15});HERALD.set(key,m);return m}
-export function shieldMesh(kind,col=0x8a2a22,coa=0){const g=new T.Group();g.name='Shield:'+kind;
+export // Scutum-Bemalung: rot mit Goldrand, Flügeln und Blitzbündeln (Legionsschild)
+let SCM=null;function scutumMat(){if(SCM)return SCM;const c=document.createElement('canvas');c.width=256;c.height=512;const x=c.getContext('2d'),G='#e2b44c';
+ x.fillStyle='#9a1e1a';x.fillRect(0,0,256,512);x.strokeStyle=G;x.lineWidth=10;x.strokeRect(8,8,240,496);x.lineWidth=5;x.lineCap='round';
+ for(const dir of[-1,1]){for(const dx of[-14,0,14]){x.beginPath();x.moveTo(128+dx,256+dir*40);for(let k=1;k<=6;k++)x.lineTo(128+dx+(k%2?10:-10),256+dir*(40+k*30));x.lineTo(128+dx,256+dir*235);x.stroke()}   // Blitzbündel
+  for(let f=0;f<6;f++){x.beginPath();x.moveTo(110,256+dir*30);x.quadraticCurveTo(40-f*4,256+dir*(70+f*22),70+f*6,256+dir*(150+f*14));x.stroke()}}                              // Flügel
+ x.fillStyle=G;x.fillRect(96,246,64,20);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;
+ return SCM=new T.MeshStandardMaterial({map:t,roughness:.7,side:T.DoubleSide})}
+function shieldMesh(kind,col=0x8a2a22,coa=0){const g=new T.Group();g.name='Shield:'+kind;
  if(kind==='heater'){const sh=new T.Shape();sh.moveTo(-.31,.42);sh.quadraticCurveTo(0,.34,.31,.42);sh.lineTo(.3,.06);sh.quadraticCurveTo(.27,-.28,0,-.46);sh.quadraticCurveTo(-.27,-.28,-.3,.06);sh.closePath();
   const back=new T.ExtrudeGeometry(sh,{depth:.035,bevelEnabled:false});back.translate(0,0,-.035);mesh(back,shm(0x5a4028),g);
   const face=new T.ShapeGeometry(sh,24),uv=face.attributes.uv,pp=face.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,(pp.getX(i)+.31)/.62,(pp.getY(i)+.46)/.88);mesh(face,heraldTex(col,coa|0),g,[0,0,.002]);
@@ -286,7 +293,7 @@ const wood=shm(0x7a5a3a),iron=shm(0x55595c,{metalness:.6,roughness:.45}),paint=s
   const W=kind==='scutum'?.34:kind==='oval'?.28:.26,Hh=kind==='scutum'?.56:kind==='oval'?.5:.4,segs=10,geo=new T.CylinderGeometry(.62,.62,Hh*2,segs*3,1,true,-W/.62,2*W/.62);if(kind!=='scutum'){const P=geo.attributes.position;for(let i=0;i<P.count;i++){const y=P.getY(i)/Hh,x=Math.sin(Math.atan2(P.getX(i),P.getZ(i)))*.62/W;const k=Math.sqrt(Math.max(0,1-x*x));P.setY(i,y*Hh*Math.max(.25,k))}}
   const m=mesh(geo,kind==='hide'?shm(0x8a6a48):paint,g,[0,0,-.6]);m.material=m.material.clone();m.material.side=T.DoubleSide;
   const boss=mesh(new T.SphereGeometry(.07,12,8,0,Math.PI*2,0,Math.PI/2),kind==='scutum'?shm(0xc8a040,{metalness:.7,roughness:.35}):iron,g,[0,0,.02]);boss.rotation.x=Math.PI/2;
-  if(kind==='scutum'){for(const y of[-.2,.2])mesh(new T.BoxGeometry(.5,.025,.01),shm(0xe0c060,{metalness:.6,roughness:.4}),g,[0,y,.025]);mesh(new T.BoxGeometry(.025,1.0,.01),shm(0xe0c060,{metalness:.6,roughness:.4}),g,[0,0,.022])}
+  if(kind==='scutum')m.material=scutumMat();
   if(kind==='hide')for(let i=-2;i<=2;i++)mesh(new T.BoxGeometry(.012,.7,.012),shm(0x5a4028),g,[i*.1,0,.015]);
   g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
  if(kind==='round'){const d=mesh(new T.CylinderGeometry(.34,.34,.035,28),wood,g);d.rotation.x=Math.PI/2;for(let i=0;i<6;i++){const s=mesh(new T.BoxGeometry(.025,.66,.01),i%2?paint:wood,g,[-.28+i*.112,0,.02]);s.scale.y=Math.sqrt(Math.max(.05,1-((-.28+i*.112)/.34)**2))}
