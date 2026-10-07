@@ -241,7 +241,7 @@ const WALLK=['wall','battle','palisade','tower','gate','portcullis','stairs'],po
  mh=b=>b.t==='keep'?[1200,2200,3500,5200][b.st|0]:BD[b.t].hp,capOf=b=>b.t==='house'?2+2*(b.lv|0):(BD[b.t].cap||0)+(b.t==='keep'?4*(b.st|0):0),HOUSEUP=[{wood:12,stone:4,shingles:10},{wood:15,stone:6,shingles:12}],HOUSEN=['Kleines Wohnhaus','Mittleres Wohnhaus','Großes Wohnhaus'],UPG=[{wood:30,stone:80},{stone:160,wood:40,iron:20},{stone:240,iron:60,wood:60}],UPN=['Holzhalle','Holzbergfried','Steinbergfried','Verstärkter Steinbergfried'];
 const popCap=r=>4+r.b.reduce((s,b)=>s+capOf(b),0),food=r=>r.inv.wheat+r.inv.meat+r.inv.bread+r.inv.roast+r.inv.cheese+r.inv.fish+r.inv.honey+r.inv.apples+r.inv.sausage+r.inv.smoked;
 const stockCap=r=>300+r.b.reduce((s,b)=>s+(b.t==='keep'?300+200*(b.st|0):0)+(BD[b.t].store||0),0);
-function shoot(r,n,t,dmg){const d=dist(n,t),dur=Math.max(.25,d/22);r.ar.push({t:dur,tg:t,dmg});r.an.push([r2(n.x),r2(n.z),t.id||0,r2(t.x),r2(t.z),r2(dur),r2(n.el||0)])}
+function shoot(r,n,t,dmg){const d=dist(n,t),dur=Math.max(.25,d/22);r.ar.push({t:dur,tg:t,dmg});r.an.push([r2(n.x),r2(n.z),t.id||0,r2(t.x),r2(t.z),r2(dur),r2(n.el||0),n.k||''])}
 const season=r=>Math.floor((r.dy||0)/((r.ev&&r.ev.sl)||4))%4,FG=r=>[1,1.2,.8,0][season(r)]*(r.wx===1?1.5:1);
 const BASEP={flour:25,wood:15,stone:25,wheat:20,bread:40,meat:30,cheese:50,wool:30,cloth:70,gambeson:95,fish:25,weapons:90,armor:140,potions:85,iron:35,copper:45,honey:40,leather:60,apples:15,beer:30,sausage:45,smoked:45};
 const priceOf=(r,k)=>ecoPrice(r,k)*BASEP[k]*(['wheat','bread','meat','cheese','fish','apples','sausage','smoked','honey'].includes(k)?[1,.95,.85,1.35][season(r)]:k==='wood'?[1,1,1,1.3][season(r)]:1)*(1+.08*Math.sin((r.dy||0)*1.7+k.length*2.1));

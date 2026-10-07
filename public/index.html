@@ -108,7 +108,7 @@ import * as SU from 'three/addons/utils/SkeletonUtils.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {addDoor,updateDoors} from './doors.js';
 import {surfaceMaterial} from './materials.js';
-import {applyEraMaterials,eraPiece,eraWeapon,eraShield,eraShot,MELEE} from './eras.js';
+import {applyEraMaterials,eraPiece,eraWeapon,eraShield,eraShotOf,MELEE} from './eras.js';
 import {createCharacter,animateCharacter,setTool,SWING,IMPACT,weapon,setShield,COA_N,shieldMesh} from './characters.js';
 import {look,OPT,defProf,FACTIONS,setPeopleEra} from './people.js';
 import {createAnimal} from './animals.js';
@@ -1419,10 +1419,12 @@ const arrowProto=(()=>{const g=new THREE.Group(),m=new THREE.MeshStandardMateria
  const tip=new THREE.Mesh(new THREE.ConeGeometry(.032,.11,5),new THREE.MeshStandardMaterial({color:0xaab4b8,metalness:.7,roughness:.4}));tip.rotation.x=Math.PI/2;tip.position.z=.45;g.add(tip);
  for(const a of[0,Math.PI/2]){const f=new THREE.Mesh(new THREE.BoxGeometry(.004,.07,.12),new THREE.MeshStandardMaterial({color:0xf0ecd8}));f.rotation.z=a;f.position.z=-.34;g.add(f)}return g})(),ARR=[];
 const bulletProto=(()=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.035,6,5),new THREE.MeshBasicMaterial({color:0x1a1a1a}));const g=new THREE.Group();g.add(m);return g})(),PUFFS=[];
-function spawnArrow(a){const gun=eraShot(ERA)==='bullet',m=(gun?bulletProto:arrowProto).clone();S.add(m);
- if(gun){const pf=new THREE.Mesh(new THREE.SphereGeometry(.35,8,6),new THREE.MeshStandardMaterial({color:0xe8e8e4,transparent:true,opacity:.7,depthWrite:false}));pf.position.set(a[0],heightAt(a[0],a[1])+1.45,a[1]);S.add(pf);PUFFS.push({m:pf,t:0})}ARR.push({m,t:0,dur:a[5],sx:a[0],sz:a[1],tid:a[2],tx:a[3],tz:a[4],oy:a[6]||0})}
+const stoneProto=(()=>{const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.DodecahedronGeometry(.06,0),new THREE.MeshStandardMaterial({color:0x8a8478,roughness:1})));return g})();
+const boltProto=(()=>{const g=arrowProto.clone();g.scale.set(1.5,1.5,.55);return g})();
+function spawnArrow(a){const kind=eraShotOf(ERA,a[7]||''),gun=kind==='bullet',m=({bullet:bulletProto,stone:stoneProto,bolt:boltProto}[kind]||arrowProto).clone();S.add(m);
+ if(gun){const pf=new THREE.Mesh(new THREE.SphereGeometry(.35,8,6),new THREE.MeshStandardMaterial({color:0xe8e8e4,transparent:true,opacity:.7,depthWrite:false}));pf.position.set(a[0],heightAt(a[0],a[1])+1.45,a[1]);S.add(pf);PUFFS.push({m:pf,t:0})}ARR.push({m,k:kind,t:0,dur:gun?a[5]*.4:a[5],sx:a[0],sz:a[1],tid:a[2],tx:a[3],tz:a[4],oy:a[6]||0})}
 function updArrows(dt){for(let k=PUFFS.length-1;k>=0;k--){const P=PUFFS[k];P.t+=dt;P.m.scale.setScalar(1+P.t*3);P.m.position.y+=dt*.6;P.m.material.opacity=Math.max(0,.7-P.t*.5);if(P.t>1.4){S.remove(P.m);P.m.geometry.dispose();P.m.material.dispose();PUFFS.splice(k,1)}}for(let k=ARR.length-1;k>=0;k--){const A=ARR[k];A.t+=dt;const s=Math.min(1,A.t/A.dur);let tx=A.tx,tz=A.tz;const T=M.e.get(A.tid)||M.w.get(A.tid)||M.d.get(A.tid);if(T){tx=T.position.x;tz=T.position.z}
- const sy=heightAt(A.sx,A.sz)+1.45+(A.oy||0),ty=heightAt(tx,tz)+1,ds=Math.hypot(tx-A.sx,tz-A.sz),arc=.5+ds*.035,at=q=>[A.sx+(tx-A.sx)*q,sy+(ty-sy)*q+arc*Math.sin(Math.PI*q),A.sz+(tz-A.sz)*q];
+ const sy=heightAt(A.sx,A.sz)+1.45+(A.oy||0),ty=heightAt(tx,tz)+1,ds=Math.hypot(tx-A.sx,tz-A.sz),arc=A.k==='bullet'?.05+ds*.006:A.k==='stone'?.8+ds*.06:.5+ds*.035,at=q=>[A.sx+(tx-A.sx)*q,sy+(ty-sy)*q+arc*Math.sin(Math.PI*q),A.sz+(tz-A.sz)*q];
  const p=at(s),n=at(Math.min(1,s+.03));A.m.position.set(p[0],p[1],p[2]);A.m.lookAt(n[0],n[1],n[2]);if(s>=1){S.remove(A.m);ARR.splice(k,1)}}}
 const AU={ctx:null,nm:0,vol:Object.assign({master:.7,music:.45,fx:.8,amb:.7},JSON.parse(localStorage.getItem('burgenfall-audio')||'{}'))};
 function auVol(){if(!AU.ctx)return;AU.mg.gain.value=AU.vol.master;AU.mus.gain.value=AU.vol.music*.5;AU.fx.gain.value=AU.vol.fx;AU.amb.gain.value=AU.vol.amb}
