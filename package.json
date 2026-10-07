@@ -1,6 +1,6 @@
 {
   "name": "zeitreise",
-  "version": "8.49.0",
+  "version": "8.50.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

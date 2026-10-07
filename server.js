@@ -548,7 +548,7 @@ function tradeTick(r,dt){for(const c of r.cv){c.t-=dt;
  r.cv=r.cv.filter(c=>!c.gone);r.tt-=dt;
  if(r.tt<=0){r.tt=rnd(170,260);spawnTrade(r)}}
 function spawnTrade(r,force){const fr=friendTowns(r);if(!fr.length)return;const f=fr[Math.random()*fr.length|0],h=r.b.find(b=>b.t==='harbor'),m=r.b.find(b=>b.t==='market');
- if(h&&shipRiver(r)&&(!m||Math.random()<.5||force==='ship')){r.cv.push({id:uid++,kind:'ship',x:riverAt(r,WH(r)-20),z:WH(r)-20,ry:0,st:'go',t:0,from:f.n});say(r,'⚓ Ein Handelsschiff aus '+f.n+' nähert sich dem Hafen')}
+ if(h&&shipRiver(r)&&(!m||Math.random()<.5||force==='ship')){r.cv.push({id:uid++,kind:'ship',x:riverAt(r,WH(r)-20),z:WH(r)-20,ry:0,st:'go',t:0,from:f.n});say(r,(r.era==='neuzeit'?'🚢 Ein Raddampfer':'⚓ Ein Handelsschiff')+' aus '+f.n+' nähert sich dem Hafen')}
  else if(m){r.cv.push({id:uid++,kind:'caravan',x:f.x,z:f.z,ry:0,st:'go',t:0,from:f.n});say(r,'🛒 Eine Handelskarawane aus '+f.n+' ist unterwegs')}}
 function demolish(r,b,ruin){const B=BD[b.t],rf=Object.fromEntries(Object.entries(B.c).map(([k,n])=>[k,Math.floor(n*(ruin?.25:.5))]));for(const k in rf)r.inv[k]=Math.min(stockCap(r),r.inv[k]+rf[k]);
  if(ruin)r.ru=r.ru.filter(o=>o!==b);else{r.b=r.b.filter(o=>o!==b);for(const n of r.n){if(n.wb===b.id&&n.hp>0){n.hp=0;n.conv=1;const q=mkNpc(r,'peasant',n.x,n.z,n.o);q.ry=n.ry}if(n.hid===b.id)n.hid=0}}
