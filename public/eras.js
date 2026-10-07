@@ -50,16 +50,17 @@ const SOLDIER=['sword','archer','spear','crossbow','knight'],noArmor=o=>{o.breas
 const civHead=(o,r,list)=>{if(!SOLDIER.includes(o.role)&&!['priest','bishop'].includes(o.role))o.head=list[Math.floor(r()*list.length)]};
 const pickC=(r,a)=>a[Math.floor(r()*a.length)];
 export function eraClothes(o,era,r){if(!era||era==='hochmittelalter')return o;const sol=SOLDIER.includes(o.role);
- if(era==='steinzeit'){const FUR=[0x6a4e34,0x5a422c,0x7a5e40,0x4e3a28,0x8a7050];o.cloth=pickC(r,FUR);o.over=pickC(r,FUR);o.cloak=r()<.6?pickC(r,FUR):0;civHead(o,r,['none']);if(sol){noArmor(o);o.head='none'}o.apron=false;o.bag=r()<.3;if(!o.female)o.beard=pickC(r,['full','short','full'])}
- else if(era==='hallstatt'){const W=[0x5a6a32,0x7a3424,0xa07a34,0x3e4e5e,0x6a5a3a];o.cloth=pickC(r,W);o.over=pickC(r,W);o.cloak=r()<.5?pickC(r,W):0;civHead(o,r,['none','none','cap']);if(sol){noArmor(o);o.head='helmet'}}
+ if(era==='steinzeit'){const FUR=[0x6a4e34,0x5a422c,0x7a5e40,0x4e3a28,0x8a7050];o.cloth=pickC(r,FUR);o.over=pickC(r,FUR);o.cloak=r()<.6?pickC(r,FUR):0;civHead(o,r,['none']);if(sol){noArmor(o);o.outfit='tunic';o.head='none'}o.apron=false;o.bag=r()<.3;if(!o.female)o.beard=pickC(r,['full','short','full'])}
+ else if(era==='hallstatt'){const W=[0x5a6a32,0x7a3424,0xa07a34,0x3e4e5e,0x6a5a3a];o.cloth=pickC(r,W);o.over=pickC(r,W);o.cloak=r()<.5?pickC(r,W):0;civHead(o,r,['none','none','cap']);if(sol){noArmor(o);o.outfit='tunic';o.head='helmet';o.noCoif=true}}
  else if(era==='roemer'){o.cloth=pickC(r,[0xe2d8c2,0xd6caae,0xcab490]);o.over=pickC(r,[0xe2d8c2,0x8a2a22,0x3a5a8a,0xb88a40,0xd6caae]);civHead(o,r,['none','none','none','strawhat']);o.apron=o.apron&&r()<.5;
-  if(sol){noArmor(o);o.breast=true;o.head='helmet';o.over=o.fac?o.over:0x8a2a22;o.cloak=0x8a2a22}}
+  if(sol){noArmor(o);o.outfit='tunic';o.breast=true;o.head='helmet';o.noCoif=true;o.cloak=0x8a2a22}}
  else if(era==='fruehmittelalter'){o.cloak=r()<.6?pickC(r,[0x5a4a3a,0x6a5a42,0x4a3a2e]):o.cloak;civHead(o,r,['none','cap','none']);if(sol){noArmor(o);o.mailShirt=true;o.head='helmet'}}
- else if(era==='spaetmittelalter'){o.over=pickC(r,[0x8a1f1f,0x1f3f7a,0x2f6a2a,0x7a5a1a,o.over]);civHead(o,r,['none','chaperon','cap','gugel','none'])}
+ else if(era==='spaetmittelalter'){o.over=pickC(r,[0x8a1f1f,0x1f3f7a,0x2f6a2a,0x7a5a1a,o.over]);civHead(o,r,['none','chaperon','cap','gugel','none']);if(sol){o.breast=true;o.arms=Math.max(o.arms||0,1);o.head=o.role==='knight'?'visored':pickC(r,['sallet','bascinet'])}}
  else if(era==='renaissance'){o.cloth=pickC(r,[0x2a2a2a,0x5a1a2a,0x1a2a4a,0x4a3a1a]);o.over=pickC(r,[0x8a1a1a,0x1a3a6a,0xc8a040,0x3a1a4a,0x1a4a2a]);civHead(o,r,['none','plume','plume','cap']);if(sol){o.legs=0;o.arms=Math.min(o.arms||0,1);o.head=r()<.5?'plume':'sallet'}}
  else if(era==='barock'){o.cloth=pickC(r,[0x2a3a6a,0x6a1a1a,0x3a4a2a,0x5a4a3a]);o.over=pickC(r,[0xe0d8c8,0xc8b890,o.cloth]);civHead(o,r,['none','hunterhat','hunterhat']);if(sol){noArmor(o);o.head='hunterhat'}}
- else if(era==='napoleon'){o.cloth=pickC(r,[0x2a2a2a,0x4a3a2a,0x2a3a4a,0x5a5048]);if(o.female)o.cloth=pickC(r,[0xd8c8e0,0xe8d8c0,0xc8d8e0]);civHead(o,r,['none','hunterhat','cap']);if(sol){noArmor(o);o.cloth=0xe8e4d8;o.over=o.fac?o.over:0x1f3a7a;o.head='cap';o.cloak=0}}
- else if(era==='neuzeit'){o.cloth=pickC(r,[0x2a2826,0x3a3632,0x4a4038,0x34302c]);o.over=pickC(r,[0x2a2826,0x4a4038,0x5a5048]);if(o.female)o.cloth=pickC(r,[0x3a2a3a,0x2a3a4a,0x5a4a3a]);civHead(o,r,['cap','cap','hunterhat','none']);if(sol){noArmor(o);o.cloth=0x2f3f2a;o.over=o.fac?o.over:0x2f3f2a;o.head='cap';o.cloak=0}}
+ else if(era==='napoleon'){o.cloth=pickC(r,[0x2a2a2a,0x4a3a2a,0x2a3a4a,0x5a5048]);if(o.female)o.cloth=pickC(r,[0xd8c8e0,0xe8d8c0,0xc8d8e0]);civHead(o,r,['none','hunterhat','cap']);if(sol){noArmor(o);o.cloth=0xe8e4d8;o.head='cap';o.hatCol=0x141414;o.cloak=0}}
+ else if(era==='neuzeit'){o.cloth=pickC(r,[0x2a2826,0x3a3632,0x4a4038,0x34302c]);o.over=pickC(r,[0x2a2826,0x4a4038,0x5a5048]);if(o.female)o.cloth=pickC(r,[0x3a2a3a,0x2a3a4a,0x5a4a3a]);civHead(o,r,['cap','cap','hunterhat','none']);if(sol){noArmor(o);o.cloth=0x2f3f2a;o.head='cap';o.hatCol=0x1e241c;o.cloak=0}}
+ if(sol&&globalThis.BFRules){const u=globalThis.BFRules.eraOf(era).units;if(u&&u[o.role])o.eraTitle=u[o.role]}
  return o}
 
 // ---- Eigene Bauten je Epoche: Römischer Tempel und Steinkreis statt Kapelle/Kirche/Dom ----
@@ -146,3 +147,22 @@ export const ERA_BUILD={
  napoleon:{timber:false,ov:0,roof:'hip',rise:.7,over:.35,drop:0,win:'tall',chimney:'stone',extras:'cornice'},
  neuzeit:{timber:false,ov:0,roof:'gable',rise:.75,over:.3,drop:0,win:'tall',chimney:'brick',extras:'industry'}};
 export const eraBuild=e=>ERA_BUILD[e]||ERA_BUILD.hochmittelalter;
+
+// ---- Waffen, Schilde und Geschosse der Truppen je Epoche ----
+// w: Waffe je Truppengattung · sh: Schild (null = keiner, undefined = wie Hochmittelalter) · shot: arrow | bullet
+export const ERA_ARMS={
+ steinzeit:{w:{sword:'club',spear:'stonespear',archer:'bow',crossbow:'sling',knight:'stonespear'},sh:{sword:'hide',spear:'hide',knight:'hide'},shot:'arrow'},
+ hallstatt:{w:{sword:'sword',spear:'spear',archer:'bow',crossbow:'sling',knight:'spear'},sh:{sword:'oval',spear:'oval',knight:'oval'},shot:'arrow'},
+ roemer:{w:{sword:'gladius',spear:'pilum',archer:'bow',crossbow:'sling',knight:'spear'},sh:{sword:'scutum',spear:'scutum',knight:'oval'},shot:'arrow'},
+ fruehmittelalter:{w:{sword:'sword',spear:'spear',archer:'bow',crossbow:'crossbow',knight:'lance'},sh:{sword:'round',spear:'round',knight:'kite'},shot:'arrow'},
+ hochmittelalter:{w:{},sh:{},shot:'arrow'},
+ spaetmittelalter:{w:{sword:'sword',spear:'halberd',archer:'bow',crossbow:'arquebus',knight:'lance'},sh:{sword:'heater',spear:null,knight:'heater'},shot:'arrow'},
+ renaissance:{w:{sword:'sword',spear:'pike',archer:'arquebus',crossbow:'crossbow',knight:'saber'},sh:{sword:null,spear:null,knight:null},shot:'bullet'},
+ barock:{w:{sword:'musket',spear:'pike',archer:'musket',crossbow:'musket',knight:'saber'},sh:{sword:null,spear:null,knight:null},shot:'bullet'},
+ napoleon:{w:{sword:'musket',spear:'musket',archer:'rifle',crossbow:'rifle',knight:'saber'},sh:{sword:null,spear:null,knight:null},shot:'bullet'},
+ neuzeit:{w:{sword:'saber',spear:'rifle',archer:'rifle',crossbow:'rifle',knight:'saber'},sh:{sword:null,spear:null,knight:null},shot:'bullet'}};
+const SOLD=['sword','archer','spear','crossbow','knight'];
+export const eraWeapon=(era,role,tool)=>{const A=ERA_ARMS[era];if(!A||!SOLD.includes(role))return tool;return A.w[role]||tool};
+export const eraShield=(era,role,def)=>{const A=ERA_ARMS[era];if(!A||!(role in A.sh))return def;return A.sh[role]};
+export const eraShot=era=>(ERA_ARMS[era]||{}).shot||'arrow';
+export const MELEE=['sword','lance','spear','club','stonespear','gladius','pilum','pike','halberd','saber','musket','rifle','arquebus'];

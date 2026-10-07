@@ -114,24 +114,24 @@
 
  // ===== Epochen-Edition: Startepoche je Welt (Namen hier, Optik/Kleidung im Browser in eras.js) =====
  const ERAS=[
-  {id:'steinzeit',n:'Steinzeit',y:'ca. 5500–2200 v. Chr.',d:'Langhausdorf, Steinkreis, Werkzeug aus Stein und Knochen',
+  {id:'steinzeit',units:{sword:'Keulenkrieger',spear:'Speerkämpfer',archer:'Bogenschütze',crossbow:'Schleuderer',knight:'Stammesreiter'},n:'Steinzeit',y:'ca. 5500–2200 v. Chr.',d:'Langhausdorf, Steinkreis, Werkzeug aus Stein und Knochen',
    names:{keep:'Langhaus des Ältesten',house:'Grubenhaus',bighouse:'Langhaus',chapel:'Steinkreis',church:'Großer Steinkreis',cathedral:'Ahnen-Steinkreis',tavern:'Feuerhalle',market:'Tauschplatz',plaza:'Versammlungsplatz',garrison:'Kriegerhütte',smithy:'Steinschläger',storage:'Vorratsgrube',well:'Quellfassung',watchpost:'Hochstand',tower:'Wachgerüst',gate:'Palisadentor',mint:'Bernsteinschleifer',cemetery:'Gräberfeld',tannery:'Fellgerberei'}},
-  {id:'hallstatt',n:'Hallstattzeit',y:'ca. 800–450 v. Chr.',d:'Höhensiedlung mit Holz-Erde-Wall, Salzhandel, Fürstensitz',
+  {id:'hallstatt',units:{sword:'Schwertkrieger',spear:'Lanzenträger',archer:'Bogenschütze',crossbow:'Schleuderer',knight:'Reiterkrieger'},n:'Hallstattzeit',y:'ca. 800–450 v. Chr.',d:'Höhensiedlung mit Holz-Erde-Wall, Salzhandel, Fürstensitz',
    names:{keep:'Fürstensitz',chapel:'Heiliger Hain',church:'Kultbezirk',cathedral:'Fürstengrabhügel',tavern:'Methalle',plaza:'Handelsplatz',garrison:'Kriegerhaus',smithy:'Eisenschmiede',quarry:'Salzbergwerk',storage:'Speicher',mint:'Goldschmiede',cemetery:'Hügelgräberfeld'}},
-  {id:'roemer',n:'Römerzeit',y:'ca. 15 v. Chr.–476 n. Chr.',d:'Kastell und Lagerdorf, Tempel, Forum, Thermen',
+  {id:'roemer',units:{sword:'Legionär',spear:'Pilum-Werfer',archer:'Sagittarius',crossbow:'Schleuderer (Funditor)',knight:'Eques (Reiter)'},n:'Römerzeit',y:'ca. 15 v. Chr.–476 n. Chr.',d:'Kastell und Lagerdorf, Tempel, Forum, Thermen',
    names:{keep:'Principia (Kastell)',house:'Domus',bighouse:'Insula',chapel:'Tempelchen',church:'Tempel',cathedral:'Kapitolstempel',tavern:'Taberna',market:'Marktstand',plaza:'Forum',garrison:'Kaserne (Castra)',well:'Brunnen',storage:'Horreum',granary:'Horreum',smithy:'Fabrica',mint:'Münzstätte',bakery:'Pistrinum',cemetery:'Gräberstraße',gate:'Lagertor',tower:'Turm am Limes',watchpost:'Wachposten am Limes'}},
-  {id:'fruehmittelalter',n:'Frühmittelalter',y:'ca. 500–1000',d:'Herrenhof und Turmhügelburg, Kloster, Holzkirche',
+  {id:'fruehmittelalter',units:{sword:'Schwertkrieger',spear:'Speerkämpfer',archer:'Bogenschütze',crossbow:'Armbrustschütze',knight:'Panzerreiter'},n:'Frühmittelalter',y:'ca. 500–1000',d:'Herrenhof und Turmhügelburg, Kloster, Holzkirche',
    names:{keep:'Motte (Turmhügelburg)',chapel:'Holzkirche',church:'Klosterkirche',cathedral:'Pfalzkapelle',tavern:'Herberge',plaza:'Thingplatz',garrison:'Gefolgschaftshaus'}},
-  {id:'hochmittelalter',n:'Hochmittelalter',y:'ca. 1000–1250',d:'Steinburg mit Bergfried – das bisherige Spiel',names:{}},
-  {id:'spaetmittelalter',n:'Spätmittelalter',y:'ca. 1250–1500',d:'Stadt mit Mauer und Zünften, Pulver und erste Kanonen',
+  {id:'hochmittelalter',units:{sword:'Schwertkämpfer',spear:'Lanzenträger',archer:'Bogenschütze',crossbow:'Armbrustschütze',knight:'Ritter'},n:'Hochmittelalter',y:'ca. 1000–1250',d:'Steinburg mit Bergfried – das bisherige Spiel',names:{}},
+  {id:'spaetmittelalter',units:{sword:'Söldner',spear:'Hellebardier',archer:'Langbogenschütze',crossbow:'Büchsenschütze',knight:'Plattenritter'},n:'Spätmittelalter',y:'ca. 1250–1500',d:'Stadt mit Mauer und Zünften, Pulver und erste Kanonen',
    names:{keep:'Stadtburg',church:'Pfarrkirche',plaza:'Hauptplatz',garrison:'Zeughaus',tavern:'Ratskeller',storage:'Kaufhaus'}},
-  {id:'renaissance',n:'Renaissance',y:'ca. 1450–1600',d:'Bastionen, Stadtpalast, Buchdruck und Handelshäuser',
+  {id:'renaissance',units:{sword:'Landsknecht',spear:'Pikenier',archer:'Arkebusier',crossbow:'Armbrustschütze',knight:'Kürassier'},n:'Renaissance',y:'ca. 1450–1600',d:'Bastionen, Stadtpalast, Buchdruck und Handelshäuser',
    names:{keep:'Stadtpalast',church:'Stadtkirche',cathedral:'Dom',plaza:'Piazza',garrison:'Zeughaus',storage:'Handelshaus',mint:'Bank'}},
-  {id:'barock',n:'Frühe Neuzeit (Barock)',y:'ca. 1600–1790',d:'Sternfestung, Schloss, Manufakturen, stehendes Heer',
+  {id:'barock',units:{sword:'Musketier',spear:'Pikenier',archer:'Grenadier',crossbow:'Kanonier',knight:'Dragoner'},n:'Frühe Neuzeit (Barock)',y:'ca. 1600–1790',d:'Sternfestung, Schloss, Manufakturen, stehendes Heer',
    names:{keep:'Schloss',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
-  {id:'napoleon',n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
+  {id:'napoleon',units:{sword:'Grenadier',spear:'Füsilier',archer:'Jäger (Plänkler)',crossbow:'Voltigeur',knight:'Husar'},n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
    names:{keep:'Kommandantur',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
-  {id:'neuzeit',n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
+  {id:'neuzeit',units:{sword:'Gendarm',spear:'Infanterist',archer:'Scharfschütze',crossbow:'Schütze',knight:'Dragoner'},n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
    names:{keep:'Rathaus',church:'Stadtkirche',cathedral:'Münster',plaza:'Marktplatz',garrison:'Gendarmerie',watchpost:'Feuerwache',weaver:'Textilfabrik',smithy:'Eisenwerk',tavern:'Wirtshaus',storage:'Lagerhalle',mint:'Sparkasse'}}];
  const ERA_DEFAULT='hochmittelalter',eraOf=id=>ERAS.find(e=>e.id===id)||ERAS.find(e=>e.id===ERA_DEFAULT);
  function presetMaps(){return HAND.map(m=>sanitizeMap({river:BASE_MAP.river,...m}))}

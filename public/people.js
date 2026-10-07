@@ -104,6 +104,7 @@ export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook
  style(o,rng(id*131+role.length*17+5));const stT=o.title;eraClothes(o,ERA,rng(id*577+role.length*13+3));if(female&&o.outfit==='tunic'&&role!=='farmer'&&role!=='peasant'&&role!=='bandit')o.outfit='dress';
  const lt=h=>new T.Color(h).multiplyScalar(1.5).getHex();o.cloth=lt(o.cloth);o.over=lt(o.over);if(o.cloak)o.cloak=lt(o.cloak);for(const k of['hoodCol','scap','apronCol','furCol','maskCol','vestCol','wrapCol','veil','capCol','hatCol','beltCol'])if(o[k]!=null)o[k]=lt(o[k]);
  o.name=(female?pick(r,FEMALE):pick(r,MALE));o.title=jr?(female&&!/in$/.test(jr.title)?(jr.title==='Hirte'?'Hirtin':jr.title+'in'):jr.title):(female&&(role==='farmer'||role==='peasant')?(role==='farmer'?'Bäuerin':'Dorfbewohnerin'):TITLE[role]);if(o.role==='sword'&&o.rank==='veteran')o.title='Ritter';if(stT)o.title=stT;
+ if(o.eraTitle)o.title=o.eraTitle;
  const F=FACTIONS[fc];if(F){o.fac=F[1];if(['sword','spear','crossbow','knight'].includes(role))o.over=F[1];if(role==='knight')o.cloak=F[1];if(role==='archer'){o.cloth=F[1];o.cloak=new T.Color(F[1]).multiplyScalar(.75).getHex();if(o.hoodCol)o.hoodCol=F[1]}if(role==='player'){o.cloth=F[1];o.over=F[1];if(o.cloak)o.cloak=new T.Color(F[1]).multiplyScalar(.8).getHex()}}
  return o}
 const ssm=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};

@@ -1,3 +1,7 @@
+# Zeitreise 8.41
+
+Figuren, Soldaten und Waffen je Epoche: Keulenkrieger und Schleuderer, Legionäre mit Gladius und Scutum, Landsknechte und Pikeniere, Musketiere, Grenadiere und Gendarmen; Kugeln mit Pulverdampf ab der Renaissance. Siehe AENDERUNGEN_8_41.md.
+
 # Zeitreise 8.40
 
 Generationswechsel und Zeitsprung nur auf Wunsch des Spielers (mit kurzen Hinweisen); Menü „Epoche wechseln“: erreichte Epochen frei vor und zurück wählbar. Siehe AENDERUNGEN_8_40.md.
