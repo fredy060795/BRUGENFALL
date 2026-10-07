@@ -111,7 +111,7 @@ import {addDoor,updateDoors} from './doors.js';
 import {surfaceMaterial} from './materials.js';
 import {eraPlaza,eraFest} from './plaza-eras.js';
 import {fireBrigade} from './firebrigade.js';
-import {priestTitle,christian} from './eras.js';
+import {priestTitle,christian,banditWeapon} from './eras.js';
 import {applyEraMaterials,eraPiece,eraWeapon,eraShield,eraShotOf,MELEE} from './eras.js';
 import {createCharacter,animateCharacter,setTool,SWING,IMPACT,weapon,setShield,COA_N,shieldMesh} from './characters.js';
 import {look,OPT,defProf,FACTIONS,setPeopleEra} from './people.js';
@@ -1028,7 +1028,7 @@ async function connect(c,create=false){if(ws&&ws.readyState<2)return;if(!PROF){$
    if(m.cv)sync(M.v,m.cv,d=>d[1]==='ship'?shipMesh():caravanMesh(),(o,d)=>{o.userData={x:d[2],z:d[3],ry:d[4]}});
    if(m.tr)sync(M.t,m.tr,d=>d[3]?stumpMesh():treeMesh(),(o,d)=>{const s=d[3]|0;if(o.sv!==undefined&&o.sv!==s){while(o.children.length)o.remove(o.children[0]);for(const c of[...(s?stumpMesh():treeMesh()).children])o.add(c)}o.sv=s;o.userData={x:d[1],z:d[2],st:s};o.position.set(d[1],heightAt(d[1],d[2]),d[2])});if(m.w)sync(M.w,m.w,d=>deer(0x2e2e34),(o,d)=>{o.userData={x:d[1],z:d[2],ry:d[3]};if(!o.placed){o.placed=1;o.position.set(d[1],heightAt(d[1],d[2]),d[2]);if(d[3]!==undefined)o.rotation.y=d[3]}});if(m.d)sync(M.d,m.d,d=>deer(),(o,d)=>{o.userData={x:d[1],z:d[2],ry:d[3]};if(o.sc!==(d[4]||1)){o.sc=d[4]||1;o.scale.setScalar(o.sc)}if(!o.placed){o.placed=1;o.position.set(d[1],heightAt(d[1],d[2]),d[2]);if(d[3]!==undefined)o.rotation.y=d[3]}});if(m.rk)sync(M.k,m.rk,d=>rockMesh(),(o,d)=>{o.userData={x:d[1],z:d[2],ex:d[3]|0};o.scale.setScalar(d[3]?.55:1);o.position.set(d[1],heightAt(d[1],d[2]),d[2])});
    for(const d of m.n){const old=M.n.get(d[0]);if(old&&old.userData.k!==d[1]){S.remove(old);M.n.delete(d[0]);}}for(const d of m.n){const o=M.n.get(d[0]);if(o&&(o.pdv|0)!==((d[15]|0)+(d[17]?2:0))){S.remove(o);M.n.delete(d[0])}}sync(M.n,m.n,d=>npc(d[0],d[1],d[6],d[15],d[17]),(o,d)=>o.userData={x:d[2],z:d[3],ry:d[4],a:d[7],aim:d[8],el:d[9],k:d[1],sk:d[10],w:d[11],cr:d[12],wb:d[13],pr:d[14],ps:d[16]|0,tc2:d[18]|0});
-   sync(M.e,m.e,d=>man(0,'sword','bandit',d[0]),(o,d)=>o.userData={x:d[1],z:d[2],ry:d[3],a:d[4]});
+   sync(M.e,m.e,d=>{const g=man(0,'sword','bandit',d[0]),w=banditWeapon(ERA);if(w)setTool(g,w);return g},(o,d)=>o.userData={x:d[1],z:d[2],ry:d[3],a:d[4]});
    for(const d of m.p){PFC.set(d[0],d[15]|0);PCOA.set(d[0],d[17]|0)}sync(M.p,m.p.filter(d=>d[0]!==me),d=>{const w=pl(d[4],d[0],d[12],d[15]|0);w.remote=true;return w},(o,d)=>{if(d[12]&&o.profS!==JSON.stringify(d[12]))reskin(o,d[12],d[0]);o.coa=d[17]|0;o.userData={x:d[1],z:d[2],ry:d[3],a:d[6],mt:d[7],tc:d[9],el:d[14]||0,tool:d[11]||'sword',sh:d[16]||''}});
    if(av.body.toolType!==equipped)setTool(av.body,equipped);menuOn&&drawMenu()}}}
 $('name').value=localStorage.getItem('burgenfall-name')||'';$('code').value=localStorage.getItem('burgenfall-code')||'';
