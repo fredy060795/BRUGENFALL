@@ -34,7 +34,8 @@ export function makeTerrain(material){const TILE=64,SEG=[48,24,10],g=new T.Group
  const up=g.update;g.update=(px,pz,b)=>{g.lx=px;g.lz=pz;up(px,pz,b)};
  material.vertexColors=true;material.color.setHex(0xa9ac7b);
  const grassTex=new T.TextureLoader().load('/textures/Grass_BaseColor.png');grassTex.wrapS=grassTex.wrapT=T.RepeatWrapping;grassTex.colorSpace=T.SRGBColorSpace;grassTex.anisotropy=8;material.map=null;
- material.onBeforeCompile=shader=>{shader.uniforms.grassMap={value:grassTex};shader.uniforms.soilMap={value:surfaceTexture('soil')};shader.uniforms.roadMap={value:surfaceTexture('road')};shader.vertexShader='attribute vec4 gt;varying vec4 vGT;varying vec3 vTerrain;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvTerrain=position;vGT=gt;');shader.fragmentShader='varying vec4 vGT;uniform sampler2D grassMap; uniform sampler2D soilMap; uniform sampler2D roadMap; varying vec3 vTerrain;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+ const SU=material.userData;SU.uSeason=SU.uSeason||{value:1};SU.uSnow=SU.uSnow||{value:0};SU.uAut=SU.uAut||{value:0};
+ material.onBeforeCompile=shader=>{shader.uniforms.uSeason=SU.uSeason;shader.uniforms.uSnow=SU.uSnow;shader.uniforms.uAut=SU.uAut;shader.uniforms.grassMap={value:grassTex};shader.uniforms.soilMap={value:surfaceTexture('soil')};shader.uniforms.roadMap={value:surfaceTexture('road')};shader.vertexShader='attribute vec4 gt;varying vec4 vGT;varying vec3 vTerrain;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvTerrain=position;vGT=gt;');shader.fragmentShader='uniform float uSeason;uniform float uSnow;uniform float uAut;varying vec4 vGT;uniform sampler2D grassMap; uniform sampler2D soilMap; uniform sampler2D roadMap; varying vec3 vTerrain;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
  { vec2 wp=vTerrain.xz; vec3 g1=texture2D(grassMap,wp/3.6).rgb; vec3 g2=texture2D(grassMap,mat2(.8,-.6,.6,.8)*wp/9.7+vec2(.37,.11)).rgb;
    float big=texture2D(grassMap,wp/173.).g; vec3 av=textureLod(grassMap,vec2(.5),12.).rgb; float al=max(.02,dot(av,vec3(.3,.5,.2)));
    vec3 gc=mix(g1,g2,.25+.25*smoothstep(.2,.6,big))/al;gc=mix(vec3(dot(gc,vec3(.33))),gc,1.15); gc=mix(gc,gc*vec3(.92,1.08,.85),.5);
@@ -45,12 +46,40 @@ export function makeTerrain(material){const TILE=64,SEG=[48,24,10],g=new T.Group
    vec3 rockc=vec3(.95,.93,.88)*(.55+.45*l2)*mix(.75,1.15,smoothstep(.6,1.4,lb));
    vec4 w=clamp(vGT,0.,1.); float sw=w.x+w.y+w.z+w.w; if(sw>1.){w/=sw;sw=1.;}
    vec3 base=gc*(1.-sw)+lushc*w.x+dryc*w.y+sandc*w.z+rockc*w.w;
-   diffuseColor.rgb*=clamp(base,0.,2.6)*1.3; }
+   // Bodendetail: Moos-/Kleeflecken und kahle Stellen brechen die Kachelung auf
+   float pa=texture2D(grassMap,wp/31.+vec2(.21,.63)).g/al, pb=texture2D(grassMap,mat2(.6,.8,-.8,.6)*wp/57.).r/al;
+   float green=(1.-sw)+w.x; base*=mix(1.,mix(.86,1.12,smoothstep(.75,1.25,pa)),green);
+   base=mix(base,base*vec3(1.12,1.0,.78),smoothstep(1.15,1.45,pb)*green*.6);
+   // Wiesenblumen (Frühling/Sommer): winzige Farbtupfer in saftigen Wiesen
+   vec2 fc=floor(wp*5.); float fh=fract(sin(dot(fc,vec2(12.9898,78.233)))*43758.5453), fk=fract(fh*13.7);
+   float fl=step(.985-.012*step(uSeason,.5),fh)*step(uSeason,1.5)*green*smoothstep(.9,1.1,pa)*step(length(fract(wp*5.)-.5),.22);
+   base=mix(base,(fk<.4?vec3(1.6,1.6,1.5):fk<.7?vec3(1.7,1.4,.3):fk<.85?vec3(.6,.75,1.6):vec3(1.5,.5,.6)),fl);
+   // Herbst: Gras vergilbt, Laubstreu als Farbtupfer
+   float lt=step(.9-.25*uAut,fract(sin(dot(floor(wp*7.),vec2(39.346,11.135)))*43758.5453))*smoothstep(.85,1.2,pb+.3*uAut)*green;
+   base=mix(base,base*vec3(1.12,.98,.68),uAut*.5*green*smoothstep(.7,1.2,pa+.25));
+   float lk=fract(fh*29.3); base=mix(base,(lk<.4?vec3(1.5,.75,.18):lk<.75?vec3(1.3,.42,.12):vec3(.8,.5,.25)),lt*uAut*step(length(fract(wp*7.)-.5),.3));
+   vec3 res=diffuseColor.rgb*clamp(base,0.,2.6)*1.3;
+   // Winter: geschlossene Schneedecke, an Wegrändern und Felsen dünner, leicht bläuliche Mulden
+   float sn=uSnow*smoothstep(.55,.95,pa*.6+pb*.35+uSnow*.55-w.w*.25-w.z*.15);
+   vec3 snowc=mix(vec3(.80,.85,.95),vec3(1.02,1.03,1.05),smoothstep(.7,1.3,l2));
+   res=mix(res,snowc,clamp(sn,0.,1.));
+   diffuseColor.rgb=res; }
  // Standardstraße entfernt
  `)};g.update(0,0,1e9);return g}
 let seed=931;const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
 const prototypes=[];
 export const leafMats=[];
+// Laub je Jahreszeit: Frühling Blüten, Herbst jedes Blatt eigen gelb/orange/rot/braun und Laubfall, Winter kahl mit wenigen dürren Blättern
+export const TREE_SEASON={aut:{value:0},fall:{value:0},bloom:{value:0}};
+function treeSeasonShader(mat){mat.onBeforeCompile=sh=>{sh.uniforms.uAut=TREE_SEASON.aut;sh.uniforms.uFall=TREE_SEASON.fall;sh.uniforms.uBloom=TREE_SEASON.bloom;
+ sh.fragmentShader='uniform float uAut;uniform float uFall;uniform float uBloom;\n'+sh.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+ #ifdef USE_COLOR
+ float lh=fract(vColor.r*91.7+vColor.g*53.3+vColor.b*17.1),lum=dot(vColor.rgb,vec3(.3,.5,.2))*2.6;
+ if(lh<uFall)discard;
+ vec3 pal=lh<.3?vec3(.86,.64,.12):lh<.55?vec3(.85,.38,.07):lh<.75?vec3(.66,.15,.07):vec3(.48,.32,.13);
+ diffuseColor.rgb=mix(diffuseColor.rgb,pal*lum,uAut);
+ diffuseColor.rgb=mix(diffuseColor.rgb,mix(vec3(1.,.86,.9),vec3(1.,1.,.96),fract(lh*7.))*lum*1.1,uBloom*step(.78,lh));
+ #endif`)}}
 export function forestTree(bark){if(!prototypes.length)for(let style=0;style<4;style++){
  const wood=[],leaves=[];const h=5+style*.7;
  function branch(a,b,r1,r2){const delta=b.clone().sub(a),geo=new T.CylinderGeometry(r2,r1,delta.length(),6);geo.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize()));geo.translate(...a.clone().add(b).multiplyScalar(.5).toArray());wood.push(geo)}
@@ -58,7 +87,7 @@ export function forestTree(bark){if(!prototypes.length)for(let style=0;style<4;s
  for(let j=0;j<13;j++){const angle=j*2.399,by=2+j*.27,reach=1.5+rnd()*1.5;const tip=new T.Vector3(Math.cos(angle)*reach,by+1.4,Math.sin(angle)*reach);branch(new T.Vector3(0,by,0),tip,.09,.018);
  for(let k=0;k<40;k++){const a=rnd()*Math.PI*2,d=Math.sqrt(rnd())*1.2;const p=tip.clone().add(new T.Vector3(Math.cos(a)*d,(rnd()-.4)*1.6,Math.sin(a)*d));const geo=new T.CircleGeometry(.18+rnd()*.16,5);geo.scale(1,.6,1);geo.rotateX(rnd()*Math.PI);geo.rotateY(rnd()*Math.PI);geo.translate(...p.toArray());const tint=new T.Color().setHSL(.19+rnd()*.08,.28+rnd()*.12,.19+rnd()*.14);const cs=[];for(let v=0;v<geo.attributes.position.count;v++)cs.push(tint.r,tint.g,tint.b);geo.setAttribute('color',new T.Float32BufferAttribute(cs,3));leaves.push(geo)}}
  const g=new T.Group();const wm=new T.Mesh(mergeGeometries(wood,false),bark);wm.castShadow=true;wm.receiveShadow=true;g.add(wm);
- const mat=new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:1});leafMats.push(mat);const lm=new T.Mesh(mergeGeometries(leaves,false),mat);lm.castShadow=true;lm.receiveShadow=true;g.add(lm);wood.concat(leaves).forEach(g=>g.dispose());prototypes.push(g)}
+ const mat=new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:1});treeSeasonShader(mat);leafMats.push(mat);const lm=new T.Mesh(mergeGeometries(leaves,false),mat);lm.castShadow=true;lm.receiveShadow=true;g.add(lm);wood.concat(leaves).forEach(g=>g.dispose());prototypes.push(g)}
  const o=prototypes[Math.floor(rnd()*prototypes.length)].clone();const scale=.8+rnd()*.5;o.scale.setScalar(scale);o.rotation.y=rnd()*6.28;return o}
 export function decorate(scene){const group=new T.Group();group.name='Meadow';scene.add(group);
  const sky=new T.Mesh(new T.SphereGeometry(280,24,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{k:{value:1}},vertexShader:'varying vec3 dir;void main(){dir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform float k;varying vec3 dir;void main(){vec3 d=normalize(dir);float h=max(0.,d.y);vec3 c=mix(vec3(.68,.73,.71),vec3(.24,.43,.57),pow(h,.55));float sun=pow(max(0.,dot(d,normalize(vec3(.45,.8,.3)))),180.);c+=vec3(.4,.29,.13)*sun;c=mix(vec3(.012,.018,.045)+vec3(.02,.03,.06)*pow(h,.5),c*(.4+.6*k),k);gl_FragColor=vec4(c,1.);}'}));sky.renderOrder=-2;scene.add(sky);
@@ -68,7 +97,7 @@ export function decorate(scene){const group=new T.Group();group.name='Meadow';sc
   const b=.45,m=.75,t=1.05;Cc.push(b,b,b,b,b,b,m,m,m, b,b,b,m,m,m,m,m,m, m,m,m,m,m,m,t,t,t)}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setAttribute('color',new T.Float32BufferAttribute(Cc,3));g.computeVertexNormals();const n=g.attributes.normal;for(let i=0;i<n.count;i++)n.setXYZ(i,n.getX(i)*.3,1,n.getZ(i)*.3);n.needsUpdate=true;g.normalizeNormals&&0;return g})();
  const mat=new T.MeshStandardMaterial({color:0xffffff,vertexColors:true,side:T.DoubleSide,roughness:1});const grass=new T.InstancedMesh(geo,mat,16000);const d=new T.Object3D(),gcol=new T.Color(),GC={base:new T.Color(0x9aa860),lush:new T.Color(0x6a9a40),dry:new T.Color(0xd0b860),sand:new T.Color(0xbcae70),rock:new T.Color(0x86866a)};
- grass.around=(cx,cz)=>{let count=0;for(let i=0;i<34000&&count<16000;i++){const x=cx+(rnd()-.5)*140,z=cz+(rnd()-.5)*140;if(Math.abs(x)>WORLD_HALF_SIZE+40||Math.abs(z)>WORLD_HALF_SIZE+40)continue;const h=heightAt(x,z);if(h<-.6)continue;const G=Rules.groundAt(x,z);if(rnd()<G.sand*.92||rnd()<G.rock*.8)continue;gcol.copy(GC.base).lerp(GC.lush,G.lush).lerp(GC.dry,G.dry).lerp(GC.sand,G.sand).lerp(GC.rock,G.rock).multiplyScalar(.85+rnd()*.3);d.position.set(x,h,z);d.rotation.y=rnd()*6.28;d.scale.setScalar(.5+rnd());d.updateMatrix();grass.setColorAt(count,gcol);grass.setMatrixAt(count++,d.matrix)}grass.count=count;grass.instanceMatrix.needsUpdate=true;if(grass.instanceColor)grass.instanceColor.needsUpdate=true;grass.cx=cx;grass.cz=cz};grass.around(0,0);group.add(grass);
+ grass.around=(cx,cz)=>{let count=0;for(let i=0;i<34000&&count<16000;i++){const x=cx+(rnd()-.5)*140,z=cz+(rnd()-.5)*140;if(Math.abs(x)>WORLD_HALF_SIZE+40||Math.abs(z)>WORLD_HALF_SIZE+40)continue;const h=heightAt(x,z);if(h<-.6)continue;const G=Rules.groundAt(x,z);if(rnd()<G.sand*.92||rnd()<G.rock*.8)continue;if(grass.mask&&grass.mask(x,z))continue;gcol.copy(GC.base).lerp(GC.lush,G.lush).lerp(GC.dry,G.dry).lerp(GC.sand,G.sand).lerp(GC.rock,G.rock).multiplyScalar(.85+rnd()*.3);d.position.set(x,h,z);d.rotation.y=rnd()*6.28;d.scale.setScalar(.5+rnd());d.updateMatrix();grass.setColorAt(count,gcol);grass.setMatrixAt(count++,d.matrix)}grass.count=count;grass.instanceMatrix.needsUpdate=true;if(grass.instanceColor)grass.instanceColor.needsUpdate=true;grass.cx=cx;grass.cz=cz};grass.around(0,0);group.add(grass);
  const ridge=new T.Group();const mountain=new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0});mountain.onBeforeCompile=sh=>{sh.uniforms.nightK={value:0};mountain.userData.sh=sh;sh.vertexShader='varying float vMH;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvMH=position.y;');sh.fragmentShader='uniform float nightK;varying float vMH;\n'+sh.fragmentShader.replace('#include <fog_fragment>','#ifdef USE_FOG\n float mdd=length(vViewPosition),mfd=max(smoothstep(80.,900.,mdd)*mix(.8,.55,nightK),(1.-smoothstep(0.,55.,vMH))*smoothstep(fogNear,fogFar,mdd));gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,mfd);\n#endif')};ridge.place=()=>{ridge.clear();
   // Gebirgskette rund um die Karte: zusammenhängendes Höhenfeld mit Graten, Fels an Steilhängen, Schneegipfeln, grünen Vorbergen
   const R0=WORLD_HALF_SIZE+45,R1=WORLD_HALF_SIZE+330,NA=Math.round(260*Math.max(1,WORLD_HALF_SIZE/200)),NR=34,F=[];let sw=0;for(let k=0;k<10;k++){const w=.55/(1+k*.55);sw+=w;F.push([2+Math.floor(rnd()*(5+k*7)),rnd()*6.283,(rnd()-.5)*4,w])}
