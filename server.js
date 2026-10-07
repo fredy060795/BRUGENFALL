@@ -87,6 +87,41 @@ BD.mint=J(6,5,{stone:45,wood:20,iron:6},900,{jobs:{minter:2},prod:{every:45,in:{
 Object.assign(BN,{mint:'Münzprägerei',bower:'Bogenbauer',armorer:'Rüstungsmacher',armory:'Waffenkammer',granary:'Nahrungsmittellager'});
 Object.assign(BD,{pyre:J(3,3,{wood:20,stone:5},200),gallows:J(3,2,{wood:25},180),plaza:J(12,12,{stone:40,wood:15},500,{plaza:1})});
 Object.assign(BN,{pyre:'Scheiterhaufen',gallows:'Galgen',plaza:'Marktplatz'});
+// ===== Marktplatz in doppelter Länge: Fest- und Turniergelände (Jahrmarkt mit Ständen, Ritterturnier mit Tribünen) =====
+BD.plaza.w=24;BD.plaza.d=12;BD.plaza.c={stone:70,wood:30};
+const TNY_PASS=10,TNY_CLASH=4.2,TNY_INTRO=25,TNY_END=20,TNY_BET=25,TNY_HOST=150,FAIR_HOST=80;
+const TNY_FIRST=['Konrad','Ulrich','Heinrich','Gottfried','Rudolf','Albrecht','Leopold','Wolfram','Dietrich','Hartmann','Eberhard','Otto','Friedrich','Walther'];
+const TNY_HIT=['verfehlt','bricht die Lanze am Schild von','trifft den Helm von','wirft aus dem Sattel:'];
+// Siegchance grob ∝ Geschick³ → Wettquote
+function tnyOdds(T){const W=T.k.map(q=>Math.pow(q.s,3)),S=W.reduce((a,b)=>a+b,0);T.k.forEach((q,i)=>q.od=Math.max(1.3,Math.round(.9/(W[i]/S)*10)/10))}
+function startTourney(r,why){const pick=a=>a.splice(Math.random()*a.length|0,1)[0],first=[...TNY_FIRST],orig=[...((r.map&&r.map.towns)||[]).map(t=>t.n),'Falkenau','Steinach','Wolfsegg','Rabenhorst','Greifenberg'],cols=[0,1,2,3,4,5,8,9];
+ const k=[];while(k.length<4)k.push({n:'Ritter '+pick(first)+' von '+pick(orig),s:+(.42+Math.random()*.3).toFixed(2),c:pick(cols),a:Math.random()*8|0});
+ r.tny={k,bets:{},ph:'intro',t:TNY_INTRO,m:0,pairs:[[0,1],[2,3]],pass:0,pt:0,o:[0,0],sc:[0,0],res:false,w:[],ch:-1};tnyOdds(r.tny);
+ r.plazaEvent='tourney';r.plazaEventT=999;const pl=r.b.find(b=>b.t==='plaza');
+ say(r,'🏇 '+(why||'Ritterturnier')+' auf dem Marktplatz! Es treten an: '+k.map(q=>q.n+' (Quote '+q.od+')').join(', ')+' – Wetten am Marktplatz, zu Pferd selbst antreten',pl)}
+function tnyPass(T){const roll=s=>{if(Math.random()>s)return 0;const x=Math.random();return x<.12?3:x<.38?2:1},[a,b]=T.pairs[T.m];T.o=[roll(T.k[a].s),roll(T.k[b].s)];T.pt=0;T.res=false}
+function tnyMatchEnd(r,T){const [a,b]=T.pairs[T.m];let w;if(T.o[0]===3&&T.o[1]!==3)w=a;else if(T.o[1]===3&&T.o[0]!==3)w=b;else if(T.sc[0]!==T.sc[1])w=T.sc[0]>T.sc[1]?a:b;else return false;
+ T.w.push(w);const l=w===a?b:a;say(r,'🏆 '+T.k[w].n+' besiegt '+T.k[l].n+' ('+Math.max(...T.sc)+':'+Math.min(...T.sc)+')'); 
+ T.m++;T.pass=0;T.sc=[0,0];if(T.m===2)T.pairs.push([T.w[0],T.w[1]]);if(T.m>2){tnyFinish(r,T,w);return true}tnyPass(T);return true}
+function tnyFinish(r,T,w){T.ch=w;T.ph='end';T.t=TNY_END;const K=T.k[w],watch=r.n.filter(n=>n.vis&&n.vis.kind==='plaza').length,fee=30+watch*4;
+ r.gold+=fee;r.fame=(r.fame||0)+4;(r.fests||(r.fests={})).tnyH=r.dy;let msg='👑 '+K.n+' gewinnt das Turnier! Eintritt & Zuschauer bringen '+fee+' Gold, Ansehen +4';
+ if(K.pl){r.gold+=100;r.fame+=3;msg+=' – Siegprämie 100 Gold für die eigene Stadt!'}
+ for(const nm in T.bets){const B=T.bets[nm];if(B===w){const win=Math.round(TNY_BET*K.od);r.gold+=win;msg+=' · '+nm+' gewinnt die Wette: +'+win+' Gold'}}
+ say(r,msg);r.dirty=true}
+function tourneyTick(r,dt){const T=r.tny;if(!T){if(r.plazaEvent==='tourney'){r.plazaEvent=0;r.plazaEventT=0}return}if(r.plazaEvent!=='tourney'||!r.b.some(b=>b.t==='plaza')){r.tny=null;if(r.plazaEvent==='tourney'){r.plazaEvent=0;r.plazaEventT=0}return}
+ r.plazaEventT=999;
+ if(T.ph==='intro'){T.t-=dt;if(T.t<=0){T.ph='joust';T.m=0;T.pass=0;T.sc=[0,0];const [a,b]=T.pairs[0];say(r,'📯 Der Herold ruft zum ersten Lanzengang: '+T.k[a].n+' gegen '+T.k[b].n);tnyPass(T)}return}
+ if(T.ph==='end'){T.t-=dt;if(T.t<=0){r.tny=null;r.plazaEvent=0;r.plazaEventT=0}return}
+ T.pt+=dt;const [a,b]=T.pairs[T.m];
+ if(!T.res&&T.pt>=TNY_CLASH){T.res=true;T.sc[0]+=T.o[0];T.sc[1]+=T.o[1];const f=(x,y,v)=>v?T.k[x].n.split(' von ')[0]+' '+TNY_HIT[v]+' '+T.k[y].n.split(' von ')[0]:'';const s=[f(a,b,T.o[0]),f(b,a,T.o[1])].filter(Boolean);say(r,'⚔ '+(T.pass+1)+'. Lanzengang: '+(s.length?s.join(' · '):'beide verfehlen')+' – Punkte '+T.sc[0]+':'+T.sc[1])}
+ if(T.pt>=TNY_PASS){const unh=T.o.includes(3);if(unh||T.pass>=2){if(tnyMatchEnd(r,T))return;if(T.pass>=4){T.sc[Math.random()<T.k[a].s/(T.k[a].s+T.k[b].s)?0:1]+=1;tnyMatchEnd(r,T);return}say(r,'🔁 Gleichstand – Stechen!')}
+  if(T.ph==='joust'){T.pass++;tnyPass(T)}}}
+function fairTick(r,dt){if(r.plazaEvent!=='circus'){if(r.fairOn){r.fairOn=0;(r.fests||(r.fests={})).fairH=r.dy;say(r,'🎪 Der Jahrmarkt ist vorbei – Standgebühren insgesamt: '+(r.fairG|0)+' Gold, die Leute reden noch lange davon')}return}
+ if(!r.fairOn){r.fairOn=1;r.fairG=0;r.fairT=0}r.fairT+=dt;if(r.fairT>=15){r.fairT=0;const g=3+Math.min(6,r.n.filter(n=>n.vis&&n.vis.kind==='plaza').length);r.gold+=g;r.fairG+=g;r.dirty=true}}
+// Zuschauerplätze (lokal): Turnier = hinter der Absperrung auf der Südseite, Jahrmarkt = Gasse zwischen den Ständen
+function plazaSpot(r,n){const T=r.plazaEvent;if(T==='tourney'){const i=n.i|0,side=i%2?1:-1,col=(i>>1)%6;return{lx:side*(3.4+col*.85),lz:3.1+((i>>3)%2)*.8,fx:side*(3.4+col*.85),fz:0}}
+ if(T==='circus'){const lx=(n.i%2?1:-1)*(2.6+Math.abs(Math.sin(n.i*2.1))*6.6),lz=Math.cos(n.i*1.7)*1.5;return{lx,lz,fx:lx,fz:lz>0?4.5:-4.5}}
+ return null}
 BD.chapel.w=6;BD.chapel.d=8;BD.market.d=8;
 // Kirchen haben einen eigenen Friedhof: Totengräber gehört dorthin
 for(const k of['chapel','church','cathedral'])BD[k].jobs={...(BD[k].jobs||{}),gravedigger:1};BD.cemetery.graves=40;
@@ -414,9 +449,11 @@ function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))r
  else if(act==='d')shoot(r,n,t,1)
  else if(act==='m'){t.hp-=1+r.tl.pick;r.inv.stone+=1+r.tl.pick;if(t.hp<=0){t.ex=1;t.rg=0;r.inv.stone+=5;r.dt=true}}
  else{t.hp-=1+r.tl.axe;r.inv.wood+=1+r.tl.axe;if(t.hp<=0){r.tr=r.tr.filter(o=>o!==t);r.inv.wood+=4;r.dt=true}}}
-const FLAM=b=>!['wall','battle','tower','gate','portcullis','keep','cathedral','garrison','dungeon','torture','well','bridge','moat','chapel','quarry','ironmine','coppermine'].includes(b.t);
+// Wasserstellen zum Löschen: Brunnen und der Springbrunnen in der Mitte des Marktplatzes (Schöpfstelle am Beckenrand)
+const waterPts=r=>r.b.filter(b=>b.t==='well').concat(r.b.filter(b=>b.t==='plaza').map(b=>({...fp(b,0,2.1),id:b.id,t:'plaza'})));
+const FLAM=b=>!['wall','battle','tower','gate','portcullis','keep','cathedral','garrison','dungeon','torture','well','bridge','moat','chapel','quarry','ironmine','coppermine','plaza','field','cemetery'].includes(b.t);
 function ignite(r,b,why){if(b.fire>0||!FLAM(b))return false;b.fire=100;b.sp=0;r.dirty=true;say(r,'🔥 '+(why||'Feuer!')+' '+BN[b.t]+' brennt!'+(r.wells>0?'':' – ohne Brunnen kann niemand löschen'),b);return true}
-function events(r,dt,bm,stf){r.wells=r.b.filter(b=>b.t==='well').length;r.fires=r.b.filter(b=>b.fire>0);
+function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.fires=r.b.filter(b=>b.fire>0);
  if(r.omen>0){r.omen-=dt;const targets=omenTargets(r);for(const n of targets)n.omT=(n.omT||0)+dt;
   if(r.omen<=0){for(const n of r.n){n.om=0;n.omT=0}r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}
   else if(targets.length){r.omenRise=(r.omenRise||0)+dt*(r.holy?.45:1);if(r.omenRise>=30){r.omenRise=0;triggerOmenVictim(r)}}
@@ -430,6 +467,7 @@ function events(r,dt,bm,stf){r.wells=r.b.filter(b=>b.t==='well').length;r.fires=
  const sk=r.n.filter(n=>n.sk);for(const a of sk)for(const o of r.n)if(!o.sk&&!((o.imm|0)>r.dy)&&!SICK_IMMUNE.has(o.k)&&dist(a,o)<4&&Math.random()<.015*dt*(r.bl===r.dy?.3:1)){o.sk=Math.min(2,Math.max(1,a.sk|0));o.sickStage=0;say(r,'🤒 Ein weiterer Bewohner ist erkrankt')}
  r.et-=dt;if(r.ev.on&&r.ev.every>0&&r.et<=0){r.et=r.ev.every*rnd(.7,1.3);const kinds=['fire','sick','omen','rats','thieves','ambush'].filter(k=>r.ev[k]);if(kinds.length)trigger(r,kinds[Math.random()*kinds.length|0])}
  // Marktplatz-Saison / Events
+ tourneyTick(r,dt);fairTick(r,dt);
  if(r.plazaEventT>0){r.plazaEventT-=dt;if(r.plazaEventT<=0){r.plazaEvent=0;r.plazaEventT=0}}
  else if(r.b.some(b=>b.t==='plaza')){
    const se=season(r); // 0 Frühling 1 Sommer 2 Herbst 3 Winter
@@ -437,6 +475,7 @@ function events(r,dt,bm,stf){r.wells=r.b.filter(b=>b.t==='well').length;r.fires=
    const yr=Math.floor((r.dy||0)/(4*((r.ev&&r.ev.sl)||4))),F=r.fests||(r.fests={}),pl=r.b.find(b=>b.t==='plaza'),once=k=>F[k]!==yr;
    if(se===0&&once('maypole')&&r.hr>10&&r.hr<14&&Math.random()<.004){F.maypole=yr;r.plazaEvent='maypole';r.plazaEventT=120;say(r,'🌳 Maibaum auf dem Marktplatz – die Dorfbewohner tanzen!',pl)}
    else if(se===1&&once('circus')&&r.hr>9&&r.hr<16&&Math.random()<.004){F.circus=yr;r.plazaEvent='circus';r.plazaEventT=240;say(r,'🎪 Jahrmarkt! Gaukler und Zirkus besuchen den Marktplatz (einmal im Jahr)',pl)}
+   else if(se===2&&once('tourney')&&r.hr>9&&r.hr<14&&Math.random()<.004){F.tourney=yr;startTourney(r,'Herbstturnier')}
    else if(se===3&&once('tree')&&r.hr>14&&r.hr<18&&Math.random()<.004){F.tree=yr;r.plazaEvent='tree';r.plazaEventT=160;say(r,'🎄 Weihnachtsbaum auf dem Marktplatz',pl)}
  }
 }
@@ -501,7 +540,7 @@ function tick(r,dt){Rules.setWorldConfig(r.map||DEFAULT_MAP);const dayBefore=r.d
  for(const c of r.co)c.t+=dt;corpsePlague(r,dt);
  // Beliebtheit wie in Stronghold: jeder Faktor einzeln (fürs Stadtbuch), Wert pendelt langsam auf das Ziel
  const HF=[['Grundstimmung',40]],hf=(l,v)=>{if(v)HF.push([l,Math.round(v)])};let tv=0,rel=0;for(const b of r.b){if(b.t==='tavern'&&stf[b.id]&&food(r)>=1)tv=Math.max(tv,25+(r.beer?10:0));if(stf[b.id])rel=Math.max(rel,{chapel:20,church:25,cathedral:30}[b.t]||0)}
- hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);hf('Bankett im Bergfried',r.bqd!=null&&r.dy-r.bqd<=1?18:0);
+ hf('Taverne',tv);hf('Glaube (Kirche mit Priester)',rel);hf('Brunnen',Math.min(8,2*r.b.filter(b=>b.t==='well').length));hf('Marktplatz',r.b.some(b=>b.t==='plaza')?5:0);hf('Segen nach dem Gebet',r.bl===r.dy?8:0);hf('Bankett im Bergfried',r.bqd!=null&&r.dy-r.bqd<=1?18:0);{const F=r.fests||{};hf('Ritterturnier',F.tnyH!=null&&r.dy-F.tnyH<=1?15:0);hf('Jahrmarkt',r.plazaEvent==='circus'||(F.fairH!=null&&r.dy-F.fairH<=1)?10:0)}
  hf('Kranke',-Math.min(15,3*r.n.filter(n=>n.sk).length));hf('Böse Omen ohne Kirche',r.omen>0&&!r.holy?-15:0);hf('Unbestattete Tote',-Math.min(25,5*r.co.filter(c=>c.t>30).length));
  hf('Nahrungsvorrat knapp',food(r)<4?-20:0);hf('Fehlende Rationen',-Math.min(20,(r.foodShortage||0)*2));hf('Fehlendes Heizholz',-Math.min(15,(r.heatShortage||0)*3));hf('Ansehen',Math.min(10,r.fame*.5));
  hf('Steuern ('+['niedrig','mittel','hoch'][r.tax??1]+')',[12,0,-18][r.tax??1]);hf('Rationen ('+['großzügig','normal','hungern'][r.ration??1]+')',[15,0,-20][r.ration??1]);
@@ -555,10 +594,10 @@ r.wt-=dt;if(r.wt<=0){
    if(n.insideId&&n.insideId!==C.id){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))continue}
    if(si<I.seats.length){const S=I.seats[si];if(enterBuilding(n,C,{...fp(C,S[0],S[1]),ry:S[2]+rr},dt))n.ps=12;continue}
    const k=si-I.seats.length,P=fp(C,((k%6)-2.5)*.95,BD[C.t].d/2+2.2+Math.floor(k/6)*.95);if(dist(n,P)>.15)mv(n,P.x,P.z,3,dt);else{n.ry=Math.PI+rr;n.pr=1}continue}
-  if(n.vis&&(T.job||n.k==='peasant')){const plaza=n.vis.kind==='plaza'&&r.plazaEvent?r.b.find(b=>b.t==='plaza'):null,mk=r.b.find(b=>b.t==='market'),spot=plaza||mk;if(!spot||r.hr<7||r.hr>18)n.vis=null;else{const P=plaza?fp(spot,Math.sin(n.i*2.1)*3.4,Math.cos(n.i*1.7)*3.2):fp(spot,((n.i*7)%5)-2,BD.market.d/2+1.5+(n.i%2));if(dist(n,P)>1.2)mv(n,P.x,P.z,2.6,dt);else{n.ry=plaza?((r.tk+n.id)%2?Math.PI*.5:-Math.PI*.5):Math.PI;n.pr=plaza&&r.plazaEvent==='maypole'?1:0;n.vis.t-=dt;if(n.vis.t<=0){n.vis=null;r.gold+=plaza?1:3}}continue}}
+  if(n.vis&&(T.job||n.k==='peasant')){const plaza=n.vis.kind==='plaza'&&r.plazaEvent?r.b.find(b=>b.t==='plaza'):null,mk=r.b.find(b=>b.t==='market'),spot=plaza||mk;if(!spot||r.hr<7||r.hr>18)n.vis=null;else{const Q=plaza&&plazaSpot(r,n),P=Q?fp(spot,Q.lx,Q.lz):plaza?fp(spot,Math.sin(n.i*2.1)*3.4,Math.cos(n.i*1.7)*3.2):fp(spot,((n.i*7)%5)-2,BD.market.d/2+1.5+(n.i%2));if(dist(n,P)>1.2)mv(n,P.x,P.z,2.6,dt);else{if(Q){const F2=fp(spot,Q.fx,Q.fz);n.ry=Math.atan2(F2.x-n.x,F2.z-n.z)}else n.ry=plaza?((r.tk+n.id)%2?Math.PI*.5:-Math.PI*.5):Math.PI;n.pr=plaza&&r.plazaEvent==='maypole'?1:0;n.vis.t-=dt;if(n.vis.t<=0){n.vis=null;r.gold+=plaza?1:3}}continue}}
   if((T.job||n.k==='peasant')&&r.fires.length&&r.wells>0&&!n.tr){
     // Eimerkette: zum Brunnen → Wasser holen → zum Brand → löschen → wiederholen
-    const fb=near(n,r.fires,90),wells=r.b.filter(b=>b.t==='well');
+    const fb=near(n,r.fires,90),wells=waterPts(r);
     if(fb&&wells.length){
       if(!n.bucket){ // leer: zum nächsten Brunnen
         const w=near(n,wells,1e9);
@@ -633,7 +672,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
   n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.id===bishopId(r,n.wb)?1:0,n.torch&&SOLDIER.includes(n.k)?1:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
   w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),
-  evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,bq:r.banq?1:0,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
+  evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,tny:r.tny?{k:r.tny.k.map(q=>[q.n,q.c,q.od,q.pl?1:0,q.a]),ph:r.tny.ph,t:Math.round(r.tny.t),pr:r.tny.pairs[Math.min(r.tny.m,r.tny.pairs.length-1)],p:r.tny.pass,pt:+r.tny.pt.toFixed(2),o:r.tny.o,sc:r.tny.sc,ch:r.tny.ch,b:r.tny.bets}:0,fair:r.plazaEvent==='circus'?r.fairG|0:-1,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,bq:r.banq?1:0,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
  if(r.tk%10===1){m.act=r.b.filter(b=>b.act&&r.tk-b.act<25).map(b=>b.id);m.lg={};for(const b of r.b)if(b.lg)m.lg[b.id]=b.lg}
  if(r.tk%10===1){m.hapF=r.hapF||[];m.hapT=Math.round(r.hapT||0);m.imm2=r.immWhy||'';m.tax2=r.lastTax||0;m.food2=Math.round(food(r))}
  if(r.tk%20===1||r.decoT){r.decoT=false;m.eco=friendTowns(r).map(t=>{const e=ecoAt(r,t.n)||{st:{},pop:0,sp:0};return[t.n,e.pop,Math.round((e.sick||0)*100),e.omen?1:0,Math.round(e.st.food||0),SPEC[e.sp][0],Math.round(e.mood||0)]})}
@@ -868,6 +907,12 @@ wss.on('connection',ws=>{let r,p;
    const miss=Object.entries(need).filter(([k,n])=>n>0&&inv(r,k)<n);if(miss.length){ws.send(JSON.stringify({t:'prof',ch:p.ch}));return tell(p,'Noch nicht hergestellt: '+miss.map(([k,n])=>n+'× '+GN[k]).join(', ')+' – Weberei/Schmiede/Rüstungsmacher')}
    for(const k in need)r.inv[k]=(r.inv[k]||0)-need[k];r.dirty=true}p.ch=m.ch}
   else if(m.t==='bstaff'){const b=r.b.find(b=>b.id===m.b);if(!b||!jobsOf(b))return;b.off=m.on?0:1;r.dirty=true;if(b.off){for(const n of r.n)if(n.wb===b.id&&n.hp>0){n.hp=0;n.conv=1;const q=mkNpc(r,'peasant',n.x,n.z,n.o);q.ry=n.ry}say(r,'Besetzung von '+BN[b.t]+' abgeschaltet – Arbeiter sind wieder frei')}else say(r,'Besetzung von '+BN[b.t]+' automatisch')}
+  else if(m.t==='tnyHost'||m.t==='fairHost'){const pl=r.b.find(b=>b.t==='plaza');if(!pl||dist(pl,p)>40)return tell(p,'Feste richtest du auf dem Marktplatz aus');if(r.plazaEvent)return tell(p,'Auf dem Marktplatz ist bereits etwas im Gange');if(r.hr<8||r.hr>16)return tell(p,'Feste beginnen nur tagsüber (8–16 Uhr)');
+   const F=r.fests||(r.fests={}),fair=m.t==='fairHost',key=fair?'fairD':'tnyD',cost=fair?FAIR_HOST:TNY_HOST;if(F[key]!=null&&r.dy-F[key]<2)return tell(p,(fair?'Der letzte Jahrmarkt':'Das letzte Turnier')+' ist erst kurz her – frühestens in '+(2-(r.dy-F[key]))+' Tag(en) wieder');if(!r.creative&&r.gold<cost)return tell(p,(fair?'Ein Jahrmarkt':'Ein Turnier')+' kostet '+cost+' Gold');
+   if(!r.creative)r.gold-=cost;F[key]=r.dy;r.dirty=true;if(fair){r.plazaEvent='circus';r.plazaEventT=240;say(r,'🎪 '+p.name+' lädt zum Jahrmarkt: Händler und Aussteller bauen ihre Stände auf dem Marktplatz auf!',pl)}else startTourney(r,p.name+' richtet ein Ritterturnier aus')}
+  else if(m.t==='tnyBet'){const T=r.tny,i=m.i|0;if(!T||T.ph!=='intro')return tell(p,'Wetten nimmt der Herold nur vor dem ersten Lanzengang an');if(!T.k[i])return;if(T.bets[p.name]!=null)return tell(p,'Du hast bereits gewettet');if(!r.creative&&r.gold<TNY_BET)return tell(p,'Eine Wette kostet '+TNY_BET+' Gold');if(!r.creative)r.gold-=TNY_BET;T.bets[p.name]=i;r.dirty=true;say(r,'🪙 '+p.name+' wettet '+TNY_BET+' Gold auf '+T.k[i].n+' (Quote '+T.k[i].od+')')}
+  else if(m.t==='tnyJoin'){const T=r.tny,pl=r.b.find(b=>b.t==='plaza');if(!T||T.ph!=='intro')return tell(p,'Anmelden kann man sich nur vor dem ersten Lanzengang');if(!p.mt)return tell(p,'Zum Tjost musst du zu Pferd sitzen');if(!pl||dist(pl,p)>40)return tell(p,'Melde dich beim Herold am Marktplatz an');if(T.k.some(q=>q.pl===p.name))return tell(p,'Du bist bereits angemeldet');const i=T.k.findIndex(q=>!q.pl);if(i<0)return tell(p,'Alle Plätze sind besetzt');
+   const bag=p.bag||{},arm=(bag.plate?.12:0)+(bag.mail?.06:0)+(bag.breast?.05:0)+(bag.helmet?.03:0);T.k[i]={n:p.name,s:+Math.min(.85,.55+arm).toFixed(2),c:p.fc|0,a:p.coa|0,pl:p.name};tnyOdds(T);for(const nm in T.bets)if(T.bets[nm]===i)delete T.bets[nm];say(r,'🛡 '+p.name+' tritt selbst im Turnier an!');r.dirty=true}
   else if(m.t==='banquet'){const kp=r.b.find(b=>b.t==='keep');if(!kp||dist(kp,p)>30)return tell(p,'Ein Bankett richtest du im Bergfried aus');if(r.banq)return tell(p,'Das Bankett ist bereits im Gange');if(r.bqd!=null&&r.dy-r.bqd<2)return tell(p,'Das letzte Bankett ist erst kurz her – frühestens in '+(2-(r.dy-r.bqd))+' Tag(en) wieder');
    const FOOD=['roast','meat','bread','apples','sausage','smoked','cheese'],have=r.creative?99:FOOD.reduce((a,k)=>a+(r.inv[k]|0),0);if(!r.creative&&r.gold<120)return tell(p,'Ein Bankett kostet 120 Gold');if(have<8)return tell(p,'Für ein Bankett braucht es 8 Speisen im Lager (Braten, Fleisch, Brot, Äpfel, Wurst, Käse …)');
    if(!r.creative)r.gold-=120;let need=r.creative?0:8;for(const k of FOOD){if(!need)break;const t=Math.min(need,r.inv[k]|0);r.inv[k]-=t;need-=t}r.bqd=r.dy;r.fame=(r.fame||0)+3;

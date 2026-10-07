@@ -1,3 +1,7 @@
+# Burgenfall 8.33
+
+Marktplatz doppelt so lang mit mittelalterlichem Laufbrunnen (Löschwasser), Jahrmarkt mit Händler- und Ausstellerständen, Ritterturnier mit Tribünen, Wetten und eigener Teilnahme, echte Herbst-/Winteroptik, neue Bodengestaltung; Linz als eigene, bearbeitbare Karte. Siehe AENDERUNGEN_8_33.md.
+
 # Burgenfall 8.27
 
 Realistischer Bau (Fundament → Rahmen → Wände → Dach, Hammer, Holzkarren), Inventar mit Tragkraft, Werkzeugbau und Verschleiß, Erkerhäuser, neuer Dom, flache Welt, freies Drehen, Umland-Ökosystem. Siehe AENDERUNGEN_8_27.md.
