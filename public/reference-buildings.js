@@ -310,9 +310,18 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
  if(k==='tannery'){for(const x of[-1.5,1.5]){cylinder(.55,.6,x,.3,-.8,H.wood);cylinder(.47,.03,x,.62,-.8,H.dark);for(const xx of[x-.6,x+.6])box(.12,2,.12,xx,1,1,H.wood);box(1.1,.12,.1,x,1.95,1,H.wood);box(.9,1.25,.045,x,1.15,1,H.thatch)}}
  if(k==='weaver'){for(const x of[-1.8,-.5])box(.13,2,.13,x,1,-.8,H.wood);for(const y of[.4,1.8])box(1.5,.12,.14,-1.15,y,-.8,H.wood);for(let x=-1.7;x<-.55;x+=.08)beam([x,.45,-.8],[x,1.75,-.8],.015,H.plaster);table(1.5,-.8);box(1.3,.06,.6,1.5,.97,-.8,H.green);basket(1.55,-.12,.2,.65,.42,(x,y,z)=>{for(const dx of[-.12,.03,.18]){const geo=new T.SphereGeometry(.11,8,6);geo.translate(x+dx,y+.03,z+((dx*10)%2)*.03);staticMesh(geo,H.plaster)}});box(1.4,.03,.7,1.55,1.45,-.8,H.redRoof);box(1.4,.03,.7,1.55,1.23,-.74,H.green)}
  if(k==='tavern'){chimney(-2,-1.8,5.5);for(const x of[-2.6,2.6])window(x,4.1,3.03);{const TI=globalThis.BFRules.interior('tavern');for(const[x,z]of TI.tables){table(x,z);for(const bz of[z-.62,z+.62]){box(1.4,.07,.3,x,.45,bz,H.wood);for(const lx of[-.55,.55])box(.07,.42,.24,x+lx,.21,bz,H.wood)}plate(x-.4,z-.15);plate(x+.4,z+.15);mug(x-.2,z+.2);mug(x+.25,z-.2)}
-  const[cx,cz,cw]=TI.counter;box(cw,1.05,.6,cx,.52,cz,H.wood,true);box(cw+.1,.06,.7,cx,1.07,cz,H.wood);for(const x of[-1,0,1])mug(cx+x*.5,cz,1.12);
+  const[cx,cz,cw]=TI.counter,TE=['steinzeit','hallstatt'].includes(era)?'pre':era==='roemer'?'rom':null,clay=COLM.get('tclay')||(COLM.set('tclay',new T.MeshStandardMaterial({color:0x9a5a36,roughness:.9})),COLM.get('tclay')),
+   jar=(x,z,s=1)=>{const g2=new T.LatheGeometry([[0,0],[.12*s,.03],[.24*s,.25*s],[.22*s,.5*s],[.1*s,.68*s],[.11*s,.75*s],[0,.75*s]].map(q=>new T.Vector2(q[0],q[1])),12);g2.translate(x,0,z);staticMesh(g2,clay)};
+  if(TE==='pre'){   // Feuerhalle: Feuerstelle mit Steinkranz, Baumstamm-Tresen, Tonkrüge, Holzschalen, Felle
+   box(cw,.6,.5,cx,.3,cz,H.wood,true);for(const x of[-1,0,1]){const b=new T.CylinderGeometry(.12,.08,.07,10);b.translate(cx+x*.5,.64,cz);staticMesh(b,H.wood)}
+   for(let i=0;i<10;i++){const a=i/10*Math.PI*2,st=new T.DodecahedronGeometry(.13,0);st.translate(Math.cos(a)*.55,.08,-1.6+Math.sin(a)*.55);staticMesh(st,H.stone)}{const f=new T.Mesh(new T.ConeGeometry(.25,.6,7),new T.MeshBasicMaterial({color:0xff9a3a}));f.position.set(0,.3,-1.6);g.add(f)}
+   for(const [x,z]of[[-3.4,-2.4],[3.4,-2.4],[-3.4,-1.7],[3.2,-1.7]])jar(x,z);for(const x of[-2,2])box(1.2,.04,.8,x,.02,-2.5,COLM.get('pelt0')||(COLM.set('pelt0',new T.MeshStandardMaterial({color:0x6a4e34,roughness:1})),COLM.get('pelt0')))}
+  else if(TE==='rom'){   // Thermopolium: gemauerter Tresen mit eingelassenen Töpfen (dolia), Amphoren an der Wand, Becherbord
+   box(cw,1.0,.7,cx,.5,cz,H.plaster,true);box(cw+.1,.07,.8,cx,1.03,cz,H.stone);for(const x of[-1,0,1]){cylinder(.2,.03,cx+x*.6,1.07,cz,COLM.get('dolhole')||(COLM.set('dolhole',new T.MeshStandardMaterial({color:0x2a1a12,roughness:1})),COLM.get('dolhole')),14)}
+   for(const x of[-3.4,-2.9,2.9,3.4])jar(x,-2.6,1.4);box(1.6,.04,.25,0,1.7,-2.88,H.wood);for(const x of[-.6,-.2,.2,.6])cylinder(.05,.1,x,1.77,-2.88,clay,10)}
+  else{box(cw,1.05,.6,cx,.52,cz,H.wood,true);box(cw+.1,.06,.7,cx,1.07,cz,H.wood);for(const x of[-1,0,1])mug(cx+x*.5,cz,1.12);
   for(const x of[-1.1,1.1]){box(.8,.4,.6,x,.2,-2.6,H.wood);const geo=new T.CylinderGeometry(.3,.3,.65,12);geo.rotateZ(Math.PI/2);geo.translate(x,.72,-2.6);staticMesh(geo,H.wood);cylinder(.03,.12,x+.33,.62,-2.6,H.brass,6)}   // liegende Zapffässer
-  barrel(-3.4,-2.4);barrel(3.4,-2.4);barrel(-3.4,-1.7);box(1.6,.04,.25,0,1.7,-2.88,H.wood);for(const x of[-.6,-.2,.2,.6])mug(x,-2.88,1.74)}
+  barrel(-3.4,-2.4);barrel(3.4,-2.4);barrel(-3.4,-1.7);box(1.6,.04,.25,0,1.7,-2.88,H.wood);for(const x of[-.6,-.2,.2,.6])mug(x,-2.88,1.74)}}
  box(1.2,.9,.12,2.5,2.3,3.15,H.wood);cylinder(.23,.35,2.5,2.3,3.3,H.brass);box(2.4,.08,.12,0,2.1,3.12,H.wood);for(const x of[-.8,0,.8])mug(x,3.14,2.1)}
  if(k==='fishery'){awning(2.2,1.8,2.1,-1.3,1.3,H.thatch);for(let x=-2;x<-.4;x+=.18)beam([x,.4,1.5],[x,1.8,1.5],.025,H.plaster);for(const y of[.5,.8,1.1,1.4,1.7])beam([-2,y,1.5],[-.4,y,1.5],.025,H.plaster);barrel(1.6,-1);}
  if(k==='storage')for(const x of[-2,-1,1,2])box(.75,.8,.75,x,.4,-1.4,H.wood,true);
@@ -320,8 +329,23 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
  else if(k==='lodge'){for(const [x,z]of[[-1.5,-1],[1.5,-1],[-1.5,1.3],[1.5,1.3]])box(.16,2.5,.16,x,1.25,z,H.wood,true);roof(3.5,3.6,2.1,1.5,H.thatch,0,-.2,H.wood);box(3.5,2.1,.2,0,1.05,-2,H.wood,true);table(0,.5);beam([-2,0,1.6],[-2,2,1.6]);beam([2,0,1.6],[2,2,1.6]);beam([-2,2,1.6],[2,2,1.6]);const hide=new T.Mesh(new T.SphereGeometry(1,10,8),H.wood);hide.scale.set(.5,.8,.07);hide.position.set(.5,1.05,1.6);g.add(hide);}
  else if(['quarry','ironmine','coppermine'].includes(k)){const ore=k==='ironmine'?H.iron:k==='coppermine'?H.brass:H.stone;box(4.8,.18,3.8,0,.09,0,H.floor);for(const x of[-1.8,1.8]){box(.28,4,.28,x,2,0,H.wood,true);beam([x,0,-1.5],[x,3.4,0],.2);beam([x,0,1.5],[x,3.4,0],.2)}beam([-2.1,3.8,0],[2.1,3.8,0],.35);beam([0,3.8,0],[0,1.1,0],.065,H.iron);box(1.3,1,1.1,0,.6,0,ore,true);for(const x of[-1.6,1.6])box(.8,.45,.6,x,.35,1.2,ore,true);const wheel=new T.Mesh(new T.TorusGeometry(.65,.09,6,20),H.wood);wheel.position.set(-1.8,1.6,.25);g.add(wheel);orePile(-1.55,-1.1,4,ore);orePile(1.55,-1.15,4,ore);crate(1.9,1.75,.25,.9,.45,.65,H.wood)}
  else if(k==='keep'){
- if(lv===0){shell(9,8,4.2,H.wood,2.4);framing(9,8,4.2);roof(9,8,4.2,3,H.thatch);box(2.6,8,2.6,4.1,4,-2.7,H.wood,true);box(3,.2,3,4.1,8.05,-2.7,H.floor);crown(3,3,8.15,H.wood,4.1,-2.7);g.walkAreas.push([4.1,-2.7,1.5,1.5,8.15]);}
- else{const y=lv===1?9.3:11.3,mat=lv===1?H.wood:H.stone;shell(10,8,y,mat,2.4);box(10,.2,8,0,y-.1,0,H.floor);crown(10,8,y,mat);g.walkAreas.push([0,0,5,4,y]);for(const x of[-4.7,4.7])for(const z of[-3.7,3.7]){box(.5,y+.3,.5,x,y/2,z,mat);if(lv>=3){cylinder(.7,y+1.2,x,(y+1.2)/2,z,H.stone);crown(1.6,1.6,y+1.2,H.stone,x,z)}}for(const yy of[3.3,6.3,8.6]){
+ // Stil der Ausbaustufen je Epoche: wood (Steinzeit/Hallstatt), early (Motte), medieval, roman, palace (Renaissance–Napoleon), civic (Neuzeit-Rathaus)
+ const KE=['steinzeit','hallstatt'].includes(era)?'wood':era==='fruehmittelalter'?'early':era==='roemer'?'roman':['renaissance','barock','napoleon'].includes(era)?'palace':era==='neuzeit'?'civic':'medieval',
+  KM=l=>KE==='wood'?H.wood:['roman','palace','civic'].includes(KE)?H.plaster:l>=2?H.stone:H.wood,
+  pyr=(w,h,x,y,z,m,sides=4)=>{const c=new T.ConeGeometry(w,h,sides);if(sides===4)c.rotateY(Math.PI/4);c.translate(x,y+h/2,z);staticMesh(c,m)},
+  dome=(r,x,y,z,m)=>{const d=new T.SphereGeometry(r,14,8,0,Math.PI*2,0,Math.PI/2);d.translate(x,y,z);staticMesh(d,m)};
+ if(lv===0){const m0=KM(0);shell(9,8,4.2,m0,2.4);framing(9,8,4.2);roof(9,8,4.2,3,H.thatch);box(2.6,8,2.6,4.1,4,-2.7,m0,true);box(3,.2,3,4.1,8.05,-2.7,H.floor);crown(3,3,8.15,m0,4.1,-2.7);g.walkAreas.push([4.1,-2.7,1.5,1.5,8.15]);
+  // Seitenturm je Epoche: Ausguck mit Dach auf Pfosten (Holz/Römer), Kuppel (Schloss), Spitzhelm (Rathaus)
+  if(KE!=='medieval'){for(const sx of[-1,1])for(const sz of[-1,1])box(.14,1.5,.14,4.1+sx*1.2,8.9,-2.7+sz*1.2,KE==='wood'||KE==='early'?H.wood:H.stone);
+   if(KE==='wood')pyr(2.2,1.6,4.1,9.6,-2.7,H.thatch,10);else if(KE==='early')pyr(2.3,1.4,4.1,9.6,-2.7,H.shingle);else if(KE==='roman')pyr(2.3,1.1,4.1,9.6,-2.7,H.redRoof);
+   else if(KE==='palace'){box(2.9,.25,2.9,4.1,9.75,-2.7,H.stone);dome(1.3,4.1,9.85,-2.7,H.slate);cylinder(.08,.7,4.1,11.4,-2.7,H.brass,8)}else{box(2.9,.25,2.9,4.1,9.75,-2.7,H.stone);pyr(1.9,3,4.1,9.85,-2.7,H.slate,8)}}}
+ else{const y=lv===1?9.3:11.3,mat=KM(lv);shell(10,8,y,mat,2.4);box(10,.2,8,0,y-.1,0,H.floor);crown(10,8,y,mat);g.walkAreas.push([0,0,5,4,y]);for(const x of[-4.7,4.7])for(const z of[-3.7,3.7]){box(.5,y+.3,.5,x,y/2,z,mat);if(lv>=3){const ty=y+1.2;
+   if(KE==='wood'){cylinder(.75,ty,x,ty/2,z,H.wood,10);pyr(1.15,1.8,x,ty,z,H.thatch,10)}                                   // Holztürme mit Reetkegel
+   else if(KE==='early'){box(1.5,ty,1.5,x,ty/2,z,H.wood);pyr(1.25,1.5,x,ty,z,H.shingle)}                                      // Holztürme mit Schindeldach
+   else if(KE==='roman'){box(1.7,ty,1.7,x,ty/2,z,H.plaster);crown(1.7,1.7,ty,H.stone,x,z)}                                    // quadratische Kastelltürme
+   else if(KE==='palace'){box(1.9,ty,1.9,x,ty/2,z,H.plaster);box(2.1,.25,2.1,x,ty+.12,z,H.stone);dome(.9,x,ty+.25,z,H.slate);cylinder(.06,.6,x,ty+1.4,z,H.brass,8)}   // Eckpavillons mit Kuppel
+   else if(KE==='civic'){cylinder(.7,ty,x,ty/2,z,H.plaster,14);cylinder(.82,.25,x,ty+.12,z,H.stone,14);pyr(.85,2.6,x,ty+.25,z,H.slate,12)}   // Ecktürmchen mit Spitzhelm
+   else{cylinder(.7,ty,x,ty/2,z,H.stone);crown(1.6,1.6,ty,H.stone,x,z);if(era==='spaetmittelalter')pyr(1.0,2.2,x,ty+.9,z,H.slate,12)}}}for(const yy of[3.3,6.3,8.6]){
   // Vorne (bleiben)
   window(-2.6,yy,4.03,0,.6,1.1,lv>1);window(2.6,yy,4.03,0,.6,1.1,lv>1);
   // Rechts mittig (bleibt)
@@ -333,11 +357,30 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
  }if(lv===1)framing(10,8,y,0,0,true);}
  // ===== Innenleben des Bergfrieds: große Halle (Tafel, Thron, Kamin, Wandteppiche, Gewölbe), Treppen, Schlafgemach, Schatzkammer, Wachstube =====
  {const KI=globalThis.BFRules.interior('keep',lv),w=KI.w,dd=8,cm=(n,c,o={})=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.85,...o})),COLM.get(n)),stone=lv>=2,st=stone?H.stone:H.wood,gd=H.brass,ir=H.iron;
+  const ERA_WALL=['hochmittelalter','spaetmittelalter'].includes(era)?null:era;   // Wandschmuck je Epoche (null = mittelalterliche Wandteppiche)
+  const wallTex=(n)=>{const k='wall'+era+n;if(COLM.has(k))return COLM.get(k);const c=document.createElement('canvas');c.width=128;c.height=192;const x=c.getContext('2d'),R=(a,b)=>a+Math.random()*(b-a);
+   if(era==='steinzeit'){x.fillStyle='#8a6a48';x.beginPath();x.moveTo(10,8);x.quadraticCurveTo(64,-6,118,10);x.quadraticCurveTo(132,96,116,184);x.quadraticCurveTo(64,198,12,182);x.quadraticCurveTo(-6,96,10,8);x.fill();   // Fellhaut mit Ockermalerei
+    x.fillStyle='rgba(60,40,24,.25)';for(let i=0;i<300;i++)x.fillRect(R(10,118),R(10,182),1,R(2,5));x.fillStyle='#a8361e';x.strokeStyle='#a8361e';x.lineWidth=4;
+    if(n%2){x.beginPath();x.ellipse(64,92,30,14,0,0,7);x.fill();for(const lx of[44,54,74,84]){x.beginPath();x.moveTo(lx,100);x.lineTo(lx,124);x.stroke()}x.beginPath();x.moveTo(92,86);x.lineTo(104,62);x.moveTo(96,84);x.lineTo(112,72);x.stroke()}
+    else for(let i=0;i<4;i++){const hx=34+(i%2)*56,hy=56+Math.floor(i/2)*70;x.beginPath();x.ellipse(hx,hy,10,13,0,0,7);x.fill();for(let f=0;f<5;f++){x.beginPath();x.ellipse(hx-12+f*6,hy-18+(f===0?10:0),2.5,7,0,0,7);x.fill()}}}
+   else if(era==='hallstatt'||era==='fruehmittelalter'){const bg=['#5a6a32','#7a3424','#3e4e5e','#a07a34'][n%4];x.fillStyle=bg;x.fillRect(0,0,128,192);x.strokeStyle='#e0c890';x.lineWidth=3;   // gewebte Wolle: Spiralen bzw. Flechtband
+    for(let y=0;y<192;y+=8){x.fillStyle=y%16?'rgba(0,0,0,.08)':'rgba(255,255,255,.05)';x.fillRect(0,y,128,4)}
+    if(era==='hallstatt')for(let i=0;i<3;i++){const cx=64,cy=40+i*56;x.beginPath();for(let t=0;t<14;t+=.1){const r=1.5*t;x.lineTo(cx+Math.cos(t)*r,cy+Math.sin(t)*r)}x.stroke()}
+    else{for(let y=20;y<180;y+=24)for(const sx of[0,1]){x.beginPath();x.arc(48+sx*32,y,12,sx?Math.PI:0,sx?Math.PI*2:Math.PI);x.stroke()}x.strokeRect(10,10,108,172)}
+    for(let i=0;i<9;i++){x.fillStyle=i%2?'#e0c890':bg;x.fillRect(4+i*13.4,184,13,8)}}
+   else if(era==='roemer'){x.fillStyle='#8e2a1e';x.fillRect(0,0,128,192);x.fillStyle='#1e1a16';x.fillRect(0,150,128,42);x.strokeStyle='#d8b860';x.lineWidth=3;x.strokeRect(14,18,100,120);   // Fresko im pompejanischen Rot
+    x.strokeStyle='#4a6a3a';x.lineWidth=4;x.beginPath();x.moveTo(14,30);x.quadraticCurveTo(64,70,114,30);x.stroke();x.fillStyle='#e0c070';x.font='bold 22px serif';x.textAlign='center';x.fillText(n%2?'SPQR':'⚘',64,104);
+    x.fillStyle='#c8a050';x.beginPath();x.moveTo(64,62);x.lineTo(84,80);x.lineTo(64,74);x.lineTo(44,80);x.closePath();x.fill()}
+   else{const dark=['#2a2418','#1e2a2e','#2e2420','#20261a'][n%4];x.fillStyle='#b8902e';x.fillRect(0,0,128,192);x.fillStyle='#7a5a1e';x.fillRect(8,8,112,176);x.fillStyle=dark;x.fillRect(14,14,100,164);   // Gemälde im Goldrahmen
+    if(n%2===0){x.fillStyle='#d8b898';x.beginPath();x.ellipse(64,72,18,22,0,0,7);x.fill();x.fillStyle=era==='neuzeit'?'#1a1a22':era==='napoleon'?'#1f3270':'#5a1a2a';x.beginPath();x.moveTo(30,178);x.quadraticCurveTo(64,96,98,178);x.fill();
+     if(era==='barock'||era==='renaissance'){x.fillStyle='#e8e0d0';x.fillRect(48,96,32,8)}}
+    else{const sky=x.createLinearGradient(0,14,0,120);sky.addColorStop(0,'#7a9ab0');sky.addColorStop(1,'#d8c8a0');x.fillStyle=sky;x.fillRect(14,14,100,110);x.fillStyle='#4a5a32';x.beginPath();x.moveTo(14,124);x.quadraticCurveTo(50,90,80,112);x.quadraticCurveTo(100,100,114,110);x.lineTo(114,178);x.lineTo(14,178);x.fill()}}
+   const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:1,side:T.DoubleSide,transparent:era==='steinzeit',alphaTest:.1});COLM.set(k,m);return m};
   const tapTex=(n)=>{const k='tap'+n;if(COLM.has(k))return COLM.get(k);const c=document.createElement('canvas');c.width=128;c.height=192;const x=c.getContext('2d'),bg=['#7a1e1a','#1e3a6a','#2e5a2a','#5a1e4a'][n%4];x.fillStyle=bg;x.fillRect(0,0,128,192);x.strokeStyle='#d9b45a';x.lineWidth=8;x.strokeRect(6,6,116,180);x.lineWidth=2;x.strokeRect(14,14,100,164);
    x.fillStyle='#e8c860';for(let i=0;i<10;i++)for(let j=0;j<6;j++)if((i+j)%2===0){x.beginPath();x.arc(24+j*16,26+i*16,2.2,0,6.3);x.fill()}
    x.fillStyle='#e8d8a8';x.beginPath();x.moveTo(64,62);x.lineTo(92,76);x.lineTo(88,122);x.quadraticCurveTo(64,150,40,122);x.lineTo(36,76);x.closePath();x.fill();x.fillStyle=bg;x.font='bold 44px serif';x.textAlign='center';x.fillText(['♜','✠','⚜','♞'][n%4],64,118);
    for(let i=0;i<8;i++){x.fillStyle=i%2?'#d9b45a':bg;x.fillRect(12+i*13,184,13,8)}const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:1,side:T.DoubleSide});COLM.set(k,m);return m};
-  const tapestry=(x,y,z,ry,n,ww=1.3,hh=2)=>{const pl=new T.Mesh(new T.PlaneGeometry(ww,hh),tapTex(n));pl.position.set(x,y,z);pl.rotation.y=ry;g.add(pl);const c=Math.cos(ry),sn=Math.sin(ry);beam([x-c*(ww/2+.1),y+hh/2+.05,z+sn*(ww/2+.1)],[x+c*(ww/2+.1),y+hh/2+.05,z-sn*(ww/2+.1)],.04,H.wood)};
+  const tapestry=(x,y,z,ry,n,ww=1.3,hh=2)=>{const pl=new T.Mesh(new T.PlaneGeometry(ww,hh),ERA_WALL?wallTex(n):tapTex(n));if(ERA_WALL&&!['hallstatt','fruehmittelalter'].includes(era)){const c=Math.cos(ry),sn=Math.sin(ry);pl.position.set(x+sn*.03,y,z+c*.03);pl.rotation.y=ry;g.add(pl);return}pl.position.set(x,y,z);pl.rotation.y=ry;g.add(pl);const c=Math.cos(ry),sn=Math.sin(ry);beam([x-c*(ww/2+.1),y+hh/2+.05,z+sn*(ww/2+.1)],[x+c*(ww/2+.1),y+hh/2+.05,z-sn*(ww/2+.1)],.04,H.wood)};
   // Halle: Bodenplatten, lange Tafel mit Bänken, Thron auf Podest, Kamin, Wandteppiche, Fackelhalter
   box(w-.4,.06,dd-.4,0,.04,0,stone?H.floor:H.floor);
   {const[tx,tz,tl]=KI.table;box(tl,.08,1.0,tx,.8,tz,H.wood);for(const lx of[-tl/2+.3,0,tl/2-.3])box(.12,.76,.8,tx+lx,.38,tz,H.wood);box(tl-.2,.012,.42,tx,.845,tz,cm('runner',0x8a1e22));
@@ -533,28 +576,41 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   // Futterkrippe auf Böcken; Füllung (g.feedMesh) zeigt den Füllstand
   {const tz=.15,tw=2.6;for(const x of[-tw/2+.1,tw/2-.1])for(const dz of[-.18,.18])beam([x,0,tz+dz*1.6],[x,.55,tz+dz*.6],.05);box(tw,.06,.5,0,.48,tz,H.wood);for(const dz of[-.25,.25])box(tw,.3,.05,0,.62,tz+dz,H.wood);for(const dx of[-tw/2,tw/2])box(.05,.3,.5,dx,.62,tz,H.wood);
    const feed=new T.Mesh(new T.BoxGeometry(tw-.1,.24,.42),H.thatch);feed.position.set(0,.51+.12,tz);feed.userData.base=.51;feed.scale.y=1;feed.receiveShadow=true;g.add(feed);g.feedMesh=feed}
-  g.animals=[];const N=k==='cow'?4:6,SPOT=[[-2.3,1.3],[-.8,2.1],[.8,1.3],[2.3,2.1],[-1.6,2.5],[1.6,.95]];for(let n=0;n<N;n++){const a=quad(k==='pigsty'?'pig':k==='sheep'?'sheep':'cow');a.position.set(SPOT[n][0],0,SPOT[n][1]);a.rotation.y=(n*1.7)%6.28;a.visible=n<3;g.add(a);g.animals.push(a)}}
+  g.animals=[];const N=k==='cow'?4:6,SPOT=[[-2.3,1.3],[-.8,2.1],[.8,1.3],[2.3,2.1],[-1.6,2.5],[1.6,.95]];for(let n=0;n<N;n++){const a=quad(k==='pigsty'?'pig':k==='sheep'?(['steinzeit','hallstatt'].includes(era)?'goat':'sheep'):(era==='steinzeit'?'aurochs':'cow'));a.position.set(SPOT[n][0],0,SPOT[n][1]);a.rotation.y=(n*1.7)%6.28;a.visible=n<3;g.add(a);g.animals.push(a)}}
  else if(k==='cemetery'){
   // Friedhof: niedrige Bruchsteinmauer, Kiesweg, Hochkreuz, alter Baum, Bank; Gräber mit Grabsteinen (rund, Kreuz, Holzkreuz, Stele), teils schief und bemoost
   const W=10,D=8,t=.35,mh=.75,gravel=COLM.get('gravel')||(COLM.set('gravel',new T.MeshStandardMaterial({color:0xa49a86,roughness:1})),COLM.get('gravel')),earth=COLM.get('graveEarth')||(COLM.set('graveEarth',new T.MeshStandardMaterial({color:0x4a3a28,roughness:1})),COLM.get('graveEarth')),
    moss=COLM.get('mossStone')||(()=>{const m=H.stone.clone();m.color.set(0x8a9a78);m.onBeforeCompile=H.stone.onBeforeCompile;m.customProgramCacheKey=H.stone.customProgramCacheKey;COLM.set('mossStone',m);return m})(),dark=COLM.get('darkStone')||(()=>{const m=H.stone.clone();m.color.set(0x8a8478);m.onBeforeCompile=H.stone.onBeforeCompile;m.customProgramCacheKey=H.stone.customProgramCacheKey;COLM.set('darkStone',m);return m})();
-  box(W,mh,t,0,mh/2,-D/2+t/2,H.stone,true);for(const a of[-1,1]){box(t,mh,D,a*(W/2-t/2),mh/2,0,H.stone,true);const L=W/2-.9;box(L,mh,t,a*(.9+L/2),mh/2,D/2-t/2,H.stone,true);box(.5,1.3,.5,a*.95,.65,D/2-t/2,H.stone,true);cylinder(.2,.25,a*.95,1.42,D/2-t/2,H.stone,8)}
-  for(let q=0;q<26;q++){const a=q/26,x=-W/2+t/2+a*(W-t);box(.36,.1,.42,x,mh+.05,-D/2+t/2,H.stone)}
+  const CE=era==='steinzeit'?'stone':era==='hallstatt'?'iron':era==='roemer'?'rom':era==='fruehmittelalter'?'early':'chr',WM=CE==='stone'||CE==='iron'?H.wood:H.stone;   // Grabkultur je Epoche
+  // Einfassung: Bruchsteinmauer, in Steinzeit/Hallstatt ein Flechtzaun aus Pfosten und Weidenruten
+  const seg=(w,h,d,x,y,z)=>{if(WM!==H.wood)return box(w,h,d,x,y,z,WM,true);g.colliders.push([x,z,w/2,d/2,y+h/2,y-h/2]);const along=w>d,len=along?w:d,wat=COLM.get('wattleC')||(COLM.set('wattleC',new T.MeshStandardMaterial({color:0x7a6040,roughness:1})),COLM.get('wattleC'));
+   for(let q=-len/2;q<=len/2+.01;q+=.5)along?box(.08,h+.15,.08,x+q,(h+.15)/2,z,H.wood):box(.08,h+.15,.08,x,(h+.15)/2,z+q,H.wood);
+   for(const yy of[.2,.4,.6])along?box(len,.09,.05,x,yy,z,wat):box(.05,.09,len,x,yy,z+0,wat)};
+  seg(W,mh,t,0,mh/2,-D/2+t/2);for(const a of[-1,1]){seg(t,mh,D,a*(W/2-t/2),mh/2,0);const L=W/2-.9;seg(L,mh,t,a*(.9+L/2),mh/2,D/2-t/2);if(WM===H.wood)box(.2,1.3,.2,a*.95,.65,D/2-t/2,H.wood,true);else{box(.5,1.3,.5,a*.95,.65,D/2-t/2,H.stone,true);cylinder(.2,.25,a*.95,1.42,D/2-t/2,H.stone,8)}}
+  if(WM!==H.wood)for(let q=0;q<26;q++){const a=q/26,x=-W/2+t/2+a*(W-t);box(.36,.1,.42,x,mh+.05,-D/2+t/2,H.stone)}
   addDoor(g,H,{x:0,z:D/2-t/2,width:1.5,height:1.05,style:'gate',double:true});
   box(1.2,.04,D-.6,0,.03,0,gravel);box(W-1,.03,.9,0,.025,-D/2+1.2,gravel);
-  // Hochkreuz am Wegende
-  box(1,.4,1,0,.2,-D/2+1.1,H.stone,true);box(.7,.3,.7,0,.55,-D/2+1.1,H.stone);box(.18,2.4,.18,0,1.85,-D/2+1.1,H.stone);box(1,.18,.18,0,2.5,-D/2+1.1,H.stone);
+  // Mal am Wegende: Dolmen (Steinzeit), Fürstengrabhügel (Hallstatt), Grabaltar (Römer), sonst Hochkreuz
+  {const zc=-D/2+1.1;if(CE==='stone'){for(const sx of[-1,1])box(.35,1.1,.6,sx*.45,.55,zc,H.stone,true);box(1.5,.25,1.0,0,1.22,zc,H.stone)}
+   else if(CE==='iron'){const m=new T.SphereGeometry(1.3,16,8,0,Math.PI*2,0,Math.PI/2);m.scale(1,.55,.8);m.translate(0,0,zc+.3);staticMesh(m,COLM.get('graveEarth')||H.wood);for(let i=0;i<10;i++){const a=i/10*Math.PI*2,gg=new T.DodecahedronGeometry(.16,0);gg.translate(Math.cos(a)*1.35,.1,zc+.3+Math.sin(a)*1.05);staticMesh(gg,H.stone)}box(.25,1.4,.18,0,1.2,zc+.3,H.stone)}
+   else if(CE==='rom'){box(1.2,.3,.9,0,.15,zc,H.stone,true);box(.9,1.1,.6,0,.85,zc,H.plaster);box(1.05,.15,.75,0,1.47,zc,H.stone);for(const sx of[-1,1])cylinder(.09,.4,sx*.4,1.62,zc,H.stone,10)}
+   else{box(1,.4,1,0,.2,zc,H.stone,true);box(.7,.3,.7,0,.55,zc,H.stone);box(.18,2.4,.18,0,1.85,zc,H.stone);box(1,.18,.18,0,2.5,zc,H.stone)}}
   {const tr=forestTree(H.wood);tr.scale.setScalar(.55);tr.position.set(W/2-1.3,0,-D/2+1.3);g.add(tr)}box(1.4,.08,.4,-W/2+1.4,.45,-D/2+1.2,H.wood);for(const e of[-.55,.55])box(.08,.42,.35,-W/2+1.4+e,.22,-D/2+1.2,H.wood);
   g.crosses=new T.Group();let sd=1234567;const rr=()=>(sd=(sd*16807)%2147483647)/2147483647;const slots=[];
   for(let row=0;row<5;row++)for(const sx of[-1,1])for(let c=0;c<4;c++)slots.push([sx*(1.35+c*.95),-2.1+row*1.25]);
   slots.sort((a,b)=>(a[1]-b[1])||(Math.abs(a[0])-Math.abs(b[0])));
   for(const[x,z]of slots){const gr=new T.Group();gr.position.set(x,0,z);const add2=(geo,m,px,py,pz,rx=0,rz=0)=>{const o=new T.Mesh(geo,m);o.position.set(px,py,pz);o.rotation.set(rx,0,rz);o.castShadow=o.receiveShadow=true;gr.add(o);return o};
-   add2(new T.BoxGeometry(.55,.14,1),earth,0,.07,.15);const sm=rr()<.35?moss:rr()<.5?dark:H.stone,tl=rr()<.3?(rr()-.5)*.45:(rr()-.5)*.08,tx=rr()<.25?(rr()-.5)*.35:0,ty=rr(),kind=(rr()*4)|0,hz=-.38;
+   add2(new T.BoxGeometry(.55,.14,1),earth,0,.07,.15);const sm=rr()<.35?moss:rr()<.5?dark:H.stone,tl=rr()<.3?(rr()-.5)*.45:(rr()-.5)*.08,tx=rr()<.25?(rr()-.5)*.35:0,ty=rr(),kr=rr(),kind=CE==='stone'?(kr<.5?4:5):CE==='iron'?(kr<.6?6:5):CE==='rom'?(kr<.5?7:8):CE==='early'?(kr<.6?2:3):(kr*4)|0,hz=-.38;
    const st=new T.Group();st.position.set(0,0,hz);st.scale.setScalar(1.3);st.rotation.set(tx,(rr()-.5)*.15,tl);gr.add(st);const put=(geo,m,px,py,pz,rx=0)=>{const o=new T.Mesh(geo,m);o.position.set(px,py,pz);o.rotation.x=rx;o.castShadow=true;st.add(o)};
    if(kind===0){const hh=.45+ty*.25;put(new T.BoxGeometry(.44,hh,.1),sm,0,hh/2,0);put(new T.CylinderGeometry(.22,.22,.1,14,1,false,Math.PI/2,Math.PI),sm,0,hh,0,Math.PI/2)}
    else if(kind===1){put(new T.BoxGeometry(.12,.85,.12),sm,0,.42,0);put(new T.BoxGeometry(.46,.12,.12),sm,0,.62,0);put(new T.BoxGeometry(.3,.12,.26),sm,0,.06,0)}
    else if(kind===2){put(new T.BoxGeometry(.07,.9,.07),H.wood,0,.45,0);put(new T.BoxGeometry(.42,.07,.07),H.wood,0,.66,0)}
-   else{const hh=.7+ty*.35;put(new T.BoxGeometry(.32,hh,.14),sm,0,hh/2,0);put(new T.ConeGeometry(.23,.22,4),sm,0,hh+.1,0)}
+   else if(kind===3){const hh=.7+ty*.35;put(new T.BoxGeometry(.32,hh,.14),sm,0,hh/2,0);put(new T.ConeGeometry(.23,.22,4),sm,0,hh+.1,0)}
+   else if(kind===4){for(let i=0;i<9;i++){const gg=new T.DodecahedronGeometry(.1+(i%3)*.02,0);put(gg,H.stone,((i%3)-1)*.13,.08+Math.floor(i/3)*.1,((i*7)%3-1)*.08)}}        // Steinhügel (Steinzeit)
+   else if(kind===5){put(new T.BoxGeometry(.22,.55+ty*.3,.16),sm,0,.3,0)}                                                                                 // Findling/Menhirstein
+   else if(kind===6){const m=new T.SphereGeometry(.38,10,6,0,Math.PI*2,0,Math.PI/2);put(m,earth,0,0,.4);put(new T.BoxGeometry(.12,.4,.1),sm,0,.2,0)}         // kleiner Grabhügel (Hallstatt)
+   else if(kind===7){const hh=.6+ty*.25;put(new T.BoxGeometry(.36,hh,.1),H.plaster,0,hh/2,0);const tri=new T.Shape();tri.moveTo(-.2,0);tri.lineTo(.2,0);tri.lineTo(0,.14);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.1,bevelEnabled:false});tg.translate(0,hh,-.05);put(tg,H.plaster,0,0,0)}   // Grabstele mit Giebel (Römer)
+   else{put(new T.BoxGeometry(.3,.35,.3),H.stone,0,.17,0);put(new T.LatheGeometry([[0,0],[.1,.02],[.15,.12],[.13,.24],[.08,.28],[.1,.32],[0,.32]].map(q=>new T.Vector2(q[0],q[1])),10),COLM.get('urn')||(COLM.set('urn',new T.MeshStandardMaterial({color:0x9a5a36,roughness:.8})),COLM.get('urn')),0,.35,0)}   // Urne auf Sockel (Römer)
    if(rr()<.4){const f=new T.Mesh(new T.SphereGeometry(.07,6,4),COLM.get('fl'+((rr()*4)|0))||H.green);f.position.set((rr()-.5)*.3,.18,.2);gr.add(f)}
    gr.visible=false;g.crosses.add(gr)}
   g.add(g.crosses);g.setGraves=m=>g.crosses.children.forEach((c,q)=>c.visible=q<m);
@@ -746,6 +802,23 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   // Bodengegenstände als eigene Gruppe: der Client blendet sie aus, wenn ein Nachbargebäude direkt angrenzt
   const pg=new T.Group();pg.name='props';for(const[m,l]of batches){const n0=snap.get(m)||0;if(l.length>n0){const part=l.splice(n0);const mesh=new T.Mesh(mergeGeometries(part,false),m);pg.add(mesh);part.forEach(q=>q.dispose())}}g.add(pg);g.props=pg;
  }
+ // Licht am Haus je Epoche (glüht nachts mit den Fenstern): Feuerschale (Vorzeit), Öllampe in Nische (Römer), Laterne am Arm (Mittelalter–Napoleon); Neuzeit: Gaslaterne (siehe eraExtras)
+ if(k==='house'&&era!=='neuzeit'){const glow=H.win||H.brass,fw=g._wd?g._wd[1]/2:2.5,lx=(g._wd?g._wd[0]/2:3)-.6;
+  if(['steinzeit','hallstatt'].includes(era)){cylinder(.05,1.1,lx+.3,.55,fw+.7,H.wood,6);const b=new T.CylinderGeometry(.22,.12,.18,10);b.translate(lx+.3,1.18,fw+.7);staticMesh(b,H.iron||H.stone);const f=new T.ConeGeometry(.12,.25,7);f.translate(lx+.3,1.38,fw+.7);staticMesh(f,glow)}
+  else if(era==='roemer'){box(.3,.3,.12,lx,1.9,fw+.06,H.stone);const l=new T.SphereGeometry(.08,8,6);l.scale(1.6,.6,1);l.translate(lx,1.92,fw+.1);staticMesh(l,glow)}
+  else{box(.05,.05,.4,lx,2.3,fw+.2,H.iron);box(.2,.28,.2,lx,2.1,fw+.4,glow);box(.24,.05,.24,lx,2.26,fw+.4,H.iron)}}
+ // Federvieh vor dem Wohnhaus: Gänse (Römer, Frühmittelalter), Hühner (ab Hochmittelalter); in der Vorzeit keines
+ if(k==='house'&&!['steinzeit','hallstatt'].includes(era)){const goose=['roemer','fruehmittelalter'].includes(era),cmF=(n,c)=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.9})),COLM.get(n)),beak=cmF('beak',0xe8a030),fw=g._wd?g._wd[1]/2:2.5;
+  for(let i=0;i<3;i++){const x=-1.6+i*.75,z=fw+1.1+(i%2)*.4,col=goose?cmF('goose',0xf0ece4):cmF('hen'+i%2,i%2?0x8a4a24:0xe8e0d0),bg=new T.SphereGeometry(goose?.16:.11,8,6);bg.scale(1,.8,1.4);bg.translate(x,goose?.22:.15,z);staticMesh(bg,col);
+   const nk=new T.CylinderGeometry(.03,.04,goose?.28:.1,6);nk.translate(x,goose?.42:.25,z+(goose?.14:.1));staticMesh(nk,col);const hd=new T.SphereGeometry(goose?.06:.05,8,6);hd.translate(x,goose?.58:.31,z+(goose?.18:.13));staticMesh(hd,col);
+   const bk=new T.ConeGeometry(.02,goose?.09:.05,5);bk.rotateX(Math.PI/2);bk.translate(x,goose?.58:.31,z+(goose?.26:.18));staticMesh(bk,beak);if(!goose){const cb=new T.BoxGeometry(.015,.05,.06);cb.translate(x,.37,z+.13);staticMesh(cb,cmF('comb',0xc02020))}}}
+ // Wohnhaus innen je Epoche: Felle und Tontöpfe (Vorzeit), Hausaltar (Lararium) und Amphore (Römer), Eisenofen mit Rohr und Wanduhr (Neuzeit)
+ if(k==='house'){const cm3=(n,c,o={})=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.85,...o})),COLM.get(n));
+  if(['steinzeit','hallstatt'].includes(era)){box(1.0,.05,1.9,-1.7,.62,-2,cm3('pelt0',0x6a4e34));for(const [x,z]of[[1.2,-2.4],[2.4,-1.6]]){const p=new T.SphereGeometry(.2,10,8);p.scale(1,1.2,1);p.translate(x,.24,z);staticMesh(p,cm3('tclay',0x9a5a36))}}
+  else if(era==='roemer'){box(.7,.08,.35,0,1.3,-2.3,H.stone);box(.6,.55,.3,0,1.62,-2.3,H.plaster);const tri=new T.Shape();tri.moveTo(-.38,0);tri.lineTo(.38,0);tri.lineTo(0,.25);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.3,bevelEnabled:false});tg.translate(0,1.9,-2.45);staticMesh(tg,H.stone);
+   const am=new T.LatheGeometry([[0,0],[.08,.05],[.2,.3],[.2,.55],[.08,.78],[.07,.95],[.1,.98]].map(q=>new T.Vector2(q[0],q[1])),10);am.translate(-2.2,0,-.5);staticMesh(am,cm3('amph',0xb06a40))}
+  else if(era==='neuzeit'){cylinder(.28,1.0,.4,.5,-2.2,cm3('stove',0x2a2a2a,{metalness:.5,roughness:.5}),14);cylinder(.07,1.9,.4,1.95,-2.2,cm3('stove',0x2a2a2a),8);box(.35,.5,.12,-.6,1.8,-2.42,H.wood);
+   const cf=new T.CircleGeometry(.12,16);cf.translate(-.6,1.9,-2.355);staticMesh(cf,cm3('clockface',0xf2ecd8))}}
  eraExtras();
  // ===== Epochentypische Anbauten: Zäune, Trockengestelle, Säulenvorhallen, Gesimse, Fabrikschlote =====
  function eraExtras(){const X=S.extras;if(!X||!g._wd||g._bunker)return;const[w,d]=g._wd,h=g._h||3,F=d/2,home=['house','bighouse'].includes(k),PROD=['bakery','smithy','weaver','brewery','tannery','butcher','dairy','smokehouse','armorer','bower','mint','apothecary','lumber','quarry','lodge','fishery'];
@@ -781,7 +854,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   else if(X==='cornice'||X==='baroque'||X==='industry'){box(w+.3,.22,d+.3,0,h+.02,0,H.stone);for(const sx of[-1,1])for(const sz of[-1,1])box(.3,h,.3,sx*(w/2+.02),h/2,sz*(F+.02),X==='industry'?H.stone:H.floor);
    if(X==='baroque'&&home)box(1.6,.5,.12,0,h-.35,F+.08,H.floor);
    if(X==='industry'){if(PROD.includes(k)){const sxx=-w/2+.7,szz=-F+.7,hh=h+9;cylinder(.5,hh,sxx,hh/2,szz,H.plaster,14);box(1.3,1.2,1.3,sxx,.6,szz,H.stone);for(let y=2;y<hh;y+=2.6)cylinder(.53,.12,sxx,y,szz,H.stone,14);cylinder(.6,.3,sxx,hh,szz,H.dark,14)}
-    if(home){box(.08,2.6,.08,w/2+.4,1.3,F+.6,H.iron);box(.3,.38,.3,w/2+.4,2.75,F+.6,cm('gaslamp',0xf2e6b0))}}}}
+    if(home){box(.08,2.6,.08,w/2+.4,1.3,F+.6,H.iron);box(.3,.38,.3,w/2+.4,2.75,F+.6,H.win||cm('gaslamp',0xf2e6b0));box(.36,.06,.36,w/2+.4,2.97,F+.6,H.iron)}}}}
  // Static parts merge by material. Detail-rich buildings stay cheap to draw.
  for(const [material,geos]of batches){if(!geos.length)continue;const geometry=mergeGeometries(geos,false),mesh=new T.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);geos.forEach(geo=>geo.dispose())}
  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g;

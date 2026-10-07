@@ -50,6 +50,8 @@ const SOLDIER=['sword','archer','spear','crossbow','knight'],noArmor=o=>{o.breas
 const civHead=(o,r,list)=>{if(!SOLDIER.includes(o.role)&&!['priest','bishop'].includes(o.role))o.head=list[Math.floor(r()*list.length)]};
 const pickC=(r,a)=>a[Math.floor(r()*a.length)];
 export function eraClothes(o,era,r){if(!era||era==='hochmittelalter')return o;const sol=SOLDIER.includes(o.role);
+ if(o.role==='bandit'&&eraBandit(o,era,r))return o;
+ if(o.role==='priest'&&eraPriest(o,era))return o;
  if(era==='steinzeit'){const FUR=[0x6a4e34,0x5a422c,0x7a5e40,0x4e3a28,0x8a7050];o.cloth=pickC(r,FUR);o.over=pickC(r,FUR);o.cloak=r()<.6?pickC(r,FUR):0;civHead(o,r,['none']);if(sol){noArmor(o);o.outfit='tunic';o.head='none'}o.apron=false;o.bag=r()<.3;if(!o.female)o.beard=pickC(r,['full','short','full'])}
  else if(era==='hallstatt'){const W=[0x5a6a32,0x7a3424,0xa07a34,0x3e4e5e,0x6a5a3a];o.cloth=pickC(r,W);o.over=pickC(r,W);o.cloak=r()<.5?pickC(r,W):0;civHead(o,r,['none','none','cap']);if(sol){noArmor(o);o.outfit='tunic';o.head='helmet';o.noCoif=true}}
  else if(era==='roemer'){o.cloth=pickC(r,[0xe2d8c2,0xd6caae,0xcab490]);o.over=pickC(r,[0xe2d8c2,0x8a2a22,0x3a5a8a,0xb88a40,0xd6caae]);civHead(o,r,['none','none','none','strawhat']);o.apron=o.apron&&r()<.5;
@@ -62,6 +64,51 @@ export function eraClothes(o,era,r){if(!era||era==='hochmittelalter')return o;co
  else if(era==='neuzeit'){o.cloth=pickC(r,[0x2a2826,0x3a3632,0x4a4038,0x34302c]);o.over=pickC(r,[0x2a2826,0x4a4038,0x5a5048]);if(o.female)o.cloth=pickC(r,[0x3a2a3a,0x2a3a4a,0x5a4a3a]);civHead(o,r,['cap','cap','hunterhat','none']);if(sol){noArmor(o);o.cloth=o.over=0x6e735c;o.head=['sword','knight'].includes(o.role)?'pickel':'stahlhelm';o.cloak=0;o.uni=true}}
  if(sol&&globalThis.BFRules){const u=globalThis.BFRules.eraOf(era).units;if(u&&u[o.role])o.eraTitle=u[o.role]}
  return o}
+
+// ---- Spielerfigur je Epoche: Kleiderschrank-Wahl wird automatisch auf die Epoche übertragen (Farben bleiben, außer Steinzeit) ----
+const P_HEAD={steinzeit:['none'],hallstatt:['none','cap'],roemer:['none','strawhat'],fruehmittelalter:['none','cap','hood'],renaissance:['plume','cap','none'],barock:['tricorne','hunterhat','none'],napoleon:['tricorne','hunterhat','none'],neuzeit:['cap','hunterhat','none']};
+const P_HELM={steinzeit:'none',hallstatt:'helmet',roemer:'galea',fruehmittelalter:'nasal',renaissance:'sallet',barock:'tricorne',napoleon:'shako',neuzeit:'stahlhelm'};
+const MEDIEVAL_HATS=['chaperon','gugel','gugelL','gugelD','plume','hunterhat','cap','scarf','strawhat','none'],HELMS=['helmet','hood','sallet','visored','bascinet','nasal'];
+export function eraPlayer(o,era){if(!era||era==='hochmittelalter'||era==='spaetmittelalter')return o;const armed=HELMS.includes(o.head)||o.breast||o.mailShirt||o.outfit==='gambeson';
+ const hats=P_HEAD[era],h=o.head;if(HELMS.includes(h))o.head=P_HELM[era];else if(MEDIEVAL_HATS.includes(h)&&!hats.includes(h))o.head=hats[(MEDIEVAL_HATS.indexOf(h)+(o.seed|0))%hats.length];
+ if(o.head==='helmet'||o.head==='galea')o.noCoif=true;o.mailHood=false;
+ if(['steinzeit','hallstatt','roemer'].includes(era)){const lor=era==='roemer'&&armed;o.mailShirt=false;o.breast=false;o.arms=0;o.legs=0;o.hands=o.hands&&'lea';if(o.outfit==='gambeson'||o.outfit==='jerkin')o.outfit=o.female?'dress':'tunic';o.lorica=lor;
+  if(era==='steinzeit'){const FUR=[0x6a4e34,0x5a422c,0x7a5e40,0x4e3a28];o.cloth=FUR[(o.seed|0)%4];o.over=FUR[((o.seed|0)+1)%4];if(o.cloak)o.cloak=FUR[((o.seed|0)+2)%4]}}
+ else if(['barock','napoleon','neuzeit'].includes(era)){o.mailShirt=false;o.breast=false;o.arms=0;o.legs=0;if(o.outfit==='gambeson')o.outfit='jerkin';o.uni=true;if(era==='neuzeit'&&armed){o.cloth=o.over=0x6e735c}}
+ else if(era==='fruehmittelalter'){o.breast=false;o.arms=0;o.legs=0;if(armed)o.mailShirt=true}
+ else if(era==='renaissance'){o.legs=0;o.arms=Math.min(o.arms||0,1)}
+ return o}
+
+// ---- Namen der Bewohner je Epoche (sonst die mittelalterlichen Namenslisten) ----
+const ERA_NAMES={steinzeit:{m:['Arok','Bruk','Tarn','Ugo','Kael','Dorm','Vasko','Rin','Maro','Tukk','Ebo','Garn'],f:['Ayla','Mira','Suna','Tala','Iska','Nara','Lua','Embe','Kiri','Oda','Rana','Veya']},
+ hallstatt:{m:['Brennos','Ambiorix','Orgetorix','Dumnorix','Vercassos','Togirix','Camulos','Esugenos','Cotuatos','Luernios','Segovax','Cingetos'],f:['Boudica','Epona','Brigantia','Rosmerta','Sirona','Nantosvelta','Andarta','Cartimandua','Damona','Onuava','Belisama','Verica']},
+ roemer:{m:['Marcus','Gaius','Lucius','Titus','Quintus','Publius','Aulus','Gnaeus','Sextus','Decimus','Servius','Tiberius'],f:['Iulia','Claudia','Cornelia','Livia','Aurelia','Valeria','Flavia','Octavia','Antonia','Fabia','Caecilia','Domitia']},
+ fruehmittelalter:{m:['Hrodgar','Gunthram','Childerich','Theudebert','Arnulf','Ragnar','Wido','Liutpold','Odo','Hildebrand','Eberwin','Sigibert'],f:['Radegund','Brunhild','Fredegund','Hildegard','Gisela','Bertrada','Adelheid','Kunigunde','Theodelinde','Imma','Liutgard','Ermengard']}};
+export const eraName=(era,female,r)=>{const L=ERA_NAMES[era];if(!L)return null;const a=female?L.f:L.m;return a[Math.floor(r()*a.length)]};
+// ---- Banditen je Epoche: Aussehen, Bezeichnung und Waffe ----
+const BANDIT={steinzeit:['Fremder Jäger','club'],hallstatt:['Plünderer','spear'],roemer:['Germane','spear'],fruehmittelalter:['Nordmann','axe'],renaissance:['Marodeur','sword'],barock:['Marodeur','saber'],napoleon:['Deserteur','musket'],neuzeit:['Räuber','club']};
+export const banditWeapon=era=>(BANDIT[era]||[])[1]||null;
+function eraBandit(o,era,r){const B=BANDIT[era];if(!B)return false;noArmor(o);o.eraTitle=B[0];
+ if(era==='steinzeit'){const FUR=[0x6a4e34,0x5a422c,0x4e3a28];o.cloth=pickC(r,FUR);o.over=pickC(r,FUR);o.outfit='tunic';o.head='none';o.mask=false;o.beard='full';o.hairStyle='long';o.acc.push('pelt');o.furCol=0x5a4632}
+ else if(era==='hallstatt'){o.outfit='tunic';o.head=r()<.3?'helmet':'none';o.noCoif=true;o.mask=false;o.hairStyle='long'}
+ else if(era==='roemer'){o.outfit='tunic';o.cloth=pickC(r,[0x4a3a2a,0x3a3a30,0x5a4632]);o.cloak=pickC(r,[0x5a4632,0x3a3028,0x6a5a46]);o.head='none';o.mask=false;o.hairStyle=pickC(r,['long','bun']);o.beard='full'}
+ else if(era==='fruehmittelalter'){o.head=pickC(r,['nasal','nasal','none']);o.mask=false;o.beard='full';o.hairStyle='braid';if(o.rank==='leader')o.mailShirt=true}
+ else if(era==='renaissance'){o.head='plume';o.hatCol=pickC(r,[0x4a1a1a,0x1a2a4a,0x2a2a2a]);o.mask=false}
+ else if(era==='barock'){o.head=pickC(r,['tricorne','hunterhat']);o.hatCol=0x2a2420}
+ else if(era==='napoleon'){o.outfit='jerkin';o.uni=true;o.over=0x2a3a6a;o.head=pickC(r,['shako','none']);o.hatCol=0x1a1a1a;o.mask=false}
+ else if(era==='neuzeit'){o.outfit='jerkin';o.uni=true;o.over=pickC(r,[0x2a2826,0x3a3632]);o.head='cap';o.hatCol=0x2a2826}
+ return true}
+
+// ---- Geistliche je Epoche: vor dem Christentum Schamane, Druide, römischer Priester; ab Barock der Pfarrer im Talar ----
+const ERA_PRIEST={steinzeit:'Schamane',hallstatt:'Druide',roemer:'Flamen (Tempelpriester)',barock:'Pfarrer',napoleon:'Pfarrer',neuzeit:'Pfarrer'};
+export const priestTitle=(era,bishop)=>bishop?({steinzeit:'Oberschamane',hallstatt:'Oberdruide',roemer:'Pontifex Maximus'}[era]||'Bischof'):ERA_PRIEST[era]||null;
+export const christian=era=>!['steinzeit','hallstatt','roemer'].includes(era);
+function eraPriest(o,era){if(!ERA_PRIEST[era])return false;o.acc=(o.acc||[]).filter(a=>!['cross','rosary','book'].includes(a));o.scap=null;o.hood=undefined;o.hoodCol=null;if(o.hairStyle==='tonsure'||o.hairStyle==='bald')o.hairStyle='long';o.head='none';
+ if(era==='steinzeit'){o.cloth=0x5a422c;o.belt='rope';o.ropeCol=0x6a5a40;o.acc.push('pelt');o.furCol=0x6a5a46;o.beard='full';o.acc.push('herbs');o.head='antler'}
+ else if(era==='hallstatt'){o.cloth=0xeeeae0;o.hood='cowl';o.hoodCol=0xeeeae0;o.belt='rope';o.ropeCol=0xc8a040;o.beard='full';o.hair=0xd6d4cc;o.acc.push('herbs')}
+ else if(era==='roemer'){o.cloth=0xece6d6;o.scap=0x6a1e4a;o.belt='leather';o.head='laurel';o.beard='none';o.hairStyle='short'}
+ else{o.cloth=0x161616;o.belt='leather';o.beltCol=0x161616;o.hairStyle='short';o.acc.push('book')}
+ o.eraTitle=ERA_PRIEST[era];return true}
 
 // ---- Eigene Bauten je Epoche: Römischer Tempel und Steinkreis statt Kapelle/Kirche/Dom ----
 const SAC=['chapel','church','cathedral'];

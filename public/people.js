@@ -24,7 +24,8 @@ export const OPT={skin:['Sehr hell','Hell','Mittel','Gebräunt','Braun','Dunkel'
 // Index: 0 gender,1 skin,2 hairStyle,3 hairColor,4 beard,5 outfit,6 cloth,7 belt,8 civHead,9 armor,10 armHead,11 cloak
 export const PROF_MAX=[1,5,3,8,3,1,13,13,9,7,6,5];
 export const defProf=g=>g?[1,1,0,5,0,0,5,10,2,0,0,0]:[0,2,0,2,1,0,0,9,0,0,0,0];
-function playerLook(id,P,fc){const r=rng(id*7919+99),A=k=>Math.max(0,Math.min(PROF_MAX[k],P[k]|0)),f=!!A(0),hs=(f?OPT.hsF:OPT.hsM)[A(2)][0],bd=f?'none':OPT.beard[A(4)][0];
+function playerLook(id,P,fc){return eraPlayer(playerLook0(id,P,fc),ERA)}
+function playerLook0(id,P,fc){const r=rng(id*7919+99),A=k=>Math.max(0,Math.min(PROF_MAX[k],P[k]|0)),f=!!A(0),hs=(f?OPT.hsF:OPT.hsM)[A(2)][0],bd=f?'none':OPT.beard[A(4)][0];
  const civHeads=['none','cap','scarf','strawhat','chaperon','plume','hunterhat','gugel','gugelL','gugelD'];
  let outfit=A(5)===1?'jerkin':(f?'dress':'tunic'),head=civHeads[A(8)]||'none';if(!f&&head==='scarf')head='cap';
  const ar=A(9);if(ar)outfit='gambeson';const knight=ar===3||ar===6;let hoodDown=false;if(head==='gugelD'){head='none';hoodDown=true}
@@ -79,7 +80,7 @@ function style(o,r){const R=o.role,P=a=>a[Math.floor(r()*a.length)],ch=p=>r()<p,
   if(rk==='poacher'){o.head='hood';o.liri=true;o.hoodCol=P(PW.green)}
   o.title={leader:'Bandenführer',brute:'Schläger',poacher:'Wilderer',cutthroat:'Halsabschneider'}[rk];break}}
  if(o.patches&&!['tunic','dress','jerkin','vest','smock'].includes(o.outfit))o.patches=0}
-import {eraClothes,eraShotOf} from './eras.js';
+import {eraClothes,eraShotOf,eraPlayer,eraName} from './eras.js';
 let ERA='hochmittelalter';export const setPeopleEra=e=>{ERA=e||'hochmittelalter'};
 export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook(id,prof,fc);const r=rng(id*7919+13+role.length*101);
  const jr=JR[role],female=role==='farmer'||role==='peasant'||role==='child'?r()<.5:jr&&jr.female?true:(jr&&['cook','keeper','shepherd','fisher'].includes(role)?r()<.35:role==='player'?(id>0&&r()<.4):false);
@@ -103,7 +104,7 @@ export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook
  if(female&&role!=='farmer'&&o.outfit==='tunic')o.outfit='dress';
  style(o,rng(id*131+role.length*17+5));const stT=o.title;eraClothes(o,ERA,rng(id*577+role.length*13+3));if(female&&o.outfit==='tunic'&&role!=='farmer'&&role!=='peasant'&&role!=='bandit')o.outfit='dress';
  const lt=h=>new T.Color(h).multiplyScalar(1.5).getHex();o.cloth=lt(o.cloth);o.over=lt(o.over);if(o.cloak)o.cloak=lt(o.cloak);for(const k of['hoodCol','scap','apronCol','furCol','maskCol','vestCol','wrapCol','veil','capCol','hatCol','beltCol'])if(o[k]!=null)o[k]=lt(o[k]);
- o.name=(female?pick(r,FEMALE):pick(r,MALE));o.title=jr?(female&&!/in$/.test(jr.title)?(jr.title==='Hirte'?'Hirtin':jr.title+'in'):jr.title):(female&&(role==='farmer'||role==='peasant')?(role==='farmer'?'Bäuerin':'Dorfbewohnerin'):TITLE[role]);if(o.role==='sword'&&o.rank==='veteran')o.title='Ritter';if(stT)o.title=stT;
+ o.name=eraName(ERA,female,r)||(female?pick(r,FEMALE):pick(r,MALE));o.title=jr?(female&&!/in$/.test(jr.title)?(jr.title==='Hirte'?'Hirtin':jr.title+'in'):jr.title):(female&&(role==='farmer'||role==='peasant')?(role==='farmer'?'Bäuerin':'Dorfbewohnerin'):TITLE[role]);if(o.role==='sword'&&o.rank==='veteran')o.title='Ritter';if(stT)o.title=stT;
  if(o.eraTitle)o.title=o.eraTitle;
  const F=FACTIONS[fc];if(F){o.fac=F[1];if(!o.uni&&['sword','spear','crossbow','knight'].includes(role))o.over=F[1];if(!o.uni&&role==='knight')o.cloak=F[1];if(!o.uni&&role==='archer'){o.cloth=F[1];o.cloak=new T.Color(F[1]).multiplyScalar(.75).getHex();if(o.hoodCol)o.hoodCol=F[1]}if(role==='player'){o.cloth=F[1];o.over=F[1];if(o.cloak)o.cloak=new T.Color(F[1]).multiplyScalar(.8).getHex()}}
  return o}
@@ -344,7 +345,11 @@ let SHM=null;function stahlHelm(H){const m=SHM||(SHM=new T.MeshStandardMaterial(
   const t=(v-.62)/.38,cf=Math.max(0,Math.cos(ph))**1.5,drop=(.14+.62*(1-cf))*t,fl=(.03+.22*t*t)*(1-cf)+.2*t*cf;return[(DA+fl)*Math.sin(ph),yc-drop,(DC+fl)*Math.cos(ph)]},56,22)),m,H);
  for(const sd of[-1,1])mesh(cg('shlug',()=>new T.CylinderGeometry(.09,.09,.14,10)),m,H,[sd*1.11,.62,-.05]).rotation.z=Math.PI/2}
 // ---------- Pickelhaube mit Stoffbezug (feldgrau, rote Regimentsnummer) ----------
-let PKM=null;function pickelHaube(H){if(!PKM){const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');x.fillStyle='#8f8a6c';x.fillRect(0,0,128,64);x.fillStyle='#c8241c';x.font='bold 44px sans-serif';x.textAlign='center';x.fillText('121',64,48);
+let PKM=null,PKB=null;function pickelHaube(H,brassy){if(brassy){   // Feuerwehr: schwarzes Leder, Messingspitze und -beschlag
+  const B=PKB||(PKB={c:new T.MeshStandardMaterial({color:0x141414,roughness:.45,side:T.DoubleSide}),b:new T.MeshStandardMaterial({color:0xc8a040,metalness:.75,roughness:.3})}),yc=.2;
+  mesh(cg('pkd',()=>paramGeo((u,v)=>ellP(1.12,1.3,1.2,yc,v*(Math.PI/2+.08),u*2*Math.PI),44,16)),B.c,H);mesh(cg('pkv',()=>paramGeo((u,v)=>{const a=-1.25+2.5*u,r=1.18+v*.42;return[r*Math.sin(a)*.95,yc-.08-v*.14,r*Math.cos(a)]},20,2)),B.c,H);mesh(cg('pkn',()=>paramGeo((u,v)=>{const a=Math.PI-1.3+2.6*u,r=1.18+v*.36;return[r*Math.sin(a)*.95,yc-.1-v*.3,r*Math.cos(a)]},20,3)),B.c,H);
+  mesh(cg('pkspk',()=>new T.ConeGeometry(.2,.72,14)),B.b,H,[0,yc+1.62,0]);mesh(cg('pkbase',()=>new T.CylinderGeometry(.24,.3,.12,16)),B.b,H,[0,yc+1.28,0]);mesh(cg('pkplate',()=>new T.CircleGeometry(.36,16)),B.b,H,[0,yc+.7,1.13]).rotation.x=-.45;return}
+ if(!PKM){const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');x.fillStyle='#8f8a6c';x.fillRect(0,0,128,64);x.fillStyle='#c8241c';x.font='bold 44px sans-serif';x.textAlign='center';x.fillText('121',64,48);
   const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;PKM={c:new T.MeshStandardMaterial({color:0x8f8a6c,roughness:1,side:T.DoubleSide}),n:new T.MeshStandardMaterial({map:t,roughness:1,transparent:true}),b:new T.MeshStandardMaterial({color:0xb8943c,metalness:.7,roughness:.35})}}
  const yc=.2;mesh(cg('pkd',()=>paramGeo((u,v)=>ellP(1.12,1.3,1.2,yc,v*(Math.PI/2+.08),u*2*Math.PI),44,16)),PKM.c,H);
  mesh(cg('pkv',()=>paramGeo((u,v)=>{const a=-1.25+2.5*u,r=1.18+v*.42;return[r*Math.sin(a)*.95,yc-.08-v*.14,r*Math.cos(a)]},20,2)),PKM.c,H);         // Vorderschirm
@@ -623,7 +628,7 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
  if(o.mask)mesh(shell(geo,(x,y,z)=>y<-.2&&z>-.2,.12,.03),garMat('linen',o.maskCol||0x2a2420),H);
  if(hat==='helmet'){if(!o.noCoif)buildCoif(g,H,geo,o,AR.mail);kettleHat(H,AR)}                 // Eisenhut über Kettenhaube
  if(hat==='stahlhelm')stahlHelm(H);
- if(hat==='pickel')pickelHaube(H);
+ if(hat==='pickel')pickelHaube(H,o.pkBrass);
  if(hat==='galea'){if(o.mailHood)buildCoif(g,H,geo,o,AR.mail);galeaHelm(H,AR,o)}   // römische Galea
  if(hat==='nasal'){if(o.mailHood)buildCoif(g,H,geo,o,AR.mail);nasalHelm(H,AR)}    // Nasalhelm (optional mit Kettenhaube)
  if(hat==='bascinet'||hat==='visored'){bascinet(H,AR,hat==='visored');mesh(capeGeo(o,{top1:1.548,top0:1.525,topR:.09,teeth:0,hem0:1.33}),AR.mail,g)}   // Beckenhaube + Helmbrünne
@@ -659,6 +664,12 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(cg('tribr',()=>paramGeo((u,v)=>bri(u,v),72,5)),fm,H);
   mesh(cg('tribd',()=>paramGeo((u,v)=>bri(u,.97+v*.03,.01),72,1)),hatMat('gold'),H);
   mesh(cg('tricock',()=>new T.CylinderGeometry(.17,.17,.05,14)),hatMat('cloth',o.fac||0xe8e4d8),H,[.95,1.35,.95]).rotation.set(Math.PI/2,0,-.7)}
+ if(hat==='antler'){     // Schamanen-Kopfschmuck: Fellband mit Hirschgeweih
+  const bm=hatMat('cloth',0x6a5a46),am=hatMat('cloth',0xd8ccb0);ring(H,bm,1.05,.6,.14,1.06);
+  for(const sd of[-1,1]){const pts=[[sd*.7,.9,0],[sd*1.0,1.5,-.1],[sd*1.15,2.1,-.15],[sd*1.05,2.6,-.1]];tube(H,am,pts,.06);for(const [k,dx]of[[1,.35],[2,.3]]){const p=pts[k];tube(H,am,[p,[p[0]+sd*dx*.3,p[1]+.45,p[2]+.25]],.045)}}}
+ if(hat==='laurel'){     // Lorbeerkranz: Blätter paarweise an einem Zweigring
+  const lm=hatMat('cloth',0x4e6e2c),lf=cg('laurleaf',()=>new T.SphereGeometry(.13,6,4));ring(H,hatMat('band',0x5a4a2a),1.05,.62,.05,1.06);
+  for(let i=0;i<24;i++){const a=Math.PI*.3+i/24*Math.PI*1.4,s=i%2?1:-1;const m=mesh(lf,lm,H,[Math.sin(a)*1.08,.62+s*.09,Math.cos(a)*1.13],[.8,.5,1.9]);m.rotation.y=a+Math.PI/2;m.rotation.z=s*.5}}
  if(hat==='mitre'){      // Mitra: zwei spitze Schilde aus weißem Seidendamast mit Goldborten, Kreuz, herabhängende Bänder
   const wm=hatMat('cloth',0xf2eee2),gm=hatMat('gold');mesh(cg('mitb',()=>lat([[0,.98],[1.02,.98],[1.04,.8],[0,.8]],28)),gm,H);
   for(const zs of[1,-1]){const sh=new T.Shape();sh.moveTo(-.95,0);sh.lineTo(.95,0);sh.quadraticCurveTo(.9,1.2,0,2.1);sh.quadraticCurveTo(-.9,1.2,-.95,0);const q=new T.ExtrudeGeometry(sh,{depth:.06,bevelEnabled:false});q.translate(0,.95,zs*.42-(zs>0?0:.06));const m=mesh(q,wm,H);m.rotation.x=-zs*.12;

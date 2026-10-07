@@ -114,12 +114,12 @@
 
  // ===== Epochen-Edition: Startepoche je Welt (Namen hier, Optik/Kleidung im Browser in eras.js) =====
  const ERAS=[
-  {id:'steinzeit',units:{sword:'Keulenkrieger',spear:'Speerkämpfer',archer:'Bogenschütze',crossbow:'Schleuderer',knight:'Stammesreiter'},n:'Steinzeit',y:'ca. 5500–2200 v. Chr.',d:'Langhausdorf, Steinkreis, Werkzeug aus Stein und Knochen',
+  {id:'steinzeit',units:{sword:'Keulenkrieger',spear:'Speerkämpfer',archer:'Bogenschütze',crossbow:'Schleuderer',knight:'Häuptlingskrieger'},n:'Steinzeit',y:'ca. 5500–2200 v. Chr.',d:'Langhausdorf, Steinkreis, Werkzeug aus Stein und Knochen',
    names:{keep:'Langhaus des Ältesten',house:'Grubenhaus',bighouse:'Langhaus',chapel:'Steinkreis',church:'Großer Steinkreis',cathedral:'Ahnen-Steinkreis',tavern:'Feuerhalle',market:'Tauschplatz',plaza:'Versammlungsplatz',garrison:'Kriegerhütte',smithy:'Steinschläger',storage:'Vorratsgrube',well:'Quellfassung',watchpost:'Hochstand',tower:'Wachgerüst',gate:'Palisadentor',mint:'Bernsteinschleifer',cemetery:'Gräberfeld',tannery:'Fellgerberei'}},
   {id:'hallstatt',units:{sword:'Schwertkrieger',spear:'Lanzenträger',archer:'Bogenschütze',crossbow:'Schleuderer',knight:'Reiterkrieger'},n:'Hallstattzeit',y:'ca. 800–450 v. Chr.',d:'Höhensiedlung mit Holz-Erde-Wall, Salzhandel, Fürstensitz',
    names:{keep:'Fürstensitz',chapel:'Heiliger Hain',church:'Kultbezirk',cathedral:'Fürstengrabhügel',tavern:'Methalle',plaza:'Handelsplatz',garrison:'Kriegerhaus',smithy:'Eisenschmiede',quarry:'Salzbergwerk',storage:'Speicher',mint:'Goldschmiede',cemetery:'Hügelgräberfeld'}},
   {id:'roemer',units:{sword:'Legionär',spear:'Pilum-Werfer',archer:'Sagittarius',crossbow:'Schleuderer (Funditor)',knight:'Eques (Reiter)'},n:'Römerzeit',y:'ca. 15 v. Chr.–476 n. Chr.',d:'Kastell und Lagerdorf, Tempel, Forum, Thermen',
-   names:{keep:'Principia (Kastell)',house:'Domus',bighouse:'Insula',chapel:'Tempelchen',church:'Tempel',cathedral:'Kapitolstempel',tavern:'Taberna',market:'Marktstand',plaza:'Forum',garrison:'Kaserne (Castra)',well:'Brunnen',storage:'Horreum',granary:'Horreum',smithy:'Fabrica',mint:'Münzstätte',bakery:'Pistrinum',cemetery:'Gräberstraße',gate:'Lagertor',tower:'Turm am Limes',watchpost:'Wachposten am Limes'}},
+   names:{keep:'Principia (Kastell)',watchpost:'Wachstation der Vigiles',house:'Domus',bighouse:'Insula',chapel:'Tempelchen',church:'Tempel',cathedral:'Kapitolstempel',tavern:'Taberna',market:'Marktstand',plaza:'Forum',garrison:'Kaserne (Castra)',well:'Brunnen',storage:'Horreum',granary:'Horreum',smithy:'Fabrica',mint:'Münzstätte',bakery:'Pistrinum',cemetery:'Gräberstraße',gate:'Lagertor',tower:'Turm am Limes',watchpost:'Wachposten am Limes'}},
   {id:'fruehmittelalter',units:{sword:'Schwertkrieger',spear:'Speerkämpfer',archer:'Bogenschütze',crossbow:'Armbrustschütze',knight:'Panzerreiter'},n:'Frühmittelalter',y:'ca. 500–1000',d:'Herrenhof und Turmhügelburg, Kloster, Holzkirche',
    names:{keep:'Motte (Turmhügelburg)',chapel:'Holzkirche',church:'Klosterkirche',cathedral:'Pfalzkapelle',tavern:'Herberge',plaza:'Thingplatz',garrison:'Gefolgschaftshaus'}},
   {id:'hochmittelalter',units:{sword:'Schwertkämpfer',spear:'Lanzenträger',archer:'Bogenschütze',crossbow:'Armbrustschütze',knight:'Ritter'},n:'Hochmittelalter',y:'ca. 1000–1250',d:'Steinburg mit Bergfried – das bisherige Spiel',names:{}},
@@ -128,9 +128,9 @@
   {id:'renaissance',units:{sword:'Landsknecht',spear:'Pikenier',archer:'Arkebusier',crossbow:'Armbrustschütze',knight:'Kürassier'},n:'Renaissance',y:'ca. 1450–1600',d:'Bastionen, Stadtpalast, Buchdruck und Handelshäuser',
    names:{keep:'Stadtpalast',church:'Stadtkirche',cathedral:'Dom',plaza:'Piazza',garrison:'Zeughaus',storage:'Handelshaus',mint:'Bank'}},
   {id:'barock',units:{sword:'Musketier',spear:'Pikenier',archer:'Grenadier',crossbow:'Kanonier',knight:'Dragoner'},n:'Frühe Neuzeit (Barock)',y:'ca. 1600–1790',d:'Sternfestung, Schloss, Manufakturen, stehendes Heer',
-   names:{keep:'Schloss',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
+   names:{keep:'Schloss',watchpost:'Spritzenhaus',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
   {id:'napoleon',units:{sword:'Grenadier',spear:'Füsilier',archer:'Jäger (Plänkler)',crossbow:'Voltigeur',knight:'Husar'},n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
-   names:{keep:'Kommandantur',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
+   names:{keep:'Kommandantur',watchpost:'Spritzenhaus',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
   {id:'neuzeit',units:{sword:'Gendarm',spear:'Infanterist',archer:'Scharfschütze',crossbow:'Schütze',knight:'Dragoner'},n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
    names:{keep:'Rathaus',church:'Stadtkirche',cathedral:'Münster',plaza:'Marktplatz',garrison:'Kaserne',armory:'Bunker & Munitionsdepot',watchpost:'Feuerwache',weaver:'Textilfabrik',smithy:'Eisenwerk',tavern:'Wirtshaus',storage:'Lagerhalle',mint:'Sparkasse'}}];
  const ERA_DEFAULT='hochmittelalter',eraOf=id=>ERAS.find(e=>e.id===id)||ERAS.find(e=>e.id===ERA_DEFAULT);
@@ -229,6 +229,51 @@
  function bedPath(t,lv,bi){const I=interior(t,lv);if(!I||!I.beds.length)return null;const b=I.beds[bi%I.beds.length],P=[];
   for(const s of I.stairs){if(b[2]<s.e1-.01)break;P.push({x:s.x,z:s.z0,el:s.e0},{x:s.x,z:s.z1,el:s.e1})}
   P.push({x:b[0],z:b[1]+.85,el:b[2]});return{P,bed:b}}
- const api={interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ // Gebäudenamen je Epoche mit passendem Artikel ("das Rathaus", "in der Principia", "Deine Kaserne")
+ const BNAME={keep:'Bergfried',garrison:'Garnison',armory:'Waffenkammer',storage:'Lagerhaus',plaza:'Marktplatz'},GEN={Bergfried:'m',Fürstensitz:'m',Stadtpalast:'m',Bunker:'m',Principia:'f',Motte:'f',Stadtburg:'f',Kommandantur:'f',Garnison:'f',Kriegerhütte:'f',Kaserne:'f',Waffenkammer:'f',
+  Langhaus:'n',Rathaus:'n',Schloss:'n',Kriegerhaus:'n',Gefolgschaftshaus:'n',Zeughaus:'n',Depot:'n',Forum:'n',Piazza:'f',Lagerhaus:'n',Lagerhalle:'n',Magazin:'n',Speicher:'m',Horreum:'n',Kaufhaus:'n'};
+ const bname=(era,k)=>eraOf(era).names[k]||BNAME[k]||k,bgen=n=>GEN[String(n).split(/[ (]/)[0]]||'m',
+  ART={nom:{m:'der',f:'die',n:'das'},akk:{m:'den',f:'die',n:'das'},dat:{m:'dem',f:'der',n:'dem'},ein:{m:'einen',f:'eine',n:'ein'},dein:{m:'Dein',f:'Deine',n:'Dein'},deinA:{m:'deinen',f:'deine',n:'dein'},in:{m:'im',f:'in der',n:'im'},an:{m:'am',f:'an der',n:'am'},zu:{m:'zum',f:'zur',n:'zum'}},
+  PRON={er:{m:'er',f:'sie',n:'es'},ihn:{m:'ihn',f:'sie',n:'es'}};
+ function bart(era,k,cas='nom',cap=false){const n=bname(era,k),g=bgen(n);if(PRON[cas])return PRON[cas][g];const t=ART[cas][g]+' '+n;return cap?t[0].toUpperCase()+t.slice(1):t}
+ // Feste und Wettkämpfe je Epoche (Name + Meldung); null = gibt es in dieser Epoche nicht
+ const FEST={tourney:{hochmittelalter:'Ritterturnier',spaetmittelalter:'Ritterturnier',steinzeit:null,hallstatt:'Reiterwettkampf',roemer:'Reiterspiele (Hippika Gymnasia)',fruehmittelalter:'Reiterspiele',renaissance:'Ringstechen',barock:'Reiterkarussell',napoleon:'Kavallerie-Wettstreit',neuzeit:'Reitturnier'},
+  fair:{steinzeit:'Tauschfest',hallstatt:'Salzmarkt',roemer:'Nundinae-Markt',neuzeit:'Volksfest',_:'Jahrmarkt'},
+  maypole:{steinzeit:'🌿 Frühlingsfest: Die Sippe tanzt um den geschmückten Baum',hallstatt:'🌿 Beltane-Fest: Tanz um den geschmückten Baum',roemer:'🌸 Floralia! Blumenfest auf dem Forum – die Bewohner tanzen',_:'🌳 Maibaum auf dem Marktplatz – die Dorfbewohner tanzen!'},
+  circus:{steinzeit:'🪶 Tauschfest! Nachbarsippen tauschen Felle, Feuerstein und Schmuck',hallstatt:'🧂 Salzmarkt! Händler aus fernen Ländern bringen Bernstein, Bronze und Wein',roemer:'🏺 Nundinae! Markttag mit Händlern und Gauklern auf dem Forum',neuzeit:'🎡 Volksfest! Schausteller, Buden und Blasmusik auf dem Marktplatz',_:'🎪 Jahrmarkt! Gaukler und Zirkus besuchen den Marktplatz (einmal im Jahr)'},
+  tree:{steinzeit:'🔥 Wintersonnenwende – die Sippe feiert die Rückkehr des Lichts',hallstatt:'🔥 Julfest zur Wintersonnenwende',roemer:'🎁 Saturnalien! Geschenke, Festmahl und Kerzen auf dem Forum',fruehmittelalter:'🌲 Julfest mit geschmücktem Baum',_:'🎄 Weihnachtsbaum auf dem Marktplatz'},
+  rider:{hochmittelalter:'Ritter',spaetmittelalter:'Ritter',hallstatt:'Krieger',roemer:'Eques',fruehmittelalter:'Reiter',renaissance:'Kürassier',barock:'Dragoner',napoleon:'Husar',neuzeit:'Reiter'}};
+ const SHIP={steinzeit:'Einbaum',hallstatt:'Salzboot',roemer:'Flussgaleere',fruehmittelalter:'Langschiff',barock:'Plätte',napoleon:'Plätte',neuzeit:'Raddampfer'},ship=era=>SHIP[eraOf(era).id]||'Kogge';
+ const ERA_BONUS={steinzeit:'Jäger arbeiten 50 % schneller',hallstatt:'Bergleute und Steinmetze +30 % (Salzbergbau)',roemer:'Alle Arbeiten +10 %, Lager +25 % (Horreum)',fruehmittelalter:'Soldaten in 7 statt 10 s ausgebildet',hochmittelalter:'Ritterturniere bringen Ansehen',spaetmittelalter:'Feuerwaffen (Büchsen) im Kampf',renaissance:'Heiler, Priester und Weber +30 %',barock:'Zufriedenheit +5 (Lebensfreude)',napoleon:'Soldaten in 6 s ausgebildet',neuzeit:'Fabriken: Produktion +30 %'},bonus=era=>ERA_BONUS[eraOf(era).id];
+ // Bauten, die es in einer Epoche nicht gibt (keine Hinrichtungsstätten in Vorzeit und Neuzeit)
+ const NOBUILD={steinzeit:['pyre','gallows'],hallstatt:['pyre','gallows'],napoleon:['pyre','gallows'],neuzeit:['pyre','gallows']},allowed=(era,k)=>!(NOBUILD[eraOf(era).id]||[]).includes(k);
+ // Erfindungen: gelten ab ihrer Epoche dauerhaft (auch in allen späteren) – anders als die Epochen-Boni
+ const INVENT=[{id:'fire',era:'steinzeit',n:'Feuerstein & Funken',d:'Lagerfeuer und Kochen'},{id:'bronze',era:'hallstatt',n:'Eisenverhüttung',d:'Schmied +20 %'},
+  {id:'aqueduct',era:'roemer',n:'Aquädukt & Wasserleitung',d:'Löschen mit Wasser +50 %'},{id:'mill',era:'fruehmittelalter',n:'Wassermühle',d:'Müller und Bäcker +40 %'},
+  {id:'threefield',era:'hochmittelalter',n:'Dreifelderwirtschaft',d:'Bauern +30 %'},{id:'wheel',era:'spaetmittelalter',n:'Spinnrad',d:'Weber +30 %'},
+  {id:'print',era:'renaissance',n:'Buchdruck',d:'Zufriedenheit +3 (Bildung)'},{id:'potato',era:'barock',n:'Kartoffel',d:'Bauern weitere +20 %'},
+  {id:'vaccine',era:'napoleon',n:'Pockenimpfung',d:'Krankheiten breiten sich halb so schnell aus'},{id:'steam',era:'neuzeit',n:'Dampfmaschine',d:'Bergbau und Steinbruch +30 %'}];
+ const eraIdx=e=>ERAS.findIndex(x=>x.id===eraOf(e).id),inventions=era=>INVENT.filter(i=>eraIdx(i.era)<=eraIdx(era)),has=(era,id)=>inventions(era).some(i=>i.id===id);
+ // Aufgaben je Epoche: b = Gebäude zählen (k, n), st = Ankerbau-Stufe, pop = Einwohner, sol = Soldaten, f = Fest gefeiert, w = Mauerstücke
+ const QUESTS={steinzeit:[{id:'s1',t:'b',k:'house',n:3,d:'Drei Grubenhäuser bauen'},{id:'s2',t:'b',k:'chapel',n:1,d:'Einen Steinkreis errichten'},{id:'s3',t:'pop',n:12,d:'Die Sippe wächst auf 12 Köpfe'}],
+  hallstatt:[{id:'h1',t:'b',k:'ironmine',n:1,d:'Eine Eisenmine erschließen'},{id:'h2',t:'b',k:'market',n:1,d:'Einen Tauschplatz für den Salzhandel'},{id:'h3',t:'st',n:1,d:'Den Fürstensitz ausbauen'}],
+  roemer:[{id:'r1',t:'b',k:'plaza',n:1,d:'Ein Forum anlegen'},{id:'r2',t:'b',k:'bighouse',n:3,d:'Drei Insulae bauen'},{id:'r3',t:'b',k:'church',n:1,d:'Einen Tempel weihen'}],
+  fruehmittelalter:[{id:'f1',t:'b',k:'church',n:1,d:'Eine Klosterkirche stiften'},{id:'f2',t:'b',k:'farm',n:2,d:'Zwei Bauernhöfe anlegen'},{id:'f3',t:'sol',n:5,d:'Eine Gefolgschaft von 5 Kriegern'}],
+  hochmittelalter:[{id:'m1',t:'f',k:'tnyH',d:'Ein Ritterturnier ausrichten'},{id:'m2',t:'b',k:'cathedral',n:1,d:'Einen Dom bauen'},{id:'m3',t:'st',n:2,d:'Den Steinbergfried errichten'}],
+  spaetmittelalter:[{id:'p1',t:'w',n:10,d:'Eine Stadtmauer aus 10 Mauerstücken'},{id:'p2',t:'b',k:'apothecary',n:1,d:'Eine Apotheke gegen die Pest'},{id:'p3',t:'pop',n:30,d:'30 Bürger in der Stadt'}],
+  renaissance:[{id:'n1',t:'b',k:'mint',n:1,d:'Eine Münzprägerei (Bankwesen)'},{id:'n2',t:'f',k:'fairH',d:'Einen Jahrmarkt veranstalten'},{id:'n3',t:'b',k:'weaver',n:2,d:'Zwei Webereien (Tuchhandel)'}],
+  barock:[{id:'b1',t:'st',n:3,d:'Das Schloss vollständig ausbauen'},{id:'b2',t:'b',k:'church',n:1,d:'Eine Barockkirche bauen'},{id:'b3',t:'b',k:'watchpost',n:1,d:'Ein Spritzenhaus einrichten'}],
+  napoleon:[{id:'o1',t:'sol',n:10,d:'Ein Regiment von 10 Soldaten'},{id:'o2',t:'b',k:'garrison',n:1,d:'Eine Kaserne bauen'},{id:'o3',t:'b',k:'apothecary',n:1,d:'Ein Lazarett einrichten'}],
+  neuzeit:[{id:'z1',t:'b',k:'watchpost',n:1,d:'Eine Feuerwache gründen'},{id:'z2',t:'pop',n:50,d:'50 Einwohner – eine Industriestadt'},{id:'z3',t:'b',k:'smithy',n:2,d:'Zwei Eisenwerke betreiben'}]};
+ const quests=era=>QUESTS[eraOf(era).id]||[];
+ // Wahrzeichen je Epoche (Gebäude 'wonder', einmal pro Welt)
+ const WONDER={steinzeit:{n:'Großer Steinkreis (Stonehenge)',d:'Trilithen aus riesigen Sandsteinblöcken, Ausrichtung zur Sonnenwende'},hallstatt:{n:'Fürstengrabhügel',d:'Grabhügel mit Steinkranz, Prozessionsweg und Kriegerstatue'},
+  roemer:{n:'Kolosseum',d:'Amphitheater mit drei Bogenreihen und Arena'},fruehmittelalter:{n:'Pfalzkapelle',d:'Achteckiger Kuppelbau nach Aachener Vorbild'},
+  hochmittelalter:{n:'Kaiserpfalz',d:'Große Königshalle mit Arkadenfenstern und Bergfried'},spaetmittelalter:{n:'Stadttor mit Doppeltürmen',d:'Backsteintor mit zwei Rundtürmen wie das Holstentor'},
+  renaissance:{n:'Kuppeldom',d:'Achteckige Kuppel auf Tambour mit Laterne wie in Florenz'},barock:{n:'Lustschloss mit Fontäne',d:'Orangerie, Parterre und große Fontäne'},
+  napoleon:{n:'Triumphbogen',d:'Mächtiger Siegesbogen mit Attika und Reliefs'},neuzeit:{n:'Eiserner Aussichtsturm',d:'Genieteter Stahlturm mit Aussichtsplattform'}},
+  wonder=era=>WONDER[eraOf(era).id];
+ const fest=(era,k)=>{const T=FEST[k];if(!T)return null;const e=eraOf(era).id;return e in T?T[e]:T._}
+ const api={wonder,quests,INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
