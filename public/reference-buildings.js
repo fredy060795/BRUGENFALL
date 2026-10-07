@@ -6,6 +6,12 @@ import {eraBuild} from './eras.js';
 
 // Material tiles are copied into independent canvases: no atlas-neighbour bleeding.
 const atlasCache=new Map(),COLM=new Map();
+// Beschriftete Tafel (Kaserne, Depot) als Material, je Text einmal erzeugt
+function signMat(text,bg='#e8e2d0',fg='#1a1a1a'){const key='sign:'+text+bg;if(COLM.has(key))return COLM.get(key);const c=document.createElement('canvas');c.width=512;c.height=96;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,512,96);x.strokeStyle=fg;x.lineWidth=6;x.strokeRect(6,6,500,84);
+ x.fillStyle=fg;x.font='bold 60px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,52);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set(key,m);return m}
+// Schilderhaus: schräg schwarz-weiß-rot gestreift
+function stripeMat(){if(COLM.has('stripes'))return COLM.get('stripes');const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),C=['#141414','#f0f0ea','#b8201c'];
+ for(let i=-8;i<16;i++){x.fillStyle=C[(i%3+3)%3];x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16+16,0);x.lineTo(i*16+16-128,128);x.lineTo(i*16-128,128);x.fill()}const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set('stripes',m);return m}
 function atlasTile(file,index,fallback,linear=false){
  const c=document.createElement('canvas');c.width=c.height=2;const ctx=c.getContext('2d');ctx.fillStyle=fallback;ctx.fillRect(0,0,2,2);
  const texture=new T.CanvasTexture(c);texture.colorSpace=linear?T.NoColorSpace:T.SRGBColorSpace;texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.anisotropy=8;   // Kacheln sind jetzt nahtlos -> kein Spiegeln mehr
@@ -380,6 +386,18 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   for(const x of[-2.0,-.4,.4,2.0])fm(new T.SphereGeometry(.09,10,8),bread,tx+x,.9,tz+.25,1.4,.8,1);for(const x of[-2.6,-1.0,1.0,2.6]){fm(new T.CylinderGeometry(.06,.08,.25,10),jug,tx+x,.97,tz+.2)}
   for(const x of[-2.4,-1.6,-.8,0,.8,1.6,2.4])for(const z of[-.25,.25]){fm(new T.CylinderGeometry(.12,.12,.015,12),plate,tx+x,.855,tz+z);fm(new T.CylinderGeometry(.04,.035,.12,8),cm('cup',0x9a8a6a,{metalness:.4}),tx+x+.18,.92,tz+z)}}
  }
+ else if(k==='garrison'&&era==='neuzeit'){g._bunker=1;   // Neuzeit: Betonbunker mit Erdabdeckung, Schießscharten, Sandsäcken, Munitionsdepot und Waffenkammer
+  const cmB=(n,c,o={})=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.95,...o})),COLM.get(n)),C=cmB('concrete',0x8e8c84),E=cmB('earthcover',0x5a6a36),SB=cmB('sandbag',0xb5a478),DK=cmB('slit',0x111111),OL=cmB('ammobox',0x4e5832),BR=cmB('shellbrass',0xb8903c,{metalness:.7,roughness:.35}),ST=cmB('steeldoor',0x4a4e48,{metalness:.5,roughness:.5});
+  shell(8,6,3,C,2.2);box(8.7,.6,6.7,0,3.1,0,C);box(7.6,.35,5.6,0,3.575,0,E);g.walkAreas.push([0,0,3.8,2.8,3.75]);                       // Decke mit Erdabdeckung (begehbar)
+  for(const sx of[-1,1]){box(.6,2.6,.5,sx*1.45,1.3,3.25,C,true);box(.06,2.1,1.0,sx*1.12,1.05,3.6,ST)}box(3.5,.5,.6,0,2.85,3.25,C);         // Eingangsbunker, offene Stahltür
+  for(const x of[-2.7,2.7]){box(1.3,.22,.06,x,1.85,3.03,DK);box(1.5,.12,.2,x,2.02,3.08,C)}for(const z of[-1.2,1.2])for(const sx of[-1,1])box(.06,.22,1.1,sx*4.03,1.85,z,DK);for(const x of[-2,0,2])box(1.1,.22,.06,x,1.85,-3.03,DK);   // Schießscharten
+  const bag=(x,y,z,ry)=>{const geo=new T.BoxGeometry(.52,.17,.3);geo.rotateY(ry);geo.translate(x,y,z);staticMesh(geo,SB)};
+  for(let r=0;r<4;r++){const o=r%2*.26;for(let i=0;i<5;i++){bag(-3.9+o+i*.5,.09+r*.17,3.75,0);bag(3.9-o-i*.5,.09+r*.17,3.75,0)}for(let i=0;i<2;i++)for(const sx of[-1,1])bag(sx*4.3,.09+r*.17,3.3-o-i*.5,Math.PI/2)}
+  for(let i=0;i<3;i++)for(let j=0;j<2-(i>1?1:0);j++){box(.75,.38,.42,-3.3+i*.82,.19+j*.4,-3.6,OL);box(.77,.05,.44,-3.3+i*.82,.36+j*.4,-3.6,cmB('ammostripe',0xc8a830))}   // Munitionskisten
+  for(let i=0;i<5;i++)for(let j=0;j<2;j++){const x=1.6+i*.24,z=-3.5-j*.24;cylinder(.08,.5,x,.25,z,BR,10);const tip=new T.ConeGeometry(.08,.22,10);tip.translate(x,.61,z);staticMesh(tip,cmB('shelltip',0x3a3a36))}   // Granaten
+  for(const x of[-2.4,2.4]){cylinder(.07,.8,x,3.95,-1.6,C,8);cylinder(.12,.1,x,4.38,-1.6,C,8)}                                          // Lüftungsrohre
+  const sg=new T.PlaneGeometry(2.4,.45);sg.translate(0,3.0,3.56);staticMesh(sg,signMat('DEPOT','#d8d2c0'));
+  if(weapon)for(const x of[-.6,.6]){const rf=weapon('rifle');rf.position.set(x,.9,2.6);rf.rotation.z=x<0?.2:-.2;g.add(rf)}furniture()}
  else if(k==='garrison'){const mat=lv?H.stone:H.wood;shell(8,6,4,mat,2.2);box(8,.2,6,0,3.9,0,H.floor);crown(8,6,4,mat);g.walkAreas.push([0,0,4,3,4]);if(!lv)for(let x=-3.8;x<4;x+=.48)box(.2,4.7,.2,x,2.35,-2.95,H.wood);for(const x of[-3,3]){cylinder(.1,2.3,x,1.15,3.5,H.wood);const target=new T.Mesh(new T.CylinderGeometry(.42,.42,.12,16),H.thatch);target.rotation.x=Math.PI/2;target.position.set(x,1.5,3.5);g.add(target)}for(const x of[-2.2,0,2.2]){const sw=weapon(x?x<0?'sword':'bow':'sword');sw.position.set(x,.95,2.2);if(x>0)sw.rotation.y=.35;else sw.rotation.z=Math.PI;g.add(sw)}for(const x of[-1.8,1.8]){const shield=new T.Mesh(new T.CylinderGeometry(.22,.28,.12,16,1,true),x<0?H.redRoof:H.green);shield.position.set(x,1.05,-2.25);shield.rotation.z=Math.PI/2;g.add(shield)}furniture();}
  else if(k==='gate'||k==='portcullis'){const mat=lv?H.stone:H.wood;for(const x of[-2.85,2.85])box(2.3,4,4,x,2,0,mat,true);box(7.9,.65,3.9,0,3.675,0,lv?H.stone:H.floor);g.colliders.push([0,0,4,2,4,3.35]);crown(8,4,4,mat);g.walkAreas.push([0,0,4,2,4]);if(lv){for(const x of[-3.6,3.6])for(const z of[-1.6,1.6]){cylinder(.46,4.55,x,2.275,z,H.stone);crown(.95,.95,4.55,H.stone,x,z)}arch(0,0,2.02,3.2,3.35);const sh=new T.Shape();sh.moveTo(-1.7,3.7);sh.lineTo(1.7,3.7);sh.lineTo(1.7,2);sh.lineTo(1.6,2);sh.quadraticCurveTo(1,2.85,0,3.35);sh.quadraticCurveTo(-1,2.85,-1.6,2);sh.lineTo(-1.7,2);sh.closePath();for(const z of[-2,1.65]){const geo=new T.ExtrudeGeometry(sh,{depth:.35,bevelEnabled:false});geo.translate(0,0,z);staticMesh(geo,H.stone);}}else{for(const x of[-3.8,-1.7,1.7,3.8])for(const z of[-1.8,1.8])cylinder(.2,4.8,x,2.4,z,H.wood);beam([-3.8,4.15,2],[3.8,4.15,2],.35)}gateMechanism();}
  else if(k==='tower'){shell(4.6,4.6,11,H.stone,1.5);
@@ -730,7 +748,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
  }
  eraExtras();
  // ===== Epochentypische Anbauten: Zäune, Trockengestelle, Säulenvorhallen, Gesimse, Fabrikschlote =====
- function eraExtras(){const X=S.extras;if(!X||!g._wd)return;const[w,d]=g._wd,h=g._h||3,F=d/2,home=['house','bighouse'].includes(k),PROD=['bakery','smithy','weaver','brewery','tannery','butcher','dairy','smokehouse','armorer','bower','mint','apothecary','lumber','quarry','lodge','fishery'];
+ function eraExtras(){const X=S.extras;if(!X||!g._wd||g._bunker)return;const[w,d]=g._wd,h=g._h||3,F=d/2,home=['house','bighouse'].includes(k),PROD=['bakery','smithy','weaver','brewery','tannery','butcher','dairy','smokehouse','armorer','bower','mint','apothecary','lumber','quarry','lodge','fishery'];
   const cm=(key,c)=>{if(!COLM.has(key))COLM.set(key,new T.MeshStandardMaterial({color:c,roughness:.95}));return COLM.get(key)},dw=(g.doorWidth||1.5)/2+.25;
   const wattle=(x0,x1,z)=>{for(let q=x0;q<=x1+.01;q+=.45)box(.07,.95,.07,q,.47,z,H.wood);for(const y of[.25,.5,.75])box(x1-x0,.06,.05,(x0+x1)/2,y,z,cm('wattle',0x7a6040))};
   const hides=(x,z)=>{for(const a of[-.7,.7])box(.08,1.8,.08,x+a,.9,z,H.wood);box(1.6,.07,.07,x,1.75,z,H.wood);box(.62,.95,.03,x-.36,1.25,z+.02,cm('hide1',0x9a7652));box(.55,.85,.03,x+.36,1.3,z+.02,cm('hide2',0x6a4e34))};
@@ -745,8 +763,14 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
     const dome=new T.LatheGeometry([[1.1,0],[1.15,.4],[1.0,.9],[.6,1.4],[.15,1.75],[.06,2.1],[0,2.2]].map(q=>new T.Vector2(q[0],q[1])),16);dome.translate(0,top+1.0,-d/4);staticMesh(dome,H.slate);cylinder(1.15,1,0,top+.5,-d/4,H.plaster,16);
     window(0,top+.6,F+.47,0,.9,1.4)}
    if(X==='cornice'&&era==='napoleon'){box(.12,8,.12,w/2-.6,top+4,-F+.6,H.wood);box(1.6,1.0,.03,w/2+.2,top+7.3,-F+.6,cm2('flagB',0x1f3a7a));box(.53,1.0,.035,w/2+.2-.53,top+7.3,-F+.6,cm2('flagB',0x1f3a7a));box(.53,1.0,.035,w/2+.2,top+7.3,-F+.6,cm2('flagW',0xeeeeee));box(.53,1.0,.035,w/2+.73,top+7.3,-F+.6,cm2('flagR',0xb01e1e))}
-   if(X==='industry'){const tw=2.4,ty=top+1;box(tw,8,tw,0,ty+4-1,-d/4,H.plaster);box(tw+.3,.3,tw+.3,0,ty+7,-d/4,H.stone);for(const[a,b,ry]of[[0,tw/2+.02,0],[0,-tw/2-.02,Math.PI],[tw/2+.02,0,Math.PI/2],[-tw/2-.02,0,-Math.PI/2]]){const c=new T.CircleGeometry(.75,24);c.rotateY(ry);c.translate(a,ty+5.6,-d/4+b);staticMesh(c,cm2('clockface',0xf2ecd8));const hand=new T.BoxGeometry(.06,.6,.02);hand.translate(0,.25,0);hand.rotateY(ry);hand.translate(a*1.02,ty+5.6,-d/4+b*1.02);staticMesh(hand,H.dark)}
-    const sp=new T.ConeGeometry(1.5,3.2,4);sp.rotateY(Math.PI/4);sp.translate(0,ty+8.75,-d/4);staticMesh(sp,H.slate)}}
+   if(X==='industry'){                                                                                                   // Kaserne: Mittelrisalit mit Giebel, Inschrift, Fahnenmast, Schilderhäuschen
+    box(3.2,top-1.6,.5,0,3+(top-1.6)/2,F+.25,H.plaster);for(const sx of[-1,1])box(.4,3,.5,sx*1.4,1.5,F+.25,H.plaster);box(3.5,.3,.7,0,top+1.5,F+.25,H.stone);const tri=new T.Shape();tri.moveTo(-1.75,0);tri.lineTo(1.75,0);tri.lineTo(0,1.0);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.5,bevelEnabled:false});tg.translate(0,top+1.65,F);staticMesh(tg,H.stone);
+    const sg=new T.PlaneGeometry(2.8,.5);sg.translate(0,Math.min(top-.6,3.2),F+.51);staticMesh(sg,signMat('KASERNE'));
+    for(let yy=4.2;yy<top-1;yy+=3)window(0,yy,F+.51,0,.8,1.4);
+    const KC=cm2('kcorn',0xd8d0bc);for(let yy=2.95;yy<top-.5;yy+=3){for(const sz of[-1,1])box(w+.2,.2,.14,0,yy,sz*(F+.05),KC);for(const sx of[-1,1])box(.14,.2,d+.2,sx*(w/2+.05),yy,0,KC)}   // Geschossgesimse
+    for(const sx of[-1,1])for(const sz of[-1,1])for(let yy=.3;yy<top;yy+=.6)box(yy%1.2<.6?.5:.36,.5,yy%1.2<.6?.36:.5,sx*(w/2-.1),yy+.25,sz*(F-.1),KC);   // Eckquader
+    box(.1,7,.1,0,top+1.65+3.5,F-.1,H.iron);for(const[i2,c]of[[0,0x141414],[1,0xf0f0ea],[2,0xb8201c]])box(1.8,.4,.03,.95,top+7.6-i2*.4,F-.1,cm2('flagKR'+i2,c));
+    for(const sx of[-1,1]){const x=sx*2.1,z=F+.9;box(.9,2.3,.9,x,1.15,z,stripeMat());const pr=new T.ConeGeometry(.75,.6,4);pr.rotateY(Math.PI/4);pr.translate(x,2.6,z);staticMesh(pr,H.slate)}}}
   else if(X==='stone'){if(home){firepit(w/2-1.3,F+1.6);wattle(-w/2,-dw,F+.9)}else{hides(w/2-1,F+1.2)}for(let i=0;i<2;i++)pot(-w/2+.5+i*.5,F+.5,.8)}
   else if(X==='iron'){wattle(-w/2,-dw,F+.9);if(!home)for(let i=0;i<3;i++)sack(w/2-.5-i*.5,F+.6,.3,0xe8e4dc);else pot(w/2-.6,F+.6)}
   else if(X==='early'){wattle(-w/2,-dw,F+1);wattle(dw,w/2,F+1)}
