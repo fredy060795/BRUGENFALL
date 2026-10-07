@@ -229,6 +229,13 @@
  function bedPath(t,lv,bi){const I=interior(t,lv);if(!I||!I.beds.length)return null;const b=I.beds[bi%I.beds.length],P=[];
   for(const s of I.stairs){if(b[2]<s.e1-.01)break;P.push({x:s.x,z:s.z0,el:s.e0},{x:s.x,z:s.z1,el:s.e1})}
   P.push({x:b[0],z:b[1]+.85,el:b[2]});return{P,bed:b}}
- const api={interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ // Gebäudenamen je Epoche mit passendem Artikel ("das Rathaus", "in der Principia", "Deine Kaserne")
+ const BNAME={keep:'Bergfried',garrison:'Garnison',armory:'Waffenkammer',storage:'Lagerhaus'},GEN={Bergfried:'m',Fürstensitz:'m',Stadtpalast:'m',Bunker:'m',Principia:'f',Motte:'f',Stadtburg:'f',Kommandantur:'f',Garnison:'f',Kriegerhütte:'f',Kaserne:'f',Waffenkammer:'f',
+  Langhaus:'n',Rathaus:'n',Schloss:'n',Kriegerhaus:'n',Gefolgschaftshaus:'n',Zeughaus:'n',Depot:'n',Lagerhaus:'n',Lagerhalle:'n',Magazin:'n',Speicher:'m',Horreum:'n',Kaufhaus:'n'};
+ const bname=(era,k)=>eraOf(era).names[k]||BNAME[k]||k,bgen=n=>GEN[String(n).split(/[ (]/)[0]]||'m',
+  ART={nom:{m:'der',f:'die',n:'das'},akk:{m:'den',f:'die',n:'das'},dat:{m:'dem',f:'der',n:'dem'},ein:{m:'einen',f:'eine',n:'ein'},dein:{m:'Dein',f:'Deine',n:'Dein'},deinA:{m:'deinen',f:'deine',n:'dein'},in:{m:'im',f:'in der',n:'im'},an:{m:'am',f:'an der',n:'am'},zu:{m:'zum',f:'zur',n:'zum'}},
+  PRON={er:{m:'er',f:'sie',n:'es'},ihn:{m:'ihn',f:'sie',n:'es'}};
+ function bart(era,k,cas='nom',cap=false){const n=bname(era,k),g=bgen(n);if(PRON[cas])return PRON[cas][g];const t=ART[cas][g]+' '+n;return cap?t[0].toUpperCase()+t.slice(1):t}
+ const api={bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
