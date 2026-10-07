@@ -47,6 +47,10 @@ const SP={
   fl:{y:.56,z:.36,seg:[.24,.22,.1],r:[.045,.03,.024,.03],hoof:'paw'},hl:{y:.6,z:-.36,seg:[.28,.22,.1],r:[.055,.03,.024,.03],hoof:'paw'},
   neck:{y:.78,z:.44,len:.24,w:[.1,.09,.08],d:[.16,.14,.12],crest:.01,rest:.95,ruff:1},head:{len:.32,prof:[[0,.08,-.07,.09],[.35,.07,-.06,.075],[.6,.02,-.04,.035],[1,0,-.025,.02]],ear:[.05,.09],eyeZ:.1,pointy:1},
   tail:{y:.76,len:.42,bushy:1},cols:[[0x3a3a42,'wolf'],[0x5a5450,'wolf'],[0x6a5a48,'wolf']]}};
+// Epochen-Tiere: Auerochse und Wildpferd (Steinzeit/Hallstatt), Ziege (statt Schaf in der Vorzeit)
+SP.aurochs={...SP.cow,cols:[[0x2a1e18,'solid'],[0x3a2418,'solid'],[0x4a2e1e,'solid']],big:1.3,base:'cow'};
+SP.wildhorse={...SP.horse,cols:[[0xa88a5a,'dun'],[0x9a7a4a,'dun'],[0x8a6a40,'dun']],big:.85,base:'horse'};
+SP.goat={...SP.sheep,wool:0,neck:{...SP.sheep.neck,wool:0},head:{...SP.sheep.head,horn:1,earSide:1},cols:[[0x8a6a48,'solid'],[0xe8e2d4,'solid'],[0x4a3a2c,'solid'],[0xa08060,'patch']],base:'sheep'};
 // ---------------- Fellfarben & Muster ----------------
 function coat(kind,r){const S=SP[kind],[base,pat]=S.cols[Math.floor(r()*S.cols.length)],c=new T.Color(base),ph=[r()*9,r()*9,r()*9,r()*9];
  const socks=[r()<.3,r()<.3,r()<.4,r()<.4],blaze=r()<.4,white=new T.Color(0xf0ece4),dark=c.clone().multiplyScalar(.35),pink=new T.Color(0xe8b0a8),tmp=new T.Color();
@@ -81,7 +85,8 @@ function legGeo(len,r0,r1,C,leg,partLow,cfn){return grid((u,v)=>{const y=-v*len,
 // ---------------- Zusammenbau ----------------
 export function createAnimal(kind='cow',opts={}){const S=SP[kind]||SP.cow,r=rnd(opts.seed??(Math.random()*1e9|0)),C=coat(kind,r),mat=new T.MeshStandardMaterial({vertexColors:true,roughness:S.wool?1:.85}),
  dk=new T.MeshStandardMaterial({color:kind==='horse'?0x2a2218:0x2a2420,roughness:.7}),eyeM=new T.MeshStandardMaterial({color:0x140e0a,roughness:.15,metalness:.1}),hornM=new T.MeshStandardMaterial({color:0xd8ccb0,roughness:.5,vertexColors:true});
- const g=new T.Group();g.isQuad=true;g.kind=kind;const sc=opts.scale??(.9+r()*.2);g.scale.setScalar(sc);
+ const g=new T.Group();g.isQuad=true;g.kind=kind;kind=S.base||kind;   // Epochen-Tiere nutzen Bauplan und Details der Grundart
+ const sc=(opts.scale??(.9+r()*.2))*(S.big||1);g.scale.setScalar(sc);
  g.body=new T.Group();g.add(g.body);add(g.body,bodyGeo(S,C,kind),mat);
  // Beine: up (Oberarm/Keule) -> lo (Röhre) -> ank (Fessel + Huf)
  g.legs=[];[[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([sx,sz],li)=>{const Lg=sz>0?S.fl:S.hl,w=prof(S.body,sz>0?.82:.15,3),hip=new T.Group();hip.position.set(sx*w*.62,Lg.y,Lg.z);

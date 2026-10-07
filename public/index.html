@@ -644,7 +644,7 @@ function animQuad(g,dt,v){const k=Math.min(1,v/1.4),run=Math.min(1,Math.max(0,(v
 function horse(fc=MYFC){if(MODELS.horse)return rig(MODELS.horse,2.2,'z');return createAnimal('horse',{tack:true,tackColor:FACTIONS[fc]?FACTIONS[fc][1]:0x6a2a2a,scale:1})}
 function label(t){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='34px Georgia';g.textAlign='center';g.fillStyle='#fff';g.strokeStyle='#000';g.lineWidth=5;g.strokeText(t,128,44);g.fillText(t,128,44);
  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));s.scale.set(3,.75,1);s.position.y=2.4;return s}
-function deer(col=0x8a6a40){return quad(col===0x2e2e34?'wolf':'deer')}
+function deer(col=0x8a6a40){if(col===0x2e2e34)return quad('wolf');if(['steinzeit','hallstatt'].includes(ERA)){const r=Math.random();if(r<.3)return quad('aurochs');if(r<.55)return quad('wildhorse')}return quad('deer')}   // Wild je Epoche: Auerochsen und Wildpferde in der Vorzeit
 function reskin(w,prof,id){const old=w.body,tool=old.toolType||'sword';w.remove(old);const nb=man(0,'sword','player',id,prof,w.fc);w.body=nb;w.add(nb);setTool(nb,tool);nb._v=undefined;w.profS=JSON.stringify(prof)}
 function pl(name,id=0,prof,fc=MYFC){const w=new THREE.Group();w.fc=fc;w.body=man(0,'sword','player',id,prof,fc);w.profS=JSON.stringify(prof||'');w.hs=horse(fc);w.hs.visible=false;w.add(w.body,w.hs);w.add(contactShadow(scenery.shadowMat,1.5));
  if(name)w.add(label(name));return w}

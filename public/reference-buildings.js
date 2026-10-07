@@ -576,7 +576,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   // Futterkrippe auf Böcken; Füllung (g.feedMesh) zeigt den Füllstand
   {const tz=.15,tw=2.6;for(const x of[-tw/2+.1,tw/2-.1])for(const dz of[-.18,.18])beam([x,0,tz+dz*1.6],[x,.55,tz+dz*.6],.05);box(tw,.06,.5,0,.48,tz,H.wood);for(const dz of[-.25,.25])box(tw,.3,.05,0,.62,tz+dz,H.wood);for(const dx of[-tw/2,tw/2])box(.05,.3,.5,dx,.62,tz,H.wood);
    const feed=new T.Mesh(new T.BoxGeometry(tw-.1,.24,.42),H.thatch);feed.position.set(0,.51+.12,tz);feed.userData.base=.51;feed.scale.y=1;feed.receiveShadow=true;g.add(feed);g.feedMesh=feed}
-  g.animals=[];const N=k==='cow'?4:6,SPOT=[[-2.3,1.3],[-.8,2.1],[.8,1.3],[2.3,2.1],[-1.6,2.5],[1.6,.95]];for(let n=0;n<N;n++){const a=quad(k==='pigsty'?'pig':k==='sheep'?'sheep':'cow');a.position.set(SPOT[n][0],0,SPOT[n][1]);a.rotation.y=(n*1.7)%6.28;a.visible=n<3;g.add(a);g.animals.push(a)}}
+  g.animals=[];const N=k==='cow'?4:6,SPOT=[[-2.3,1.3],[-.8,2.1],[.8,1.3],[2.3,2.1],[-1.6,2.5],[1.6,.95]];for(let n=0;n<N;n++){const a=quad(k==='pigsty'?'pig':k==='sheep'?(['steinzeit','hallstatt'].includes(era)?'goat':'sheep'):(era==='steinzeit'?'aurochs':'cow'));a.position.set(SPOT[n][0],0,SPOT[n][1]);a.rotation.y=(n*1.7)%6.28;a.visible=n<3;g.add(a);g.animals.push(a)}}
  else if(k==='cemetery'){
   // Friedhof: niedrige Bruchsteinmauer, Kiesweg, Hochkreuz, alter Baum, Bank; Gräber mit Grabsteinen (rund, Kreuz, Holzkreuz, Stele), teils schief und bemoost
   const W=10,D=8,t=.35,mh=.75,gravel=COLM.get('gravel')||(COLM.set('gravel',new T.MeshStandardMaterial({color:0xa49a86,roughness:1})),COLM.get('gravel')),earth=COLM.get('graveEarth')||(COLM.set('graveEarth',new T.MeshStandardMaterial({color:0x4a3a28,roughness:1})),COLM.get('graveEarth')),
@@ -802,6 +802,11 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   // Bodengegenstände als eigene Gruppe: der Client blendet sie aus, wenn ein Nachbargebäude direkt angrenzt
   const pg=new T.Group();pg.name='props';for(const[m,l]of batches){const n0=snap.get(m)||0;if(l.length>n0){const part=l.splice(n0);const mesh=new T.Mesh(mergeGeometries(part,false),m);pg.add(mesh);part.forEach(q=>q.dispose())}}g.add(pg);g.props=pg;
  }
+ // Federvieh vor dem Wohnhaus: Gänse (Römer, Frühmittelalter), Hühner (ab Hochmittelalter); in der Vorzeit keines
+ if(k==='house'&&!['steinzeit','hallstatt'].includes(era)){const goose=['roemer','fruehmittelalter'].includes(era),cmF=(n,c)=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.9})),COLM.get(n)),beak=cmF('beak',0xe8a030),fw=g._wd?g._wd[1]/2:2.5;
+  for(let i=0;i<3;i++){const x=-1.6+i*.75,z=fw+1.1+(i%2)*.4,col=goose?cmF('goose',0xf0ece4):cmF('hen'+i%2,i%2?0x8a4a24:0xe8e0d0),bg=new T.SphereGeometry(goose?.16:.11,8,6);bg.scale(1,.8,1.4);bg.translate(x,goose?.22:.15,z);staticMesh(bg,col);
+   const nk=new T.CylinderGeometry(.03,.04,goose?.28:.1,6);nk.translate(x,goose?.42:.25,z+(goose?.14:.1));staticMesh(nk,col);const hd=new T.SphereGeometry(goose?.06:.05,8,6);hd.translate(x,goose?.58:.31,z+(goose?.18:.13));staticMesh(hd,col);
+   const bk=new T.ConeGeometry(.02,goose?.09:.05,5);bk.rotateX(Math.PI/2);bk.translate(x,goose?.58:.31,z+(goose?.26:.18));staticMesh(bk,beak);if(!goose){const cb=new T.BoxGeometry(.015,.05,.06);cb.translate(x,.37,z+.13);staticMesh(cb,cmF('comb',0xc02020))}}}
  // Wohnhaus innen je Epoche: Felle und Tontöpfe (Vorzeit), Hausaltar (Lararium) und Amphore (Römer), Eisenofen mit Rohr und Wanduhr (Neuzeit)
  if(k==='house'){const cm3=(n,c,o={})=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.85,...o})),COLM.get(n));
   if(['steinzeit','hallstatt'].includes(era)){box(1.0,.05,1.9,-1.7,.62,-2,cm3('pelt0',0x6a4e34));for(const [x,z]of[[1.2,-2.4],[2.4,-1.6]]){const p=new T.SphereGeometry(.2,10,8);p.scale(1,1.2,1);p.translate(x,.24,z);staticMesh(p,cm3('tclay',0x9a5a36))}}
