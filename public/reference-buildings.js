@@ -310,9 +310,18 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
  if(k==='tannery'){for(const x of[-1.5,1.5]){cylinder(.55,.6,x,.3,-.8,H.wood);cylinder(.47,.03,x,.62,-.8,H.dark);for(const xx of[x-.6,x+.6])box(.12,2,.12,xx,1,1,H.wood);box(1.1,.12,.1,x,1.95,1,H.wood);box(.9,1.25,.045,x,1.15,1,H.thatch)}}
  if(k==='weaver'){for(const x of[-1.8,-.5])box(.13,2,.13,x,1,-.8,H.wood);for(const y of[.4,1.8])box(1.5,.12,.14,-1.15,y,-.8,H.wood);for(let x=-1.7;x<-.55;x+=.08)beam([x,.45,-.8],[x,1.75,-.8],.015,H.plaster);table(1.5,-.8);box(1.3,.06,.6,1.5,.97,-.8,H.green);basket(1.55,-.12,.2,.65,.42,(x,y,z)=>{for(const dx of[-.12,.03,.18]){const geo=new T.SphereGeometry(.11,8,6);geo.translate(x+dx,y+.03,z+((dx*10)%2)*.03);staticMesh(geo,H.plaster)}});box(1.4,.03,.7,1.55,1.45,-.8,H.redRoof);box(1.4,.03,.7,1.55,1.23,-.74,H.green)}
  if(k==='tavern'){chimney(-2,-1.8,5.5);for(const x of[-2.6,2.6])window(x,4.1,3.03);{const TI=globalThis.BFRules.interior('tavern');for(const[x,z]of TI.tables){table(x,z);for(const bz of[z-.62,z+.62]){box(1.4,.07,.3,x,.45,bz,H.wood);for(const lx of[-.55,.55])box(.07,.42,.24,x+lx,.21,bz,H.wood)}plate(x-.4,z-.15);plate(x+.4,z+.15);mug(x-.2,z+.2);mug(x+.25,z-.2)}
-  const[cx,cz,cw]=TI.counter;box(cw,1.05,.6,cx,.52,cz,H.wood,true);box(cw+.1,.06,.7,cx,1.07,cz,H.wood);for(const x of[-1,0,1])mug(cx+x*.5,cz,1.12);
+  const[cx,cz,cw]=TI.counter,TE=['steinzeit','hallstatt'].includes(era)?'pre':era==='roemer'?'rom':null,clay=COLM.get('tclay')||(COLM.set('tclay',new T.MeshStandardMaterial({color:0x9a5a36,roughness:.9})),COLM.get('tclay')),
+   jar=(x,z,s=1)=>{const g2=new T.LatheGeometry([[0,0],[.12*s,.03],[.24*s,.25*s],[.22*s,.5*s],[.1*s,.68*s],[.11*s,.75*s],[0,.75*s]].map(q=>new T.Vector2(q[0],q[1])),12);g2.translate(x,0,z);staticMesh(g2,clay)};
+  if(TE==='pre'){   // Feuerhalle: Feuerstelle mit Steinkranz, Baumstamm-Tresen, Tonkrüge, Holzschalen, Felle
+   box(cw,.6,.5,cx,.3,cz,H.wood,true);for(const x of[-1,0,1]){const b=new T.CylinderGeometry(.12,.08,.07,10);b.translate(cx+x*.5,.64,cz);staticMesh(b,H.wood)}
+   for(let i=0;i<10;i++){const a=i/10*Math.PI*2,st=new T.DodecahedronGeometry(.13,0);st.translate(Math.cos(a)*.55,.08,-1.6+Math.sin(a)*.55);staticMesh(st,H.stone)}{const f=new T.Mesh(new T.ConeGeometry(.25,.6,7),new T.MeshBasicMaterial({color:0xff9a3a}));f.position.set(0,.3,-1.6);g.add(f)}
+   for(const [x,z]of[[-3.4,-2.4],[3.4,-2.4],[-3.4,-1.7],[3.2,-1.7]])jar(x,z);for(const x of[-2,2])box(1.2,.04,.8,x,.02,-2.5,COLM.get('pelt0')||(COLM.set('pelt0',new T.MeshStandardMaterial({color:0x6a4e34,roughness:1})),COLM.get('pelt0')))}
+  else if(TE==='rom'){   // Thermopolium: gemauerter Tresen mit eingelassenen Töpfen (dolia), Amphoren an der Wand, Becherbord
+   box(cw,1.0,.7,cx,.5,cz,H.plaster,true);box(cw+.1,.07,.8,cx,1.03,cz,H.stone);for(const x of[-1,0,1]){cylinder(.2,.03,cx+x*.6,1.07,cz,COLM.get('dolhole')||(COLM.set('dolhole',new T.MeshStandardMaterial({color:0x2a1a12,roughness:1})),COLM.get('dolhole')),14)}
+   for(const x of[-3.4,-2.9,2.9,3.4])jar(x,-2.6,1.4);box(1.6,.04,.25,0,1.7,-2.88,H.wood);for(const x of[-.6,-.2,.2,.6])cylinder(.05,.1,x,1.77,-2.88,clay,10)}
+  else{box(cw,1.05,.6,cx,.52,cz,H.wood,true);box(cw+.1,.06,.7,cx,1.07,cz,H.wood);for(const x of[-1,0,1])mug(cx+x*.5,cz,1.12);
   for(const x of[-1.1,1.1]){box(.8,.4,.6,x,.2,-2.6,H.wood);const geo=new T.CylinderGeometry(.3,.3,.65,12);geo.rotateZ(Math.PI/2);geo.translate(x,.72,-2.6);staticMesh(geo,H.wood);cylinder(.03,.12,x+.33,.62,-2.6,H.brass,6)}   // liegende Zapffässer
-  barrel(-3.4,-2.4);barrel(3.4,-2.4);barrel(-3.4,-1.7);box(1.6,.04,.25,0,1.7,-2.88,H.wood);for(const x of[-.6,-.2,.2,.6])mug(x,-2.88,1.74)}
+  barrel(-3.4,-2.4);barrel(3.4,-2.4);barrel(-3.4,-1.7);box(1.6,.04,.25,0,1.7,-2.88,H.wood);for(const x of[-.6,-.2,.2,.6])mug(x,-2.88,1.74)}}
  box(1.2,.9,.12,2.5,2.3,3.15,H.wood);cylinder(.23,.35,2.5,2.3,3.3,H.brass);box(2.4,.08,.12,0,2.1,3.12,H.wood);for(const x of[-.8,0,.8])mug(x,3.14,2.1)}
  if(k==='fishery'){awning(2.2,1.8,2.1,-1.3,1.3,H.thatch);for(let x=-2;x<-.4;x+=.18)beam([x,.4,1.5],[x,1.8,1.5],.025,H.plaster);for(const y of[.5,.8,1.1,1.4,1.7])beam([-2,y,1.5],[-.4,y,1.5],.025,H.plaster);barrel(1.6,-1);}
  if(k==='storage')for(const x of[-2,-1,1,2])box(.75,.8,.75,x,.4,-1.4,H.wood,true);
@@ -793,6 +802,13 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   // Bodengegenstände als eigene Gruppe: der Client blendet sie aus, wenn ein Nachbargebäude direkt angrenzt
   const pg=new T.Group();pg.name='props';for(const[m,l]of batches){const n0=snap.get(m)||0;if(l.length>n0){const part=l.splice(n0);const mesh=new T.Mesh(mergeGeometries(part,false),m);pg.add(mesh);part.forEach(q=>q.dispose())}}g.add(pg);g.props=pg;
  }
+ // Wohnhaus innen je Epoche: Felle und Tontöpfe (Vorzeit), Hausaltar (Lararium) und Amphore (Römer), Eisenofen mit Rohr und Wanduhr (Neuzeit)
+ if(k==='house'){const cm3=(n,c,o={})=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.85,...o})),COLM.get(n));
+  if(['steinzeit','hallstatt'].includes(era)){box(1.0,.05,1.9,-1.7,.62,-2,cm3('pelt0',0x6a4e34));for(const [x,z]of[[1.2,-2.4],[2.4,-1.6]]){const p=new T.SphereGeometry(.2,10,8);p.scale(1,1.2,1);p.translate(x,.24,z);staticMesh(p,cm3('tclay',0x9a5a36))}}
+  else if(era==='roemer'){box(.7,.08,.35,0,1.3,-2.3,H.stone);box(.6,.55,.3,0,1.62,-2.3,H.plaster);const tri=new T.Shape();tri.moveTo(-.38,0);tri.lineTo(.38,0);tri.lineTo(0,.25);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.3,bevelEnabled:false});tg.translate(0,1.9,-2.45);staticMesh(tg,H.stone);
+   const am=new T.LatheGeometry([[0,0],[.08,.05],[.2,.3],[.2,.55],[.08,.78],[.07,.95],[.1,.98]].map(q=>new T.Vector2(q[0],q[1])),10);am.translate(-2.2,0,-.5);staticMesh(am,cm3('amph',0xb06a40))}
+  else if(era==='neuzeit'){cylinder(.28,1.0,.4,.5,-2.2,cm3('stove',0x2a2a2a,{metalness:.5,roughness:.5}),14);cylinder(.07,1.9,.4,1.95,-2.2,cm3('stove',0x2a2a2a),8);box(.35,.5,.12,-.6,1.8,-2.42,H.wood);
+   const cf=new T.CircleGeometry(.12,16);cf.translate(-.6,1.9,-2.355);staticMesh(cf,cm3('clockface',0xf2ecd8))}}
  eraExtras();
  // ===== Epochentypische Anbauten: Zäune, Trockengestelle, Säulenvorhallen, Gesimse, Fabrikschlote =====
  function eraExtras(){const X=S.extras;if(!X||!g._wd||g._bunker)return;const[w,d]=g._wd,h=g._h||3,F=d/2,home=['house','bighouse'].includes(k),PROD=['bakery','smithy','weaver','brewery','tannery','butcher','dairy','smokehouse','armorer','bower','mint','apothecary','lumber','quarry','lodge','fishery'];
