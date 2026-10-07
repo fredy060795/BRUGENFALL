@@ -64,9 +64,45 @@ export function eraClothes(o,era,r){if(!era||era==='hochmittelalter')return o;co
 
 // ---- Eigene Bauten je Epoche: Römischer Tempel und Steinkreis statt Kapelle/Kirche/Dom ----
 const SAC=['chapel','church','cathedral'];
-export function eraPiece(k,era,ctx){if(!SAC.includes(k))return null;
- if(era==='roemer')return temple(k,ctx);if(era==='steinzeit'||era==='hallstatt')return stoneCircle(k,ctx,era);return null}
-function temple(k,{w,d,stone,plaster}){const g=new T.Group(),sz={chapel:[.2,3.6],church:[.26,4.6],cathedral:[.42,8]}[k],R=sz[0],H=sz[1],P=.6;
+export function eraPiece(k,era,ctx){if(!SAC.includes(k))return null;let g=null;
+ if(era==='roemer')g=temple(k,ctx);else if(era==='steinzeit'||era==='hallstatt')g=stoneCircle(k,ctx,era);else if(era==='fruehmittelalter')g=woodChurch(k,ctx);else if(['renaissance','barock','napoleon'].includes(era))g=baroqueChurch(k,ctx,era);
+ if(g&&era!=='steinzeit'&&era!=='hallstatt')pews(g,k,{...ctx,y0:era==='roemer'?.3:0});return g}
+// Bänke und Altar nach dem Innenraum-Plan (Rules.interior), damit Gottesdienst-Sitzplätze wieder auf Bänken liegen
+function pews(g,k,{H,y0=0}){const I=globalThis.BFRules.interior(k),wood=H?H.wood:new T.MeshStandardMaterial({color:0x6a4a30}),b=(w,h,d,x,y,z,m)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y0+y,z);o.castShadow=o.receiveShadow=true;g.add(o)};
+ for(const z of I.pews)for(const sx of[-1,1]){const cx=sx*I.bx;b(I.bw,.06,.42,cx,.45,z,wood);b(I.bw,.5,.06,cx,.72,z+.22,wood);for(const e of[-1,1])b(.06,.45,.4,cx+e*(I.bw/2-.05),.22,z,wood)}
+ const[ax,az]=I.altar;b(1.8,1.0,.8,ax,.5,az,H?H.stone:wood);b(2.0,.08,.9,ax,1.04,az,new T.MeshStandardMaterial({color:0xece4d4,roughness:.8}));b(1.4,1.6,.12,ax,1.9,az-.42,new T.MeshStandardMaterial({color:0xc8a040,metalness:.6,roughness:.35}))}
+const shellWalls=(g,w,d,h,mat,dw,dh,t=.4)=>{const b=(bw,bh,bd,x,y,z)=>{const o=new T.Mesh(new T.BoxGeometry(bw,bh,bd),mat);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o)};
+ b(w,h,t,0,h/2,-d/2+t/2);b(t,h,d,-w/2+t/2,h/2,0);b(t,h,d,w/2-t/2,h/2,0);const wing=(w-dw)/2;b(wing,h,t,-(dw+wing)/2,h/2,d/2-t/2);b(wing,h,t,(dw+wing)/2,h/2,d/2-t/2);b(dw,h-dh,t,0,(h+dh)/2,d/2-t/2);
+ g.colliders=[[0,-d/2+t/2,w/2,t/2,h,0],[-w/2+t/2,0,t/2,d/2,h,0],[w/2-t/2,0,t/2,d/2,h,0],[-(dw+wing)/2,d/2-t/2,wing/2,t/2,h,0],[(dw+wing)/2,d/2-t/2,wing/2,t/2,h,0]]};
+const gable=(g,w,d,y,rise,mat,endMat,over=.5)=>{const W=w/2+over,L=Math.hypot(W,rise),a=Math.atan2(rise,W);for(const s of[-1,1]){const p=new T.Mesh(new T.BoxGeometry(L+.1,.14,d+2*over),mat);p.position.set(s*W/2,y+rise/2,0);p.rotation.z=-s*a;p.castShadow=true;g.add(p)}
+ const tri=new T.Shape();tri.moveTo(-w/2,0);tri.lineTo(w/2,0);tri.lineTo(0,rise*(w/2)/W);tri.closePath();for(const s of[-1,1]){const m=new T.Mesh(new T.ShapeGeometry(tri),endMat);m.position.set(0,y,s*(d/2-.01));m.material=endMat.clone();m.material.side=T.DoubleSide;g.add(m)}};
+const darkWin=new T.MeshStandardMaterial({color:0x1a1814,roughness:.4}),gold=new T.MeshStandardMaterial({color:0xd4a838,metalness:.7,roughness:.3});
+function cross(g,x,y,z,s=1){for(const[w,h]of[[.08*s,1*s],[.55*s,.08*s]]){const m=new T.Mesh(new T.BoxGeometry(w,h,.08*s),gold);m.position.set(x,y+(h<.5*s?.18*s:0),z);g.add(m)}}
+// Frühmittelalterliche Holzkirche: Bohlenwände, steiles Schindeldach, Dachreiter mit Glocke
+function woodChurch(k,{w,d,H}){const g=new T.Group(),h={chapel:3.4,church:4.2,cathedral:6}[k],rise=w*.85;shellWalls(g,w,d,h,H.wood,2,2.6);
+ for(let x=-w/2+.6;x<w/2;x+=.55)for(const z of[-d/2-.02,d/2+.02]){if(z>0&&Math.abs(x)<1.2)continue;const o=new T.Mesh(new T.BoxGeometry(.06,h,.04),H.floor||H.wood);o.position.set(x,h/2,z);g.add(o)}
+ gable(g,w,d,h,rise,H.shingle,H.wood,.6);const ty=h+rise*.75,tz=d/2-1.2;for(const sx of[-.5,.5])for(const sz of[-.5,.5]){const p=new T.Mesh(new T.BoxGeometry(.14,2,.14),H.wood);p.position.set(sx,ty+1,tz+sz);g.add(p)}
+ const pyr=new T.Mesh(new T.ConeGeometry(.95,1.6,4),H.shingle);pyr.rotation.y=Math.PI/4;pyr.position.set(0,ty+2.8,tz);g.add(pyr);cross(g,0,ty+3.9,tz,.9);
+ for(const z of[-d/4,d/6])for(const s of[-1,1]){const wn=new T.Mesh(new T.BoxGeometry(.06,.6,.35),darkWin);wn.position.set(s*(w/2+.02),h*.7,z);g.add(wn)}g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g}
+// Barockkirche (auch Renaissance/Klassizismus): Putzbau, Schweifgiebel-Fassade, Fassadenturm mit Zwiebelhaube (Renaissance: Kuppel, Napoleonik: Spitzhelm)
+function baroqueChurch(k,{w,d,H},era){const g=new T.Group(),h={chapel:5,church:7,cathedral:11}[k],pl=H.plaster,st=H.stone;shellWalls(g,w,d,h,pl,2.4,Math.min(3.8,h-.8),.45);
+ gable(g,w,d,h,w*.4,H.slate,pl,.3);
+ const b=(bw,bh,bd,x,y,z,m)=>{const o=new T.Mesh(new T.BoxGeometry(bw,bh,bd),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o);return o};
+ // Fassade: höher als das Schiff, Gesimse, Pilaster, geschweifter Giebel mit Voluten
+ const fz=d/2+.12,fh=h+w*.4+1.2;b(w+.3,.3,.5,0,h,fz,st);for(const x of[-w/2+.2,-w/6,w/6,w/2-.2])b(.4,h,.2,x,h/2,fz+.12,st);
+ const fw=w*.62;b(fw,fh-h,.5,0,h+(fh-h)/2,fz,pl);for(const s of[-1,1]){const v=new T.Mesh(new T.TorusGeometry(.55,.16,8,16,Math.PI),st);v.position.set(s*(fw/2+.4),h+.55,fz);v.rotation.z=s>0?0:Math.PI/2;g.add(v)}
+ const tri=new T.Shape();tri.moveTo(-fw/2-.2,0);tri.lineTo(fw/2+.2,0);tri.lineTo(0,1.1);tri.closePath();const pg=new T.Mesh(new T.ExtrudeGeometry(tri,{depth:.5,bevelEnabled:false}),st);pg.position.set(0,fh,fz-.25);g.add(pg);
+ const ow=new T.Mesh(new T.CircleGeometry(.55,20),darkWin);ow.position.set(0,h+(fh-h)*.55,fz+.26);g.add(ow);
+ // hohe Rundbogenfenster an den Seiten
+ for(let z=-d/2+2;z<d/2-1.5;z+=2.4)for(const s of[-1,1]){b(.06,h*.45,.8,s*(w/2+.02),h*.55,z,darkWin);const a=new T.Mesh(new T.CircleGeometry(.4,12,0,Math.PI),darkWin);a.position.set(s*(w/2+.03),h*.55+h*.225,z);a.rotation.y=s*Math.PI/2;g.add(a)}
+ // Turm über dem Westgiebel (bei der Kapelle Dachreiter)
+ const big=k!=='chapel',tw=big?Math.min(3.2,w*.4):1.2,tz=big?d/2-tw/2-.2:d/4,ty0=big?0:h+w*.3,th=big?fh+3.5:1.6;b(tw,th,tw,0,ty0+th/2,tz,pl);b(tw+.25,.25,tw+.25,0,ty0+th,tz,st);
+ for(const[x,z,ry]of[[0,tw/2+.02,0],[0,-tw/2-.02,Math.PI],[tw/2+.02,0,Math.PI/2],[-tw/2-.02,0,-Math.PI/2]])if(big){const sl=b(.5,1.2,.05,x,ty0+th-1.2,tz+z,darkWin);sl.rotation.y=ry}
+ const R=tw*.55,top=ty0+th+.12;let prof;if(era==='napoleon')prof=[[R,0],[R*.8,.6],[.05,R*3.2],[0,R*3.3]];else if(era==='renaissance')prof=[[R,0],[R*.98,R*.4],[R*.75,R*.85],[R*.35,R*1.05],[.12,R*1.1],[.12,R*1.5],[0,R*1.55]];
+ else prof=[[R*.9,0],[R*1.15,R*.5],[R*.95,R*1.05],[R*.3,R*1.5],[.12,R*1.7],[.2,R*2],[.12,R*2.3],[.06,R*2.9],[0,R*3]];
+ const dome=new T.Mesh(new T.LatheGeometry(prof.map(q=>new T.Vector2(q[0],q[1])),18),era==='renaissance'?new T.MeshStandardMaterial({color:0x6a8a78,roughness:.5,metalness:.4}):H.slate);dome.position.set(0,top,tz);dome.castShadow=true;g.add(dome);
+ cross(g,0,top+prof.at(-1)[1]+.5,tz,big?1.2:.8);g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g}
+function temple(k,{w,d,stone,plaster}){const g=new T.Group(),sz={chapel:[.2,3.6],church:[.26,4.6],cathedral:[.42,8]}[k],R=sz[0],H=sz[1],P=.3;
  const marbleM=new T.MeshStandardMaterial({map:marble(),roughness:.55}),tile=new T.MeshStandardMaterial({map:terracotta(),roughness:.8}),cellaM=plaster||stone;
  const box=(bw,bh,bd,m,x,y,z)=>{const o=new T.Mesh(new T.BoxGeometry(bw,bh,bd),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o);return o};
  // Podium mit Freitreppe an der Front (+z)

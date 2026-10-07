@@ -1,3 +1,7 @@
+# Zeitreise 8.38 – Epochen-Edition (Teil 3)
+
+Ankerbau je Epoche (Principia mit Portikus, Schloss mit Kuppel, Rathaus mit Uhrturm …) und Kirchen je Epoche (Holzkirche, Barockkirche mit Zwiebelturm) mit Bänken und Altar. Siehe AENDERUNGEN_8_38.md.
+
 # Zeitreise 8.37 – Epochen-Edition (Teil 2)
 
 Alle Gebäude in der Bauweise ihrer Epoche: Strohwalm und Flechtzäune in der Steinzeit, Ziegelwalm und Säulenvorhallen bei den Römern, Mansarddächer im Barock, Backstein und Fabrikschlote in der Neuzeit. Siehe AENDERUNGEN_8_37.md.
