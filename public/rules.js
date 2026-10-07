@@ -128,9 +128,9 @@
   {id:'renaissance',units:{sword:'Landsknecht',spear:'Pikenier',archer:'Arkebusier',crossbow:'Armbrustschütze',knight:'Kürassier'},n:'Renaissance',y:'ca. 1450–1600',d:'Bastionen, Stadtpalast, Buchdruck und Handelshäuser',
    names:{keep:'Stadtpalast',church:'Stadtkirche',cathedral:'Dom',plaza:'Piazza',garrison:'Zeughaus',storage:'Handelshaus',mint:'Bank'}},
   {id:'barock',units:{sword:'Musketier',spear:'Pikenier',archer:'Grenadier',crossbow:'Kanonier',knight:'Dragoner'},n:'Frühe Neuzeit (Barock)',y:'ca. 1600–1790',d:'Sternfestung, Schloss, Manufakturen, stehendes Heer',
-   names:{keep:'Schloss',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
+   names:{keep:'Schloss',watchpost:'Spritzenhaus',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
   {id:'napoleon',units:{sword:'Grenadier',spear:'Füsilier',archer:'Jäger (Plänkler)',crossbow:'Voltigeur',knight:'Husar'},n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
-   names:{keep:'Kommandantur',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
+   names:{keep:'Kommandantur',watchpost:'Spritzenhaus',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
   {id:'neuzeit',units:{sword:'Gendarm',spear:'Infanterist',archer:'Scharfschütze',crossbow:'Schütze',knight:'Dragoner'},n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
    names:{keep:'Rathaus',church:'Stadtkirche',cathedral:'Münster',plaza:'Marktplatz',garrison:'Kaserne',armory:'Bunker & Munitionsdepot',watchpost:'Feuerwache',weaver:'Textilfabrik',smithy:'Eisenwerk',tavern:'Wirtshaus',storage:'Lagerhalle',mint:'Sparkasse'}}];
  const ERA_DEFAULT='hochmittelalter',eraOf=id=>ERAS.find(e=>e.id===id)||ERAS.find(e=>e.id===ERA_DEFAULT);

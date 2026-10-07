@@ -345,7 +345,11 @@ let SHM=null;function stahlHelm(H){const m=SHM||(SHM=new T.MeshStandardMaterial(
   const t=(v-.62)/.38,cf=Math.max(0,Math.cos(ph))**1.5,drop=(.14+.62*(1-cf))*t,fl=(.03+.22*t*t)*(1-cf)+.2*t*cf;return[(DA+fl)*Math.sin(ph),yc-drop,(DC+fl)*Math.cos(ph)]},56,22)),m,H);
  for(const sd of[-1,1])mesh(cg('shlug',()=>new T.CylinderGeometry(.09,.09,.14,10)),m,H,[sd*1.11,.62,-.05]).rotation.z=Math.PI/2}
 // ---------- Pickelhaube mit Stoffbezug (feldgrau, rote Regimentsnummer) ----------
-let PKM=null;function pickelHaube(H){if(!PKM){const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');x.fillStyle='#8f8a6c';x.fillRect(0,0,128,64);x.fillStyle='#c8241c';x.font='bold 44px sans-serif';x.textAlign='center';x.fillText('121',64,48);
+let PKM=null,PKB=null;function pickelHaube(H,brassy){if(brassy){   // Feuerwehr: schwarzes Leder, Messingspitze und -beschlag
+  const B=PKB||(PKB={c:new T.MeshStandardMaterial({color:0x141414,roughness:.45,side:T.DoubleSide}),b:new T.MeshStandardMaterial({color:0xc8a040,metalness:.75,roughness:.3})}),yc=.2;
+  mesh(cg('pkd',()=>paramGeo((u,v)=>ellP(1.12,1.3,1.2,yc,v*(Math.PI/2+.08),u*2*Math.PI),44,16)),B.c,H);mesh(cg('pkv',()=>paramGeo((u,v)=>{const a=-1.25+2.5*u,r=1.18+v*.42;return[r*Math.sin(a)*.95,yc-.08-v*.14,r*Math.cos(a)]},20,2)),B.c,H);mesh(cg('pkn',()=>paramGeo((u,v)=>{const a=Math.PI-1.3+2.6*u,r=1.18+v*.36;return[r*Math.sin(a)*.95,yc-.1-v*.3,r*Math.cos(a)]},20,3)),B.c,H);
+  mesh(cg('pkspk',()=>new T.ConeGeometry(.2,.72,14)),B.b,H,[0,yc+1.62,0]);mesh(cg('pkbase',()=>new T.CylinderGeometry(.24,.3,.12,16)),B.b,H,[0,yc+1.28,0]);mesh(cg('pkplate',()=>new T.CircleGeometry(.36,16)),B.b,H,[0,yc+.7,1.13]).rotation.x=-.45;return}
+ if(!PKM){const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');x.fillStyle='#8f8a6c';x.fillRect(0,0,128,64);x.fillStyle='#c8241c';x.font='bold 44px sans-serif';x.textAlign='center';x.fillText('121',64,48);
   const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;PKM={c:new T.MeshStandardMaterial({color:0x8f8a6c,roughness:1,side:T.DoubleSide}),n:new T.MeshStandardMaterial({map:t,roughness:1,transparent:true}),b:new T.MeshStandardMaterial({color:0xb8943c,metalness:.7,roughness:.35})}}
  const yc=.2;mesh(cg('pkd',()=>paramGeo((u,v)=>ellP(1.12,1.3,1.2,yc,v*(Math.PI/2+.08),u*2*Math.PI),44,16)),PKM.c,H);
  mesh(cg('pkv',()=>paramGeo((u,v)=>{const a=-1.25+2.5*u,r=1.18+v*.42;return[r*Math.sin(a)*.95,yc-.08-v*.14,r*Math.cos(a)]},20,2)),PKM.c,H);         // Vorderschirm
@@ -624,7 +628,7 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
  if(o.mask)mesh(shell(geo,(x,y,z)=>y<-.2&&z>-.2,.12,.03),garMat('linen',o.maskCol||0x2a2420),H);
  if(hat==='helmet'){if(!o.noCoif)buildCoif(g,H,geo,o,AR.mail);kettleHat(H,AR)}                 // Eisenhut über Kettenhaube
  if(hat==='stahlhelm')stahlHelm(H);
- if(hat==='pickel')pickelHaube(H);
+ if(hat==='pickel')pickelHaube(H,o.pkBrass);
  if(hat==='galea'){if(o.mailHood)buildCoif(g,H,geo,o,AR.mail);galeaHelm(H,AR,o)}   // römische Galea
  if(hat==='nasal'){if(o.mailHood)buildCoif(g,H,geo,o,AR.mail);nasalHelm(H,AR)}    // Nasalhelm (optional mit Kettenhaube)
  if(hat==='bascinet'||hat==='visored'){bascinet(H,AR,hat==='visored');mesh(capeGeo(o,{top1:1.548,top0:1.525,topR:.09,teeth:0,hem0:1.33}),AR.mail,g)}   // Beckenhaube + Helmbrünne
