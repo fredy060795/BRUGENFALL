@@ -82,10 +82,13 @@ export function createSteamer({seed=1}={}){const g=new T.Group();g.isShip=true;c
 const MS=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.85,...o});
 // Bootsrumpf als Lathe-ähnliche Schale: Spanten entlang z, halbe Breite b(t), Höhe top(t)
 function hullShell(g,L,B,top,bot,mat,pw=.42){mesh(g,grid((u,v)=>{const t=v,z=-L/2+t*L,th=-Math.PI/2+u*Math.PI,b=B*Math.pow(Math.sin(Math.PI*Math.min(.999,Math.max(.001,t))),pw),tp=top(t),ct=Math.cos(th);
- return[b*Math.sin(th)*(.55+.45*Math.pow(ct,.25)),tp-(tp-bot)*Math.pow(ct,.7),z,.75+.25*((u*10)%1<.85?1:.6)]},18,36),mat)
+ return[b*Math.sin(th)*(1-.45*Math.pow(ct,1.6)),tp-(tp-bot)*Math.pow(ct,.7),z,.75+.25*((u*10)%1<.85?1:.6)]},18,36),mat)
  for(const t of[.012,.988]){const tp=top(t),h=tp-bot;const sm=mat.clone();sm.vertexColors=false;sm.color.multiplyScalar(.8);mesh(g,new T.BoxGeometry(.14,h,.5),sm,[0,bot+h/2,-L/2+t*L+(t<.5?.2:-.2)])}}   // Steven schließen Bug und Heck
+// Außenkante des Rumpfs (Höhe der Bordwand) an Position z – damit Schilde, Reling und Ruder am Rumpf anliegen
+const edgeX=(L,B,z,pw=.42)=>{const t=Math.min(.999,Math.max(.001,(z+L/2)/L));return B*Math.pow(Math.sin(Math.PI*t),pw)};
+function gunwale(g,L,B,top,mat,pw,r=.05){for(const s of[-1,1]){const pts=[];for(let i=0;i<=30;i++){const t=.03+i/30*.94,z=-L/2+t*L;pts.push(new T.Vector3(s*edgeX(L,B,z,pw)*1.02,top(t)+.02,z))}mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(pts),60,r,6,false),mat)}}
 // Deck innerhalb des Rumpfs
-function hullDeck(g,L,B,y,mat,pw=.42){mesh(g,grid((u,v)=>{const t=.06+v*.88,b=B*Math.pow(Math.sin(Math.PI*t),pw)*.9;return[(u*2-1)*b,y,-L/2+t*L,1]},8,28,true),(()=>{const m=mat.clone();m.side=T.DoubleSide;return m})())}
+function hullDeck(g,L,B,y,mat,pw=.42){mesh(g,grid((u,v)=>{const t=.06+v*.88,b=B*Math.pow(Math.sin(Math.PI*t),pw)*.94;return[(u*2-1)*b,y,-L/2+t*L,1]},8,28,true),(()=>{const m=mat.clone();m.side=T.DoubleSide;return m})())}
 // Einbaum (Steinzeit), in der Hallstattzeit größer und mit Salzsäcken
 export function createDugout({big=false}={}){const g=new T.Group();g.isShip=true;const L=big?7:5.5,B=big?.75:.55,wood=MS(0x6a4a2c,{vertexColors:true,side:T.DoubleSide});
  hullShell(g,L,B,t=>.55+.15*Math.pow(Math.abs(2*t-1),3),-.25,wood,.3);const inner=MS(0x4a3420);hullDeck(g,L,B,.32,inner,.3);
@@ -95,9 +98,9 @@ export function createDugout({big=false}={}){const g=new T.Group();g.isShip=true
  return g}
 // Römische Flussgaleere (navis lusoria): schlanker Rumpf, Ruderreihen, Rahsegel, Schildreihe, Heckzier
 export function createGalley(){const g=new T.Group();g.isShip=true;const L=10,B=1.35,hull=MS(0x5a3a22,{vertexColors:true,side:T.DoubleSide}),red=MS(0x8a1e1a),white=MS(0xe8e2d0,{side:T.DoubleSide}),wood=MS(0x6a4a2c),bronze=MS(0xb08a3c,{metalness:.6,roughness:.4});
- hullShell(g,L,B,t=>1.0+.9*Math.pow(Math.max(0,1-t*1.3),4)+.5*Math.pow(Math.max(0,t-.8)*5,2),-.35,hull,.38);hullDeck(g,L,B,.95,MS(0x9a7a52),.38);
- for(const s of[-1,1]){mesh(g,new T.BoxGeometry(.06,.18,L*.8),red,[s*B*.57,1.05,0]);for(let i=0;i<9;i++){const z=-3.4+i*.85,o=new T.Group();o.position.set(s*B*.57,.95,z);g.add(o);const r=mesh(o,new T.CylinderGeometry(.03,.03,2.6,5),wood,[s*1.1,-.3,0]);r.rotation.z=s*1.25;o.userData.s=s;(g.userData.oars||(g.userData.oars=[])).push(o)}
-  for(let i=0;i<6;i++){const sh=mesh(g,new T.CylinderGeometry(.28,.28,.05,14),i%2?red:MS(0xc8a040),[s*(B*.58+.02),1.3,-2.6+i*1.0]);sh.rotation.z=Math.PI/2}}
+ const gt=t=>1.0+.9*Math.pow(Math.max(0,1-t*1.3),4)+.5*Math.pow(Math.max(0,t-.8)*5,2);hullShell(g,L,B,gt,-.35,hull,.38);gunwale(g,L,B,gt,red,.38,.06);hullDeck(g,L,B,.95,MS(0x9a7a52),.38);
+ for(const s of[-1,1]){for(let i=0;i<9;i++){const z=-3.4+i*.85,o=new T.Group();o.position.set(s*edgeX(L,B,z,.38),.95,z);g.add(o);const r=mesh(o,new T.CylinderGeometry(.03,.03,2.6,5),wood,[s*1.1,-.3,0]);r.rotation.z=s*1.25;o.userData.s=s;(g.userData.oars||(g.userData.oars=[])).push(o)}
+  for(let i=0;i<6;i++){const sh=mesh(g,new T.CylinderGeometry(.28,.28,.05,14),i%2?red:MS(0xc8a040),[s*(edgeX(L,B,-2.6+i*1.0,.38)+.03),1.12,-2.6+i*1.0]);sh.rotation.z=Math.PI/2}}
  mesh(g,new T.CylinderGeometry(.09,.1,4.6,8),wood,[0,3.2,.8]);mesh(g,new T.CylinderGeometry(.05,.05,3.2,6),wood,[0,5.1,.85]).rotation.z=Math.PI/2;
  mesh(g,grid((u,v)=>[-1.5+3*u,5.0-2.4*v,.95+.35*Math.sin(Math.PI*u)*Math.sin(Math.PI*v),(Math.floor(u*5)%2)?[.6,.12,.1]:[.92,.9,.84]],10,8),new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.95}));
  mesh(g,new T.TorusGeometry(.45,.07,6,14,Math.PI*1.2),bronze,[0,2.1,-L/2+.1]).rotation.y=Math.PI/2;mesh(g,new T.BoxGeometry(.12,1.6,.6),wood,[0,.6,-L/2-.2]);   // Heckzier (Aplustre), Steuerruder
@@ -108,10 +111,12 @@ export function createLongship(){const g=new T.Group();g.isShip=true;const L=10,
  hullShell(g,L,B,t=>1.05+1.1*Math.pow(Math.abs(2*t-1),6),-.3,hull,.45);hullDeck(g,L,B,.9,MS(0x8a6a44),.45);
  for(const sgn of[-1,1]){const pts=[];for(let i=0;i<=8;i++){const t=i/8;pts.push(new T.Vector3(0,1.1+t*1.3+Math.sin(t*2.6)*.2,sgn*(L/2-.2+t*.6)-sgn*Math.sin(t*3)*.3))}mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(pts),16,.09,6,false),wood)}
  const head=mesh(g,new T.ConeGeometry(.16,.6,6),MS(0x8a1e1a),[0,2.55,L/2+.15]);head.rotation.x=Math.PI/2+.4;                                           // Drachenkopf
- for(const s of[-1,1])for(let i=0;i<8;i++){const sh=mesh(g,new T.CylinderGeometry(.3,.3,.04,14),MS(cols[(i+(s>0?1:0))%4]),[s*(B*.58),1.15,-3.2+i*.9]);sh.rotation.z=Math.PI/2}
+ const lt=t=>1.05+1.1*Math.pow(Math.abs(2*t-1),6);gunwale(g,L,B,lt,wood,.45,.06);   // Schildreihe folgt der Bordwand, Schilde hängen an der Reling
+ for(const s of[-1,1])for(let i=0;i<8;i++){const z=-2.8+i*.8,t=(z+L/2)/L,sh=mesh(g,new T.CylinderGeometry(.27,.27,.04,14),MS(cols[(i+(s>0?1:0))%4]),[s*(edgeX(L,B,z,.45)+.03),lt(t)-.12,z]);sh.rotation.z=Math.PI/2;mesh(g,new T.SphereGeometry(.06,8,6),MS(0x8a8478,{metalness:.5}),[s*(edgeX(L,B,z,.45)+.06),lt(t)-.12,z])}
  mesh(g,new T.CylinderGeometry(.1,.12,4.6,8),wood,[0,3.2,0]);mesh(g,new T.CylinderGeometry(.05,.05,3.6,6),wood,[0,5.2,.1]).rotation.z=Math.PI/2;
  mesh(g,grid((u,v)=>[-1.7+3.4*u,5.1-2.9*v,.2+.4*Math.sin(Math.PI*u)*Math.sin(Math.PI*v),(Math.floor(u*7)%2)?[.72,.12,.1]:[.93,.9,.84]],14,8),new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.95}));
- mesh(g,new T.BoxGeometry(.1,1.4,.5),wood,[B*.55,.5,-L/2+.9]);return g}
+ {const z=-L/2+1.3,x=edgeX(L,B,z,.45)+.08,rud=new T.Group();rud.position.set(x,1.25,z);g.add(rud);mesh(rud,new T.CylinderGeometry(.05,.05,1.6,8),wood,[0,-.5,0]);mesh(rud,new T.BoxGeometry(.06,.9,.38),wood,[0,-1.15,.08]);mesh(rud,new T.BoxGeometry(.5,.05,.05),wood,[-.25,.25,0]);rud.rotation.x=.25}   // Seitenruder an Steuerbord
+ return g}
 // Plätte / Zille (Barock, Napoleon): flacher Donau-Lastkahn mit Hütte, Ruderbalken (Steuerruder) und Fässern
 export function createBarge(){const g=new T.Group();g.isShip=true;const L=10,W=3,wood=MS(0x7a5a38),dark=MS(0x4a3420),roof=MS(0x5a4a3a);
  const plan=new T.Shape();plan.moveTo(-W/2,-L/2);plan.lineTo(W/2,-L/2);plan.lineTo(W/2,L/2-2.5);plan.quadraticCurveTo(W*.35,L/2,0,L/2+.2);plan.quadraticCurveTo(-W*.35,L/2,-W/2,L/2-2.5);plan.closePath();

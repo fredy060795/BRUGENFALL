@@ -93,12 +93,12 @@ function bonfire(g,x,z,s=1){const logs=mat('firelog',0x4a3420),fl=[0xff8a2a,0xff
  const L=new THREE.PointLight(0xff9a4a,30,16,2);L.position.set(x,2*s,z);g.add(L);
  return t=>{F.forEach((f,i)=>{const k=1+.18*Math.sin(t*.012+i*1.7)+.08*Math.sin(t*.031+i);f.scale.set(1,k,1);f.rotation.y=t*.001*(i%2?1:-1)});L.intensity=26+6*Math.sin(t*.02)}}
 function saturnalia(g){const W=mat('tablewood',0x6a4a2c),cloth=mat('tcloth',0xe8e0cc),gold=mat('gilt',0xd4a838,{metalness:.8,roughness:.3}),fire=new THREE.MeshBasicMaterial({color:0xffc860});
- put(g,new THREE.Mesh(new THREE.BoxGeometry(7,.1,1.4),W),0,.82,0);put(g,new THREE.Mesh(new THREE.BoxGeometry(7.1,.02,1.5),cloth),0,.88,0);for(const x of[-3.2,0,3.2])for(const z of[-.55,.55])put(g,new THREE.Mesh(new THREE.BoxGeometry(.12,.8,.12),W),x,.4,z);
- for(const z of[-1.3,1.3])put(g,new THREE.Mesh(new THREE.BoxGeometry(6.6,.45,.8),mat('kline',0x8a2a22)),0,.25,z);                                     // Liegen (Klinen)
- for(let i=0;i<8;i++){const x=-3+i*.86;put(g,new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.03,14),gold),x,.9,0);put(g,new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),mat('fruit'+i%3,[0xb02a20,0x6a8a2a,0x8a3a6a][i%3])),x,.98,0);
+ put(g,new THREE.Mesh(new THREE.BoxGeometry(5.6,.1,1.4),W),0,.82,0);put(g,new THREE.Mesh(new THREE.BoxGeometry(5.7,.02,1.5),cloth),0,.88,0);for(const x of[-2.6,0,2.6])for(const z of[-.55,.55])put(g,new THREE.Mesh(new THREE.BoxGeometry(.12,.8,.12),W),x,.4,z);
+ for(const z of[-1.3,1.3])put(g,new THREE.Mesh(new THREE.BoxGeometry(5.2,.45,.8),mat('kline',0x8a2a22)),0,.25,z);                                     // Liegen (Klinen)
+ for(let i=0;i<7;i++){const x=-2.4+i*.8;put(g,new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.03,14),gold),x,.9,0);put(g,new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),mat('fruit'+i%3,[0xb02a20,0x6a8a2a,0x8a3a6a][i%3])),x,.98,0);
   if(i%2){put(g,new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.22,8),mat('candle',0xf0ead8)),x+.3,1.0,.4);const f=new THREE.Mesh(new THREE.ConeGeometry(.025,.07,6),fire);f.position.set(x+.3,1.15,.4);g.add(f)}}
  put(g,new THREE.Mesh(new THREE.SphereGeometry(.35,12,10),mat('roast',0xa0582a)),0,1.05,0).scale.set(1.5,.8,.9);                                       // Spanferkel
- for(const x of[-3.7,3.7]){const a=put(g,new THREE.Mesh(new THREE.LatheGeometry([[0,0],[.12,.08],[.28,.45],[.28,.8],[.1,1.15],[.09,1.35],[.13,1.4]].map(q=>new THREE.Vector2(q[0],q[1])),12),mat('amph',0xb06a40)),x,0,0)}
+ for(const x of[-3.1,3.1]){const a=put(g,new THREE.Mesh(new THREE.LatheGeometry([[0,0],[.12,.08],[.28,.45],[.28,.8],[.1,1.15],[.09,1.35],[.13,1.4]].map(q=>new THREE.Vector2(q[0],q[1])),12),mat('amph',0xb06a40)),x,0,0)}
  const L=new THREE.PointLight(0xffc070,12,10,2);L.position.set(0,2,0);g.add(L);return null}
 function tradeCamp(g,era){const hide=mat('tenthide',era==='steinzeit'?0x8a6a48:0x9a8a6a),pole=mat('tentpole',0x5a4430);
  for(const [x,z]of[[-8.5,-3.6],[-4.5,3.8],[3.5,-3.8],[8,3.6]]){put(g,new THREE.Mesh(new THREE.ConeGeometry(1.5,2.6,9,1,true),hide),x,1.3,z).material.side=THREE.DoubleSide;for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.3,p=put(g,new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,3.1,5),pole),x+Math.cos(a)*.2,1.5,z+Math.sin(a)*.2);p.rotation.set(Math.sin(a)*.12,0,-Math.cos(a)*.12)}
