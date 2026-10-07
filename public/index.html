@@ -1502,7 +1502,9 @@ function auEvent(t,x,z){if(!AU.ctx||!t)return;const T=String(t),has=Number.isFin
  if(/Raddampfer/.test(T))steamWhistle(.5);
  if(/zerstört|eingestürzt|niedergebrannt|eingerissen/i.test(T)&&d<90)playS('Gebaeude-Einsturz',.9*attN(d,90),'fx',6);
  if(/Banditen|Überfall|greifen an|Angriff/i.test(T)){const kp=[...M.b.values()].find(o=>o.userData.t==='keep'),dk=kp?Math.hypot(kp.userData.x-px,kp.userData.z-pz):d;if(dk<120)playS('Angriff-Banditen',.75*attN(dk,120),'amb',7)}
- if(/gestorben|verstorben|ist tot|gefallen|niedergestreckt|verhungert/i.test(T)&&d<70){playS('Tod',.7*attN(d,70),'fx',3);const ch=nearestChurch();if(ch&&ch.d<200)setTimeout(()=>playS('Totenglocke',.6*attBell(ch.d),'amb',9),2200)}}
+ if(/gestorben|verstorben|ist tot|gefallen|niedergestreckt|verhungert/i.test(T)&&d<70){playS('Tod',.7*attN(d,70),'fx',3);const ch=nearestChurch();if(ch&&ch.d<200)setTimeout(()=>christian(ERA)?playS('Totenglocke',.6*attBell(ch.d),'amb',9):sacredHorn(.6*attBell(ch.d)),2200)}}
+// Kulthorn statt Kirchenglocke vor dem Christentum: Luren-/Hornruf (Steinzeit, Hallstatt) bzw. Tuba (Römer)
+function sacredHorn(v){if(!AU.ctx)return;const rom=ERA==='roemer',base=rom?196:110;for(const [t0,f,len]of[[0,base,1.6],[1.8,base*1.5,1.2],[3.2,base,2.2]])setTimeout(()=>{tone(f,len,'sawtooth',.07*v,'amb',true,f*.98);tone(f*2,len,'triangle',.05*v,'amb',true)},t0*1000)}
 // Dampfpfeife: zwei Pfiffe, Akkord aus drei Tönen mit Rauschen
 function steamWhistle(v){const C=AU.ctx;if(!C)return;const out=C.createGain();out.connect(AU.fx);for(const [t0,len]of[[0,.9],[1.15,1.6]]){const g=C.createGain(),T0=C.currentTime+t0;g.gain.setValueAtTime(0,T0);g.gain.linearRampToValueAtTime(v*.22,T0+.08);g.gain.setValueAtTime(v*.22,T0+len-.15);g.gain.linearRampToValueAtTime(0,T0+len);g.connect(out);
  for(const f of[392,494,587]){const o=C.createOscillator();o.type='triangle';o.frequency.setValueAtTime(f*.96,T0);o.frequency.linearRampToValueAtTime(f,T0+.12);o.connect(g);o.start(T0);o.stop(T0+len+.05)}}}
@@ -1529,8 +1531,8 @@ function auTick(t){if(!AU.ctx||AU.ctx.state!=='running')return;const dP=(x,z)=>M
   const spd=Math.hypot(px-(AU.lx??px),pz-(AU.lz??pz))/Math.max(.016,(t-(AU.lt||t))/1000||.016);AU.lx=px;AU.lz=pz;AU.lt=t;
   loopS('Pferd-Galopp',mounted&&spd>4?Math.min(.7,spd/16):0,'fx');loopS('Schritte-Holz',!mounted&&spd>1.5&&Rules.riverDist(px,pz)<7.5?.45:0,'fx');
   const EM=ERA_MUSIC[ERA];AU.mfile=loopS('Hintergrundmusik',!EM&&AU.vol.music>0?1:0,'mus');if(EM)AU.mfile=null}
- CH=ch;const hr=Math.floor(clock);if(ch&&hr!==AU.hr){AU.hr=hr;if((hr===6||hr===12||hr===18)&&attBell(ch.d)>.01)SFX.bell(attBell(ch.d))}
- if(PRY&&!AU.pry){AU.pry=1;if(ch&&attBell(ch.d)>.01){SFX.bell(attBell(ch.d));if(ch.d<40)SFX.choir(att(ch.d))}}if(!PRY)AU.pry=0;
+ CH=ch;const hr=Math.floor(clock),BELL=v=>christian(ERA)?SFX.bell(v):sacredHorn(v);if(ch&&hr!==AU.hr){AU.hr=hr;if((hr===6||hr===12||hr===18)&&attBell(ch.d)>.01)BELL(attBell(ch.d))}
+ if(PRY&&!AU.pry){AU.pry=1;if(ch&&attBell(ch.d)>.01){BELL(attBell(ch.d));if(ch.d<40&&christian(ERA))SFX.choir(att(ch.d))}}if(!PRY)AU.pry=0;
  if(ERA_MUSIC[ERA]&&AU.vol.music>0){eraMusicTick(t);return}
  if(!AU.mfile&&AU.vol.music>0&&t>AU.nm){AU.nm=t+3000+Math.random()*3500;const sc=[293.7,329.6,349.2,392,440,493.9,523.3,587.3];AU.mi=Math.max(0,Math.min(7,(AU.mi===undefined?3:AU.mi)+Math.floor(Math.random()*5)-2));const f=sc[AU.mi];tone(f,1.8,'triangle',.22,'mus',true);if(Math.random()<.4)tone(f*1.5,1.4,'sine',.08,'mus',true);if(Math.random()<.18)tone(146.8,6,'sine',.08,'mus',true)}}
 const fpArms=createCharacter(0x756952,'sword');fpArms.noStow=true;fpArms.noSheath=true;fpArms.rotation.y=Math.PI;fpArms.scale.x=-1;fpArms.position.set(0,-fpArms.eyeHeight,-.3);cam.add(fpArms);S.add(cam);

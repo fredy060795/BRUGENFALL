@@ -802,6 +802,11 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   // Bodengegenstände als eigene Gruppe: der Client blendet sie aus, wenn ein Nachbargebäude direkt angrenzt
   const pg=new T.Group();pg.name='props';for(const[m,l]of batches){const n0=snap.get(m)||0;if(l.length>n0){const part=l.splice(n0);const mesh=new T.Mesh(mergeGeometries(part,false),m);pg.add(mesh);part.forEach(q=>q.dispose())}}g.add(pg);g.props=pg;
  }
+ // Licht am Haus je Epoche (glüht nachts mit den Fenstern): Feuerschale (Vorzeit), Öllampe in Nische (Römer), Laterne am Arm (Mittelalter–Napoleon); Neuzeit: Gaslaterne (siehe eraExtras)
+ if(k==='house'&&era!=='neuzeit'){const glow=H.win||H.brass,fw=g._wd?g._wd[1]/2:2.5,lx=(g._wd?g._wd[0]/2:3)-.6;
+  if(['steinzeit','hallstatt'].includes(era)){cylinder(.05,1.1,lx+.3,.55,fw+.7,H.wood,6);const b=new T.CylinderGeometry(.22,.12,.18,10);b.translate(lx+.3,1.18,fw+.7);staticMesh(b,H.iron||H.stone);const f=new T.ConeGeometry(.12,.25,7);f.translate(lx+.3,1.38,fw+.7);staticMesh(f,glow)}
+  else if(era==='roemer'){box(.3,.3,.12,lx,1.9,fw+.06,H.stone);const l=new T.SphereGeometry(.08,8,6);l.scale(1.6,.6,1);l.translate(lx,1.92,fw+.1);staticMesh(l,glow)}
+  else{box(.05,.05,.4,lx,2.3,fw+.2,H.iron);box(.2,.28,.2,lx,2.1,fw+.4,glow);box(.24,.05,.24,lx,2.26,fw+.4,H.iron)}}
  // Federvieh vor dem Wohnhaus: Gänse (Römer, Frühmittelalter), Hühner (ab Hochmittelalter); in der Vorzeit keines
  if(k==='house'&&!['steinzeit','hallstatt'].includes(era)){const goose=['roemer','fruehmittelalter'].includes(era),cmF=(n,c)=>COLM.get(n)||(COLM.set(n,new T.MeshStandardMaterial({color:c,roughness:.9})),COLM.get(n)),beak=cmF('beak',0xe8a030),fw=g._wd?g._wd[1]/2:2.5;
   for(let i=0;i<3;i++){const x=-1.6+i*.75,z=fw+1.1+(i%2)*.4,col=goose?cmF('goose',0xf0ece4):cmF('hen'+i%2,i%2?0x8a4a24:0xe8e0d0),bg=new T.SphereGeometry(goose?.16:.11,8,6);bg.scale(1,.8,1.4);bg.translate(x,goose?.22:.15,z);staticMesh(bg,col);
@@ -849,7 +854,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   else if(X==='cornice'||X==='baroque'||X==='industry'){box(w+.3,.22,d+.3,0,h+.02,0,H.stone);for(const sx of[-1,1])for(const sz of[-1,1])box(.3,h,.3,sx*(w/2+.02),h/2,sz*(F+.02),X==='industry'?H.stone:H.floor);
    if(X==='baroque'&&home)box(1.6,.5,.12,0,h-.35,F+.08,H.floor);
    if(X==='industry'){if(PROD.includes(k)){const sxx=-w/2+.7,szz=-F+.7,hh=h+9;cylinder(.5,hh,sxx,hh/2,szz,H.plaster,14);box(1.3,1.2,1.3,sxx,.6,szz,H.stone);for(let y=2;y<hh;y+=2.6)cylinder(.53,.12,sxx,y,szz,H.stone,14);cylinder(.6,.3,sxx,hh,szz,H.dark,14)}
-    if(home){box(.08,2.6,.08,w/2+.4,1.3,F+.6,H.iron);box(.3,.38,.3,w/2+.4,2.75,F+.6,cm('gaslamp',0xf2e6b0))}}}}
+    if(home){box(.08,2.6,.08,w/2+.4,1.3,F+.6,H.iron);box(.3,.38,.3,w/2+.4,2.75,F+.6,H.win||cm('gaslamp',0xf2e6b0));box(.36,.06,.36,w/2+.4,2.97,F+.6,H.iron)}}}}
  // Static parts merge by material. Detail-rich buildings stay cheap to draw.
  for(const [material,geos]of batches){if(!geos.length)continue;const geometry=mergeGeometries(geos,false),mesh=new T.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);geos.forEach(geo=>geo.dispose())}
  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g;
