@@ -274,14 +274,14 @@ function heraldTex(col,coa=0){const key=col+':'+coa;if(HERALD.has(key))return HE
   x.fillStyle='#fff2b0';for(let y=12;y<H;y+=26){x.beginPath();x.arc(W/2,y,2.6,0,7);x.fill()}for(let X=12;X<W;X+=26){x.beginPath();x.arc(X,H*.45,2.6,0,7);x.fill()}
   eagle(W/2,H*.45,1,'#4a4a48',true)}
  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;const m=new T.MeshStandardMaterial({map:t,roughness:.55,metalness:.15});HERALD.set(key,m);return m}
-export // Scutum-Bemalung: rot mit Goldrand, Flügeln und Blitzbündeln (Legionsschild)
+// Scutum-Bemalung: rot mit Goldrand, Flügeln und Blitzbündeln (Legionsschild)
 let SCM=null;function scutumMat(){if(SCM)return SCM;const c=document.createElement('canvas');c.width=256;c.height=512;const x=c.getContext('2d'),G='#e2b44c';
  x.fillStyle='#9a1e1a';x.fillRect(0,0,256,512);x.strokeStyle=G;x.lineWidth=10;x.strokeRect(8,8,240,496);x.lineWidth=5;x.lineCap='round';
  for(const dir of[-1,1]){for(const dx of[-14,0,14]){x.beginPath();x.moveTo(128+dx,256+dir*40);for(let k=1;k<=6;k++)x.lineTo(128+dx+(k%2?10:-10),256+dir*(40+k*30));x.lineTo(128+dx,256+dir*235);x.stroke()}   // Blitzbündel
   for(let f=0;f<6;f++){x.beginPath();x.moveTo(110,256+dir*30);x.quadraticCurveTo(40-f*4,256+dir*(70+f*22),70+f*6,256+dir*(150+f*14));x.stroke()}}                              // Flügel
  x.fillStyle=G;x.fillRect(96,246,64,20);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;
  return SCM=new T.MeshStandardMaterial({map:t,roughness:.7,side:T.DoubleSide})}
-function shieldMesh(kind,col=0x8a2a22,coa=0){const g=new T.Group();g.name='Shield:'+kind;
+export function shieldMesh(kind,col=0x8a2a22,coa=0){const g=new T.Group();g.name='Shield:'+kind;
  if(kind==='heater'){const sh=new T.Shape();sh.moveTo(-.31,.42);sh.quadraticCurveTo(0,.34,.31,.42);sh.lineTo(.3,.06);sh.quadraticCurveTo(.27,-.28,0,-.46);sh.quadraticCurveTo(-.27,-.28,-.3,.06);sh.closePath();
   const back=new T.ExtrudeGeometry(sh,{depth:.035,bevelEnabled:false});back.translate(0,0,-.035);mesh(back,shm(0x5a4028),g);
   const face=new T.ShapeGeometry(sh,24),uv=face.attributes.uv,pp=face.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,(pp.getX(i)+.31)/.62,(pp.getY(i)+.46)/.88);mesh(face,heraldTex(col,coa|0),g,[0,0,.002]);
