@@ -180,3 +180,27 @@
   den Pfosten und flattern im Wind; die großen Festbanner hängen senkrecht mit Wimpelsaum.
 - **Ferne Berge bei Nacht**: Berge werden mit dem Tageslicht dunkler und verschwimmen im Nachtdunst; der helle
   Horizontstreifen (Farbraum-Unterschied zwischen Nebel und Himmel) ist behoben – nachts nur noch dunkle Silhouetten.
+
+# Burgenfall 8.31 – Konsolen-Steuerung
+
+- **Startmenü mit dem Controller**: Ein goldener Fokusrahmen springt mit Steuerkreuz oder linkem Stick zum nächsten
+  Knopf in der gedrückten Richtung; Ⓐ wählt, Ⓑ geht zurück. Auswahlfelder schalten mit Ⓐ weiter.
+- **Bildschirmtastatur** für Name, Weltname und Beitritts-Code (öffnet sich mit Ⓐ auf einem Textfeld):
+  Ⓐ Taste · Ⓧ löschen · Ⓨ Leerzeichen · Ⓑ/☰ fertig; mit der Maus ebenfalls bedienbar.
+- **Radialmenüs**: LB halten öffnet das Werkzeugrad (Waffen, Werkzeuge, Hände, Fackel, Schild), RB halten das
+  Aktionsrad (Bauen, Inventar, Stadtbuch, Karte, Aufheben/Verwalten, Essen, Reiten, Visier, Freiflug, Menü).
+  Auswahl mit dem rechten Stick, Loslassen bestätigt; kurzes Tippen behält die bisherige Funktion. Leichte Vibration
+  beim Wechseln. Im Baumodus drehen LB/RB weiterhin das Gebäude.
+- **Tastensymbole je Gerät**: Sobald ein Controller benutzt wird, zeigen Hilfezeile, HUD und Menüfuß Xbox-Symbole
+  (Ⓐ Ⓑ Ⓧ Ⓨ, LB/RB …) bzw. PlayStation-Symbole (✕ ○ □ △, L1/R1 …) passend zur eigenen Belegung; mit Tastatur/Maus
+  wieder die Tastennamen.
+- Solange das Startmenü offen ist, wird die 3D-Welt dahinter nicht mehr gerendert (spart Leistung, wichtig für
+  Konsolen-Browser und Handhelds).
+- **Dom (Nachtrag)**: Nur noch **ein Bischof** (der dienstälteste Priester am Dom), die anderen bleiben Priester.
+  Kreuzrippengewölbe mit verputzten Kappen jetzt auch im **Chorjoch**, als **Rippen-Halbkuppel in der Apsis**, in beiden
+  **Querhausarmen** und in allen Jochen der **Seitenschiffe** – nirgends mehr Blick in den Dachstuhl.
+- **Lagerhaus**: Das Zunftschild schwebte vor der Fassade, weil seine Position aus allen Hindernissen (auch den Kisten
+  vor dem Haus) berechnet wurde. Schild und Gewerbe-Gegenstände richten sich jetzt nach den echten Mauermaßen.
+- **Zunftschilder aller Läden und Handwerker** (Rüstungsmacher, Schmied, Bäcker, Taverne, Lager …): Das Schild saß
+  über dem Vordach bzw. an der Hausecke und wirkte freischwebend. Es hängt jetzt an einem Eisenausleger mit Wandplatte
+  an der freien Seitenwand nahe der Front, quer zur Straße und von vorn lesbar.

@@ -93,7 +93,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
  function box(w,h,d,x,y,z,mat=H.stone,solid=false,rot=0){const geo=boxUV(new T.BoxGeometry(w,h,d));if(rot)geo.rotateZ(rot);geo.translate(x,y,z);staticMesh(geo,mat);if(solid)g.colliders.push([x,z,w/2,d/2,y+h/2,y-h/2]);}
  function cylinder(r,h,x,y,z,mat=H.wood,segments=12){const geo=new T.CylinderGeometry(r,r*1.04,h,segments);geo.translate(x,y,z);staticMesh(geo,mat)}
  function beam(a,b,r=.13,mat=H.wood){const A=new T.Vector3(...a),B=new T.Vector3(...b),delta=B.clone().sub(A),geo=boxUV(new T.BoxGeometry(r,delta.length(),r));geo.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize()));geo.translate(...A.add(B).multiplyScalar(.5).toArray());staticMesh(geo,mat)}
- function shell(w,d,h,mat=H.stone,door=2,side=false,x=0,z=0,bottom=0){const t=.35;const dbl=k==='keep'||k==='church'||k==='cathedral';if(!dbl&&door>1.5)door=1.5;g.doorWidth=door;if(!x&&!z&&!bottom)g._halfW=w/2;const gothic=bottom===0&&['chapel','church','cathedral'].includes(k),dh=gothic?(k==='chapel'?2.8:k==='church'?3.8:3.5):2.5;
+ function shell(w,d,h,mat=H.stone,door=2,side=false,x=0,z=0,bottom=0){if(!g._wd&&!x&&!z)g._wd=[w,d];const t=.35;const dbl=k==='keep'||k==='church'||k==='cathedral';if(!dbl&&door>1.5)door=1.5;g.doorWidth=door;if(!x&&!z&&!bottom)g._halfW=w/2;const gothic=bottom===0&&['chapel','church','cathedral'].includes(k),dh=gothic?(k==='chapel'?2.8:k==='church'?3.8:3.5):2.5;
  box(w,h,t,x,bottom+h/2,z-d/2+t/2,mat,true);box(t,h,d,x-w/2+t/2,bottom+h/2,z,mat,true);
  if(side){box(w,h,t,x,bottom+h/2,z+d/2-t/2,mat,true);const center=3.5,span=3+(gothic?.32:0);box(t,h,center-span/2+d/2,x+w/2-t/2,bottom+h/2,z+(-d/2+center-span/2)/2,mat,true);box(t,h,d/2-center-span/2,x+w/2-t/2,bottom+h/2,z+(d/2+center+span/2)/2,mat,true);if(!gothic)box(t,h-dh,span,x+w/2-t/2,bottom+(h+dh)/2,z+center,mat,false);}
  else{box(t,h,d,x+w/2-t/2,bottom+h/2,z,mat,true);const opening=door+(gothic?.32:0),wing=(w-opening)/2;for(const sign of[-1,1])box(wing,h,t,x+sign*(opening/2+wing/2),bottom+h/2,z+d/2-t/2,mat,true);if(h>dh&&!gothic)box(door,h-dh,t,x,bottom+(h+dh)/2,z+d/2-t/2,mat,false);}
@@ -351,7 +351,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
   box(6,.2,12.5,0,12,2.75,H.floor);
   // Kreuzrippengewölbe im Mittelschiff – mit verputzten Gewölbekappen zwischen den Rippen (Kreuzgratgewölbe: max zweier Tonnen)
   const vaultM=COLM.get('vault')||(COLM.set('vault',(()=>{const m=(H.plaster||st).clone();m.side=T.DoubleSide;return m})()),COLM.get('vault'));
-  const webs=(x0,hw,zc,hz)=>{const N=22,P=[],U=[],I=[];for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const u=i/N*2-1,v=j/N*2-1,y=9.6+2.18*Math.max(Math.sqrt(Math.max(0,1-u*u)),Math.sqrt(Math.max(0,1-v*v)));P.push(x0+u*hw,y,zc+v*hz);U.push(u*hw/2,v*hz/2)}
+  const webs=(x0,hw,zc,hz,y0=9.6,hh=2.18)=>{const N=22,P=[],U=[],I=[];for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const u=i/N*2-1,v=j/N*2-1,y=y0+hh*Math.max(Math.sqrt(Math.max(0,1-u*u)),Math.sqrt(Math.max(0,1-v*v)));P.push(x0+u*hw,y,zc+v*hz);U.push(u*hw/2,v*hz/2)}
    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const a=j*(N+1)+i,b=a+1,c=a+N+1,d=c+1;I.push(a,c,b,b,c,d)}const q=new T.BufferGeometry();q.setAttribute('position',new T.Float32BufferAttribute(P,3));q.setAttribute('uv',new T.Float32BufferAttribute(U,2));q.setIndex(I);q.computeVertexNormals();staticMesh(q,vaultM)};
   for(let zb=-3.5;zb<9;zb+=2.5)webs(0,2.72,zb+1.25,1.25);webs(0,2.72,-5.5,2);
   const rib=(pts,r=.1)=>staticMesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts.map(p=>new T.Vector3(...p))),20,r,6,false),st);
@@ -361,6 +361,15 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    {const sh=new T.Shape();sh.moveTo(-2.4,0);sh.lineTo(2.4,0);sh.lineTo(0,4.4);sh.closePath();const q=new T.ExtrudeGeometry(sh,{depth:t,bevelEnabled:false});q.rotateY(Math.PI/2);q.translate(a*(8-t/2)-t/2,12,-5.5);staticMesh(q,st)}
    gothic(a*5.4,-7.5-t-.02,Math.PI,2.2,1.2,4.2);turret(a*8.1,-3.4,13.5);turret(a*8.1,-7.6,13.5)}
   groofX(-8.4,8.4,-7.5,-3.5,12,4.4,RM);box(16,.2,4,0,12,-5.5,H.floor);
+  // Gewölbe in Querhausarmen, Chorjoch und Seitenschiffen (Rippen + Kappen), Apsis als Rippenhalbkuppel
+  const bay=(cx,hw,zc,hz,y0,hh,r=.1)=>{webs(cx,hw,zc,hz,y0,hh);const zA=zc-hz,zB=zc+hz,xA=cx-hw,xB=cx+hw,top=y0+hh+.05;
+   rib([[xA,y0,zA],[cx-hw*.48,y0+hh*.88,zc-hz*.48],[cx,top,zc],[cx+hw*.48,y0+hh*.88,zc+hz*.48],[xB,y0,zB]],r);rib([[xB,y0,zA],[cx+hw*.48,y0+hh*.88,zc-hz*.48],[cx,top,zc],[cx-hw*.48,y0+hh*.88,zc+hz*.48],[xA,y0,zB]],r);
+   for(const z of[zA,zB])rib([[xA,y0,z],[cx,y0+hh*.97,z],[xB,y0,z]],r*1.2);staticMesh((()=>{const q=new T.SphereGeometry(r*1.9,10,8);q.translate(cx,top-.02,zc);return q})(),gold)};
+  for(const a of[-1,1]){bay(a*5.42,2.42,-5.5,1.95,9.6,2.18);for(let zb=-3.5;zb<9;zb+=2.5)bay(a*4.51,1.31,zb+1.25,1.25,4.45,1.82,.08)}
+  bay(0,2.72,-8.5,.98,9.6,2.18);
+  {const q=new T.SphereGeometry(2.86,20,10,Math.PI,Math.PI,0,Math.PI/2);q.scale(1,2.2/2.86,1);q.translate(0,9.6,-9.5);staticMesh(q,vaultM);
+   for(let k=0;k<=4;k++){const am=Math.PI+k*Math.PI/4,c=Math.cos(am),sn=Math.sin(am);rib([[c*2.8,9.6,-9.5+sn*2.8],[c*2.2,10.95,-9.5+sn*2.2],[c*1.1,11.65,-9.5+sn*1.1],[0,11.85,-9.5]],.09)}
+   staticMesh((()=>{const q=new T.SphereGeometry(.22,10,8);q.translate(0,11.8,-9.5);return q})(),gold)}
   // Vierungsgewölbe
   rib([[-2.72,9.6,-3.6],[0,11.85,-5.5],[2.72,9.6,-7.4]]);rib([[2.72,9.6,-3.6],[0,11.85,-5.5],[-2.72,9.6,-7.4]]);staticMesh((()=>{const q=new T.SphereGeometry(.3,12,8);q.translate(0,11.8,-5.5);return q})(),gold);
   // Chor mit polygonaler Apsis
@@ -557,7 +566,8 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
  // ===== Lebendige Details: Zunftschild, Laterne und Gewerbe-typische Gegenstände (Rückwand/linke Seite, Türen bleiben frei) =====
  if(!['palisade','well','watchpost','gate','portcullis','tower','harbor','orchard','apiary','hopfield','cemetery'].includes(k)){
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const c of g.colliders){x0=Math.min(x0,c[0]-c[2]);x1=Math.max(x1,c[0]+c[2]);z0=Math.min(z0,c[1]-c[3]);z1=Math.max(z1,c[1]+c[3])}
-  if(!g.colliders.length){x0=z0=-2;x1=z1=2}const bw=Math.min(14,Math.max(Math.abs(x0),Math.abs(x1))*2),bd=Math.min(14,Math.max(Math.abs(z0),Math.abs(z1))*2),R=(()=>{let a=(V+1)*9301+k.length*49297;return()=>((a=(a*1103515245+12345)&0x7fffffff)/0x7fffffff)})();
+  if(!g.colliders.length){x0=z0=-2;x1=z1=2}const bw=g._wd?g._wd[0]:Math.min(14,Math.max(Math.abs(x0),Math.abs(x1))*2),bd=g._wd?g._wd[1]:Math.min(14,Math.max(Math.abs(z0),Math.abs(z1))*2),   // Mauermaße statt Kisten/Möbel vor der Fassade
+  R=(()=>{let a=(V+1)*9301+k.length*49297;return()=>((a=(a*1103515245+12345)&0x7fffffff)/0x7fffffff)})();
   const col=c=>{if(!COLM.has(c))COLM.set(c,new T.MeshStandardMaterial({color:c,roughness:.85}));return COLM.get(c)},glow=COLM.get('glow')||(COLM.set('glow',new T.MeshStandardMaterial({color:0xffd27a,emissive:0xffb040,emissiveIntensity:.9})),COLM.get('glow'));
   const geo=(gm,x,y,z,mat,rx=0,ry=0,rz=0,sx=1,sy=1,sz=1)=>{gm.scale(sx,sy,sz);gm.rotateX(rx);gm.rotateY(ry);gm.rotateZ(rz);gm.translate(x,y,z);staticMesh(gm,mat)};
   const back=-bd/2-.5,left=-bw/2-.5,front=bd/2;
@@ -568,7 +578,8 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
   // Zunftschild am Ausleger über/neben der Tür
   const EMB={smithy:'anvil',armorer:'helmet',bower:'bow',bakery:'pretzel',tavern:'mug',brewery:'barrel',weaver:'spool',apothecary:'mortar',butcher:'cleaver',tannery:'hide',smokehouse:'fish',dairy:'cheese',lumber:'axe',mill:'sack',granary:'sack',storage:'sack',market:'coin',lodge:'antler',fishery:'fish',quarry:'pick',ironmine:'pick',coppermine:'pick'}[k];
   const SOLID=['house','bighouse','apothecary','bakery','smithy','armorer','armory','bower','weaver','tavern','butcher','dairy','brewery','tannery','smokehouse','granary','storage','keep','garrison','lodge','mill'].includes(k);
-  if(EMB&&SOLID){const sx=bw/2-.12,sz=front+.06,sy=2.45;beam([sx,sy+.45,sz],[sx,sy+.45,sz+.75],.05,H.iron);beam([sx,sy+.2,sz],[sx,sy+.45,sz+.4],.04,H.iron);
+  if(EMB&&SOLID){const snap0=new Map([...batches].map(([m,l])=>[m,l.length])),sx=0,sz=0,sy=2.45;   // Schild in lokalen Koordinaten (Ausleger entlang +z), danach an die Seitenwand nahe der Front gesetzt
+   box(.26,.62,.08,sx,sy+.25,sz+.04,H.wood);beam([sx,sy+.45,sz],[sx,sy+.45,sz+.75],.05,H.iron);beam([sx,sy+.2,sz],[sx,sy+.45,sz+.4],.04,H.iron);
    box(.06,.5,.62,sx,sy,sz+.45,H.wood);for(const dz of[.2,.7])beam([sx,sy+.25,sz+dz],[sx,sy+.45,sz+dz],.015,H.iron);
    for(const sd of[1,-1]){const ex=sx+sd*.045,ez=sz+.45,ey=sy,met=H.iron,gold=H.brass||met;   // Symbol auf beiden Seiten der Tafel
    if(EMB==='anvil'){box(.04,.1,.32,ex,ey-.05,ez,met);box(.04,.08,.14,ex,ey+.04,ez-.04,met);box(.04,.05,.1,ex,ey+.1,ez+.07,met)}
@@ -584,7 +595,10 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0}){
    if(EMB==='fish')geo(new T.SphereGeometry(.1,10,6),ex,ey,ez,col(0x8a9aa8),0,0,0,.3,.55,1.6);
    if(EMB==='sack')geo(new T.SphereGeometry(.13,10,8),ex,ey-.03,ez,col(0xd8cfb8),0,0,0,.4,1.2,.9);
    if(EMB==='coin')geo(new T.CylinderGeometry(.12,.12,.02,14),ex,ey,ez,gold,0,0,Math.PI/2);
-   if(EMB==='antler')for(const d of[-1,1])beam([ex,ey-.1,ez],[ex,ey+.15,ez+d*.14],.02,col(0xd8c8a8))}}
+   if(EMB==='antler')for(const d of[-1,1])beam([ex,ey-.1,ez],[ex,ey+.15,ez+d*.14],.02,col(0xd8c8a8))}
+   // Ausleger sitzt auf der freien Seitenwand, 0,7 m hinter der Vorderkante; Tafel hängt quer zur Straße und ist von vorn lesbar
+   const side=(attach|0)&2?-1:1,M4=new T.Matrix4().makeRotationY(side*Math.PI/2).premultiply(new T.Matrix4().makeTranslation(side*bw/2,0,front-.7));
+   for(const[m,l]of batches){const n0=snap0.get(m)||0;for(let i=n0;i<l.length;i++)l[i].applyMatrix4(M4)}}
   // Laterne an der Front (leuchtet)
   // Gewerbe-typische Gegenstände
   const T2={
