@@ -825,14 +825,20 @@ function gatherIdle(r,n,dt){const kp=r.b.find(b=>b.t==='keep');if(!kp)return fal
 function watchSpawn(r){const night=r.hr>=20||r.hr<6,kp=r.b.find(b=>b.t==='keep'),w=r.n.find(n=>n.k==='watch');
  if(night&&kp&&!w&&r.b.length>=4){const n=mkNpc(r,'watch',kp.x,kp.z+BD.keep.d/2+2,[...r.pl.keys()][0]||0);n.torch=1;say(r,'🏮 Der Nachtwächter beginnt seine Runde',n)}
  if(!night&&w){r.n=r.n.filter(n=>n!==w)}}
-const WATCH_CALL=['Mitternacht','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf'];
+// Nachtwächterverse je Stunde (Dienst 20–6 Uhr)
+const WATCH_VERSE={20:'Der Tag ist um, die Arbeit ruht – nun schließt die Tore, hütet gut!',21:'Das Tagwerk ist vollbracht, Gott geb euch eine gute Nacht!',
+ 22:'Löscht das Feuer und das Licht, dass heut Nacht kein Unglück geschieht!',23:'Wer jetzt noch wacht und zecht beim Wein, der geh nach Haus und schlaf fein ein!',
+ 0:'Zwölf, das ist das Ziel der Zeit – Mensch, bedenk die Ewigkeit!',1:'Schlaft in Frieden, groß und klein, der Wächter wird bei euch sein!',
+ 2:'Die Wölfe heulen vor dem Tor, doch hell scheint meine Fackel davor!',3:'Still die Gassen, still das Land, Gott halt über uns die Hand!',
+ 4:'Bald kräht der Hahn im Morgenrot, Gott schütz uns vor Feuer und Not!',5:'Der Morgen graut, der Tag bricht an – steht auf, ihr Leut, und packt es an!'};
+const WATCH_CALL=['zwölf','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf'];
 // Feste Runde: Wohnhäuser, Tore, Marktplatz und Bergfried, als Rundgang nach Nähe geordnet
 function watchRoute(r,from){const L=r.b.filter(b=>['house','bighouse','gate','portcullis','plaza','keep','tavern','well'].includes(b.t)).map(b=>fp(b,0,BD[b.t].d/2+2.5));const R=[];let cur=from;while(L.length){let bi=0,bd=1e9;L.forEach((P,i)=>{const d=dist(P,cur);if(d<bd){bd=d;bi=i}});cur=L.splice(bi,1)[0];R.push(cur)}return R}
 function watchTick(r,n,dt){n.torch=1;n.inv=1;n.hp=Math.max(n.hp,500);   // unverwundbar: Lebenspunkte werden jeden Tick aufgefüllt
  // Fackel vertreibt Wölfe im Umkreis von 8 m
  for(const w of r.w){const d=dist(w,n);if(d<8){const k=(d||.1);mv(w,w.x+(w.x-n.x)/k*20,w.z+(w.z-n.z)/k*20,5,dt)}}
  // Stundenruf zu jeder vollen Stunde
- const hr=Math.floor(r.hr);if(n.call!==hr){if(n.call!==undefined)say(r,'🏮 Hört, ihr Leut, und lasst euch sagen: die Glock hat '+WATCH_CALL[hr%12]+' geschlagen! Löscht das Feuer und das Licht, dass heut Nacht kein Unglück geschieht!',n);n.call=hr}
+ const hr=Math.floor(r.hr);if(n.call!==hr){if(n.call!==undefined||hr===20)say(r,'🏮 Hört, ihr Leut, und lasst euch sagen: die Glock hat '+WATCH_CALL[hr%12]+' geschlagen! '+(WATCH_VERSE[hr]||''),n);n.call=hr}
  // Brand in der Nacht: Alarm, Wasser holen, löschen – ohne Wasserstelle nur eindämmen
  const fb=r.fires&&r.fires.length?near(n,r.fires,1e9):null;
  if(fb){if(!r.alarmIds){const wake=r.n.filter(o=>o.hp>0&&!o.sk&&!o.tr&&o.k!=='child'&&(NT[o.k].job||o.k==='peasant')).sort((a,b)=>dist(a,fb)-dist(b,fb)).slice(0,4);r.alarmIds=wake.map(o=>o.id);say(r,'🔔 Feuer! Der Nachtwächter läutet Alarm'+(wake.length?' und weckt '+wake.length+' Bewohner':''),fb)}
