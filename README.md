@@ -1,3 +1,7 @@
+# Zeitreise 8.40
+
+Generationswechsel und Zeitsprung nur auf Wunsch des Spielers (mit kurzen Hinweisen); Menü „Epoche wechseln“: erreichte Epochen frei vor und zurück wählbar. Siehe AENDERUNGEN_8_40.md.
+
 # Zeitreise 8.39 – Epochen-Edition (Teil 4)
 
 Mauern je Epoche und die Dynastie: heiraten, Kinder bekommen, Erben bestimmen, abdanken – nach vier Generationswechseln springt die Welt in die nächste Epoche. Siehe AENDERUNGEN_8_39.md.
