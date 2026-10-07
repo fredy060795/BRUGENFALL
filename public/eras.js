@@ -94,3 +94,19 @@ function stoneCircle(k,{w,d},era){const g=new T.Group(),rx=w/2-.6,rz=d/2-.6,n={c
  // Opferstein in der Mitte, Feuerschale am Eingang (Lücke vorn bei +z)
  const alt=new T.Mesh(new T.BoxGeometry(1.6,.55,.9),rock);alt.position.set(0,.27,-rz*.45);alt.castShadow=alt.receiveShadow=true;g.add(alt);g.colliders.push([0,-rz*.45,.8,.45,.55]);
  const ring=new T.Mesh(new T.TorusGeometry(.45,.12,6,12),rock);ring.rotation.x=Math.PI/2;ring.position.set(0,.12,rz*.15);g.add(ring);return g}
+
+// ---- Bauweise je Epoche für alle Gebäude (wird in buildReference angewendet) ----
+// timber: Fachwerk · ov: Vorkragung der Obergeschosse · roof: gable | hip | mansard · rise: Dachhöhe-Faktor · over: Dachüberstand
+// drop: Traufe tiefer als die Wand (tief heruntergezogene Strohdächer) · win: none | hole | std | arch | tall · chimney: none | stone | brick · extras: Anbauten
+export const ERA_BUILD={
+ steinzeit:{timber:false,ov:0,roof:'hip',rise:1.5,over:.9,drop:.9,win:'none',chimney:'none',extras:'stone'},
+ hallstatt:{timber:false,ov:0,roof:'hip',rise:1.35,over:.7,drop:.6,win:'hole',chimney:'none',extras:'iron'},
+ roemer:{timber:false,ov:0,roof:'hip',rise:.5,over:.35,drop:0,win:'arch',chimney:'none',extras:'roman'},
+ fruehmittelalter:{timber:true,ov:0,roof:'gable',rise:1.15,over:.4,drop:0,win:'hole',chimney:'stone',extras:'early'},
+ hochmittelalter:{timber:true,ov:.42,roof:'gable',rise:1,over:.4,drop:0,win:'std',chimney:'stone',extras:''},
+ spaetmittelalter:{timber:true,ov:.42,roof:'gable',rise:1.25,over:.4,drop:0,win:'std',chimney:'stone',extras:'late'},
+ renaissance:{timber:false,ov:0,roof:'hip',rise:.6,over:.45,drop:0,win:'tall',chimney:'stone',extras:'cornice'},
+ barock:{timber:false,ov:0,roof:'mansard',rise:.9,over:.3,drop:0,win:'tall',chimney:'stone',extras:'baroque'},
+ napoleon:{timber:false,ov:0,roof:'hip',rise:.7,over:.35,drop:0,win:'tall',chimney:'stone',extras:'cornice'},
+ neuzeit:{timber:false,ov:0,roof:'gable',rise:.75,over:.3,drop:0,win:'tall',chimney:'brick',extras:'industry'}};
+export const eraBuild=e=>ERA_BUILD[e]||ERA_BUILD.hochmittelalter;

@@ -1,3 +1,7 @@
+# Zeitreise 8.37 – Epochen-Edition (Teil 2)
+
+Alle Gebäude in der Bauweise ihrer Epoche: Strohwalm und Flechtzäune in der Steinzeit, Ziegelwalm und Säulenvorhallen bei den Römern, Mansarddächer im Barock, Backstein und Fabrikschlote in der Neuzeit. Siehe AENDERUNGEN_8_37.md.
+
 # Zeitreise 8.36 – Epochen-Edition (Teil 1)
 
 Startzeitalter wählbar (Steinzeit bis Neuzeit) mit eigenen Gebäudenamen, Wand- und Dachtexturen, Kleidung, römischem Tempel und Steinkreis. Siehe AENDERUNGEN_8_36.md.

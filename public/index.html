@@ -243,7 +243,7 @@ Fadd('church',Fpew(-1.5,-1.5),Fpew(1.5,-1.5),Fpew(-1.5,.2),Fpew(1.5,.2),Fpew(-1.
 PT.stairs=Array.from({length:10},(_,n)=>{const h=4*(n+1)/10;return[2,h,.6,0,h/2,2.7-n*.6,'S',0]}).concat([-1.1,1.1].flatMap(x=>Array.from({length:10},(_,n)=>{const h=4*(n+1)/10+.6;return[.25,h,.6,x,h/2,2.7-n*.6,'S']})));
 installArchitecture(PT,BLD,{roomN,Ftab,Fbed,Fstool,Fbar,Fhearth,Fsack});
 const COL={tower:[[0,0,2.1,2.1]]};for(const k in PT)COL[k]=PT[k].filter(p=>p[4]-p[1]/2<1.8&&p[7]!==0).map(p=>[p[3],p[5],p[0]/2,p[2]/2,p[4]+p[1]/2]);
-function piece(k,lv=0,v=0,att=0,paint=0){if(ERA!=='hochmittelalter'){const C=CATd[k]||{},E=eraPiece(k,ERA,{w:C.w||8,d:C.d||8,stone:mS,plaster:HD.plaster});if(E){E.userData.variant=v|0;return E}}const reference=buildReference(k,lv,{H:HD,PT,MT,quad,weapon,v:v|0,attach:att|0,paint:paint|0});if(reference)return reference;const g=new THREE.Group();g.userData.variant=v|0;
+function piece(k,lv=0,v=0,att=0,paint=0){if(ERA!=='hochmittelalter'){const C=CATd[k]||{},E=eraPiece(k,ERA,{w:C.w||8,d:C.d||8,stone:mS,plaster:HD.plaster});if(E){E.userData.variant=v|0;return E}}const reference=buildReference(k,lv,{H:HD,PT,MT,quad,weapon,v:v|0,attach:att|0,paint:paint|0,era:ERA});if(reference)return reference;const g=new THREE.Group();g.userData.variant=v|0;
  if(MODELS[k]&&!['cemetery','field','church','cathedral','gate','portcullis','farm','moat'].includes(k)){const o=SU.clone(MODELS[k].scene);g.add(o);fit(o,FT[k]);return g}
  if(k==='fire'){
   const stone=new THREE.MeshStandardMaterial({color:0x6a6a68,roughness:1}),ash=new THREE.MeshStandardMaterial({color:0x2a2420,roughness:1});
