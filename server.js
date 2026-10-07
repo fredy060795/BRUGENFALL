@@ -968,7 +968,7 @@ wss.on('connection',ws=>{let r,p;
    r.paths.push({x:point.x,z:point.z,ax:!m.start&&last&&dist(last,point)<12?last.x:point.x,az:!m.start&&last&&dist(last,point)<12?last.z:point.z});p.pathLast=point;r.pathDirty=true;
   }
   else if(m.t==='pathUndo'){if(r.paths&&r.paths.length){r.paths.pop();r.pathDirty=true;p.pathLast=null}}
-  else if(m.t==='build'){const B=BD[m.k];if(!B)return;let x=Math.round(Number(m.x)*4)/4,z=Math.round(Number(m.z)*4)/4;const rot=((Math.round((+m.r||0)*18)/18)%4+4)%4;if(!Number.isFinite(x)||!Number.isFinite(z))return;
+  else if(m.t==='build'){const B=BD[m.k];if(!B)return;if(!Rules.allowed(r.era,m.k))return tell(p,(BN[m.k]||m.k)+' gibt es in der '+Rules.eraOf(r.era).n+' nicht');let x=Math.round(Number(m.x)*4)/4,z=Math.round(Number(m.z)*4)/4;const rot=((Math.round((+m.r||0)*18)/18)%4+4)%4;if(!Number.isFinite(x)||!Number.isFinite(z))return;
    {const snapped=Rules.snapPlacement(m.k,x,z,rot,[...r.b,...r.cs],BD,1.8);if(snapped.snapped){x=Math.round(snapped.x*4)/4;z=Math.round(snapped.z*4)/4}}
    const why=canPlace(r,m.k,x,z,rot);if(why)return tell(p,why);
    const keepAny=r.b.some(b=>b.t==='keep')||r.ru.some(b=>b.t==='keep')||r.cs.some(c=>c.t==='keep');

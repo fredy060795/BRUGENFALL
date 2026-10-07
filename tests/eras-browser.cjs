@@ -14,6 +14,7 @@ const HOOK=`;window.__eraTest=async(eras)=>{const out={errors:[],counts:{}};cons
   for(const r of roles){try{man(0,'sword',r,7);n++}catch(x){out.errors.push(e+' Figur '+r+': '+x.message)}}
   try{const p=look(3,'player',[0,1,0,1,1,0,3,5,4,3,1,1],1);createCharacter(0,'sword',{person:p});n++}catch(x){out.errors.push(e+' Spielerfigur: '+x.message)}
   try{shipMesh();n++}catch(x){out.errors.push(e+' Schiff: '+x.message)}
+  try{caravanMesh();n++}catch(x){out.errors.push(e+' Fuhrwerk: '+x.message)}
   try{const pz=piece('plaza');for(const ev of['maypole','circus','tree','tourney','burn','hang',0]){pz.setPlaza&&pz.setPlaza(ev);n++}}catch(x){out.errors.push(e+' Marktplatz-Fest: '+x.message)}
   try{const F=fireBrigade(e,()=>0,FOUNT_SPRAY);F.update(.1,[0,0,0,1,4,4]);n++}catch(x){out.errors.push(e+' Feuerwehr: '+x.message)}
   out.counts[e]=n;await new Promise(r=>setTimeout(r,0))}
