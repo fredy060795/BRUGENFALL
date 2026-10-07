@@ -81,7 +81,7 @@ export function createSteamer({seed=1}={}){const g=new T.Group();g.isShip=true;c
 // ---------- Weitere Schiffe je Epoche (Bug bei +z, Wasserlinie bei y≈0, Höhe unter 5,8 m) ----------
 const MS=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.85,...o});
 // Bootsrumpf als Lathe-ähnliche Schale: Spanten entlang z, halbe Breite b(t), Höhe top(t)
-function hullShell(g,L,B,top,bot,mat,pw=.42,stems=true){mesh(g,grid((u,v)=>{const t=v,z=-L/2+t*L,th=-Math.PI/2+u*Math.PI,b=B*Math.pow(Math.sin(Math.PI*Math.min(.999,Math.max(.001,t))),pw),tp=top(t),ct=Math.cos(th);
+function hullShell(g,L,B,top,bot,mat,pw=.42,stems=true){mesh(g,grid((u,v)=>{const t=v,z=-L/2+t*L,th=-Math.PI/2+u*Math.PI,b=t<=0||t>=1?0:B*Math.pow(Math.sin(Math.PI*t),pw),tp=top(t),ct=Math.cos(th);
  return[b*Math.sin(th)*(1-.45*Math.pow(ct,1.6)),tp-(tp-bot)*Math.pow(ct,.7),z,.75+.25*((u*10)%1<.85?1:.6)]},18,36),mat)
  if(stems)for(const t of[.012,.988]){const tp=top(t),h=tp-bot;const sm=mat.clone();sm.vertexColors=false;sm.color.multiplyScalar(.8);mesh(g,new T.BoxGeometry(.14,h,.5),sm,[0,bot+h/2,-L/2+t*L+(t<.5?.2:-.2)])}}   // Steven schließen Bug und Heck
 // Außenkante des Rumpfs (Höhe der Bordwand) an Position z – damit Schilde, Reling und Ruder am Rumpf anliegen
