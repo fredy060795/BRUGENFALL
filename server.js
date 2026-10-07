@@ -564,8 +564,8 @@ function dynJump(r,name,d){if(d.sw<DYN_JUMP||d.leapMsg)return;const nx=nextEra(r
 const eraHist=r=>(r.eraHist=[...new Set((r.eraHist||[r.era]).map(id=>Rules.eraOf(id).id))]);
 // Menü „Epoche wechseln“: jede schon erreichte Epoche ist frei wählbar (vor und zurück); eine neue erst nach dem Zeitsprung
 function setEra(r,p,id){const E=Rules.ERAS.find(e=>e.id===id);if(!E)return;const cur=Rules.eraOf(r.era).id;if(id===cur)return;const H=eraHist(r);
- if(!H.includes(id)){const nx=nextEra(r);if(nx&&nx.id===id)return dynLeap(r,p,dynOf(r,p));return tell(p,E.n+' ist noch nicht erreicht – neue Epochen öffnen sich nach vier Generationswechseln')}
- r.era=id;r.dirty=true;say(r,'🕰 '+p.name+' stellt die Welt auf '+E.n+' ('+E.y+') um');tx(r,JSON.stringify({t:'era',era:id}));try{save()}catch(e){}}
+ if(!H.includes(id)&&!r.creative){const nx=nextEra(r);if(nx&&nx.id===id)return dynLeap(r,p,dynOf(r,p));return tell(p,E.n+' ist noch nicht erreicht – neue Epochen öffnen sich nach vier Generationswechseln')}
+ r.era=id;r.dirty=true;say(r,'🕰 '+p.name+' stellt die Welt auf '+E.n+' ('+E.y+') um'+(H.includes(id)?'':' (Frei-Bau-Test)'));tx(r,JSON.stringify({t:'era',era:id}));try{save()}catch(e){}}
 function dynLeap(r,p,d){const nx=nextEra(r);if(!nx)return tell(p,'Die letzte Epoche ist erreicht');if(d.sw<DYN_JUMP)return tell(p,'Für den Zeitsprung braucht es '+DYN_JUMP+' Generationswechsel ('+d.sw+'/'+DYN_JUMP+')');
  const pop=r.n.filter(n=>n.k!=='watch'&&n.k!=='child').length;if(pop<DYN_POP)return tell(p,'Für den Zeitsprung braucht die Siedlung mindestens '+DYN_POP+' Einwohner ('+pop+')');
  d.sw=0;d.jumps++;d.leapMsg=0;eraHist(r);if(!r.eraHist.includes(nx.id))r.eraHist.push(nx.id);r.era=nx.id;r.dirty=true;say(r,'⏳ ZEITSPRUNG! Nach vier Generationen des '+d.house+' bricht eine neue Zeit an: '+nx.n+' ('+nx.y+')');tx(r,JSON.stringify({t:'era',era:nx.id}));try{save()}catch(e){}}

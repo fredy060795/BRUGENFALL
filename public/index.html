@@ -108,6 +108,7 @@ import * as SU from 'three/addons/utils/SkeletonUtils.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {addDoor,updateDoors} from './doors.js';
 import {surfaceMaterial} from './materials.js';
+import {eraPlaza} from './plaza-eras.js';
 import {applyEraMaterials,eraPiece,eraWeapon,eraShield,eraShotOf,MELEE} from './eras.js';
 import {createCharacter,animateCharacter,setTool,SWING,IMPACT,weapon,setShield,COA_N,shieldMesh} from './characters.js';
 import {look,OPT,defProf,FACTIONS,setPeopleEra} from './people.js';
@@ -348,15 +349,17 @@ function piece(k,lv=0,v=0,att=0,paint=0){if(ERA!=='hochmittelalter'){const C=CAT
   g.colliders=[[0,0,1.5,.6,4]];return g}
  if(k==='plaza'){
   // Marktplatz in doppelter Länge (24×12): Kopfsteinpflaster mit Randsteinen, Marktbrunnen am Westende
-  g.add(bx(24,.08,12,cobbleMat(),0,.04,0));
-  for(const [w,d,x,z]of[[24.4,.4,0,6],[24.4,.4,0,-6],[.4,12,12,0],[.4,12,-12,0]])g.add(bx(w,.12,d,mS,x,.06,z));
+  const EP=eraPlaza(ERA,{stone:FOUNT_STONE,wood:mW,water:FOUNT_WATER,spray:FOUNT_SPRAY,frozen:()=>typeof se!=='undefined'&&se===3});   // Epochen-Marktplatz (null = Mittelalter)
+  g.add(bx(24,.08,12,EP&&EP.ground||cobbleMat(),0,.04,0));
+  for(const [w,d,x,z]of[[24.4,.4,0,6],[24.4,.4,0,-6],[.4,12,12,0],[.4,12,-12,0]])g.add(bx(w,.12,d,EP&&EP.edge||mS,x,.06,z));
   // Springbrunnen in der Mitte (Wasserstelle zum Löschen); Westhälfte = Maibaumseite, Osthälfte = Jahrmarktseite mit Gauklerbühne
-  const fount=plazaFountain(0,0);g.add(fount);g.fountainAnim=(dt,t)=>{if(fount.visible)fount.userData.anim(dt,t)};const FC=[0,0,1.8,1.8,.95];
+  const fount=EP?EP.center:plazaFountain(0,0);g.add(fount);g.fountainAnim=(dt,t)=>{if(fount.visible)fount.userData.anim(dt,t)};const FC=[0,0,1.8,1.8,.95];
   // Alltag: Fässer, Kisten, Bänke, Laternenpfähle
   const props=new THREE.Group();g.add(props);
+  if(EP)props.add(EP.props);else{
   for(const [x,z]of[[10.6,-5],[10.9,-4.2],[-7.5,5.1]])props.add(barrelM(x,z,false));
   for(const [x,z,s]of[[9.6,-5.1,.7],[10,5,.6],[-8.4,5.2,.55]])props.add(bx(s,s,s,mW,x,s/2,z));
-  for(const x of[-4,4]){props.add(bx(2,.08,.45,mW,x,.48,-5.4),bx(.12,.44,.4,mW,x-.8,.22,-5.4),bx(.12,.44,.4,mW,x+.8,.22,-5.4));props.add(bx(2,.08,.45,mW,x,.48,5.4),bx(.12,.44,.4,mW,x-.8,.22,5.4),bx(.12,.44,.4,mW,x+.8,.22,5.4))}
+  for(const x of[-4,4]){props.add(bx(2,.08,.45,mW,x,.48,-5.4),bx(.12,.44,.4,mW,x-.8,.22,-5.4),bx(.12,.44,.4,mW,x+.8,.22,-5.4));props.add(bx(2,.08,.45,mW,x,.48,5.4),bx(.12,.44,.4,mW,x-.8,.22,5.4),bx(.12,.44,.4,mW,x+.8,.22,5.4))}}
   g.walkAreas=[[0,0,11.8,5.8,.12]];g.colliders=[FC];
   g.plazaProps=new THREE.Group();g.add(g.plazaProps);
   g.setPlaza=function(ev){
@@ -1105,7 +1108,7 @@ function idef(){const D=[],P=PROF||defProf(0),cont=nearContainer();
  return D}
 function menuDef(){if(mt===-4)return tdef();if(mt===-3)return idef();if(mt===-2)return wdef();if(mt===-1)return bdef();const D=[];
  if(mt===0){for(const[title,ks]of CATG){const cards=ks.filter(k=>CATd[k]).map(k=>C(PN[k],BC[k],()=>{landTool='';bi=KS.indexOf(k);build=true;setGhost();closeMenu()},{on:KS[bi]===k&&build,poor:!aff(k)}));if(cards.length)D.push({title,cards})}D.push({title:'Landschaft & Frei-Bau',cards:[C('Frei-Bau '+(creative?'AN':'AUS'),'Kostenlose Gebäude und Pflanzmenü (für diese Welt)',()=>send({t:'creative',on:!creative}),{on:creative}),C('Wege zeichnen','Maus halten, Boden anvisieren; B beendet',()=>selectLand('path')),C('Letztes Wegstück entfernen','',()=>send({t:'pathUndo'}))]});if(creative)D.push({title:'Ressourcen pflanzen',cards:[['tree','Baum'],['stump','Wurzelstock'],['rock','Fels'],['iron','Eisenerz'],['copper','Golderz'],['deer','Reh']].map(([k,n])=>C(n,'Auf freien Boden setzen',()=>selectLand(k)))})}
- else if(mt===1){{const d=DYN[MYNAME],ci=Rules.ERAS.findIndex(e=>e.id===ERA),ready=d&&d.sw>=DJ;D.push({title:'Epoche wechseln – erreichte Epochen sind frei wählbar, vor und zurück',cards:Rules.ERAS.map((e,i)=>{const seen=EH.includes(e.id),next=i===ci+1;return C((e.id===ERA?'● ':'')+e.n,e.id===ERA?'Aktuelle Epoche · '+e.y:seen?'Erreicht · '+e.y+' · hierher wechseln':next?(ready?'Zeitsprung möglich · '+e.y:'Nach '+DJ+' Generationswechseln ('+(d?Math.min(d.sw,DJ):0)+'/'+DJ+')'):'Noch nicht erreicht',()=>send({t:'setEra',era:e.id}),{dis:e.id===ERA||!(seen||(next&&ready)),on:e.id===ERA})})})}D.push({title:'Siedlung',cards:[C('Einwohner',PP[0]+' / '+PP[1]),C('Arbeitslos',PP[2]+' (werden automatisch Arbeitsplätzen zugeteilt)'),C('Zufriedenheit',HAP+' %'),C('Steuern / Rationen',['niedrig','mittel','hoch'][TAX]+' / '+['großzügig','normal','hungern'][RATION]+' ('+BAr('keep','in')+' ändern)'),C('Gefangene',PRn+' · Ansehen '+FAME)]});
+ else if(mt===1){{const d=DYN[MYNAME],ci=Rules.ERAS.findIndex(e=>e.id===ERA),ready=d&&d.sw>=DJ;D.push({title:creative?'Epoche wechseln – Frei-Bau: alle Epochen zum Testen wählbar':'Epoche wechseln – erreichte Epochen sind frei wählbar, vor und zurück',cards:Rules.ERAS.map((e,i)=>{const seen=EH.includes(e.id),next=i===ci+1;return C((e.id===ERA?'● ':'')+e.n,e.id===ERA?'Aktuelle Epoche · '+e.y:seen?'Erreicht · '+e.y+' · hierher wechseln':creative?'Frei-Bau-Test · '+e.y+' · hierher wechseln':next?(ready?'Zeitsprung möglich · '+e.y:'Nach '+DJ+' Generationswechseln ('+(d?Math.min(d.sw,DJ):0)+'/'+DJ+')'):'Noch nicht erreicht',()=>send({t:'setEra',era:e.id}),{dis:e.id===ERA||!(creative||seen||(next&&ready)),on:e.id===ERA})})})}D.push({title:'Siedlung',cards:[C('Einwohner',PP[0]+' / '+PP[1]),C('Arbeitslos',PP[2]+' (werden automatisch Arbeitsplätzen zugeteilt)'),C('Zufriedenheit',HAP+' %'),C('Steuern / Rationen',['niedrig','mittel','hoch'][TAX]+' / '+['großzügig','normal','hungern'][RATION]+' ('+BAr('keep','in')+' ändern)'),C('Gefangene',PRn+' · Ansehen '+FAME)]});
   if(ECO.length)D.push({title:'Umland – Nachbarorte handeln untereinander; Krankheit und Aberglaube reisen mit den Händlern',cards:ECO.map(([n,pop,sick,omen,food,spec,mood])=>C(n+' ('+spec+')',pop+' Einwohner · Vorrat '+food+' · Stimmung '+mood+' %'+(sick?' · 🦠 Krankheit '+sick+' %':'')+(omen?' · 👻 Aberglaube':''),null,{poor:sick>0||food<15}))});
   D.push({title:'So funktioniert es',cards:[C('Gebäude verwalten','Geh an ein Gebäude und drücke E (Controller: RB): Arbeiter, Lager, Ausbau'),C('Soldaten ausbilden',BNm('garrison')+': E drücken – nur mit Waffen im Lager'),C('Waren','Arbeiter holen und bringen alles selbst: Mine → Lager → Schmiede → '+BNm('garrison'))]});
   D.push({title:'Befehle an alle deine Soldaten',cards:[C('Mir folgen','',()=>ord('follow')),C('Wache halten','jeder an seinem Platz',()=>ord('guard')),C('Patrouille 30 m','um deinen Standort',()=>send({t:'order',c:'patrol',rad:30})),C('Patrouille 100 m','um deinen Standort',()=>send({t:'order',c:'patrol',rad:100})),C('Patrouille im ganzen Dorf','alle Gebäude bis 200 m',()=>send({t:'order',c:'patrol',rad:'town'}))]});
