@@ -77,3 +77,47 @@ export function createSteamer({seed=1}={}){const g=new T.Group();g.isShip=true;c
  const smoke=new T.Points(sg,new T.PointsMaterial({color:0x5a5a5a,size:.55,transparent:true,opacity:.55,depthWrite:false}));smoke.frustumCulled=false;g.add(smoke);let tt=0;
  g.shipAnim=dt=>{tt+=dt;for(const w of wheels)w.rotation.x+=dt*2.2;for(let i=0;i<N;i++){const p=P[i],u=(tt*.25+p.ph)%1;pos[i*3]=(p.j-.5)*.4*u;pos[i*3+1]=5.3+u*3.2;pos[i*3+2]=-1.6-u*2.4}sg.attributes.position.needsUpdate=true};
  return g}
+
+// ---------- Weitere Schiffe je Epoche (Bug bei +z, Wasserlinie bei y≈0, Höhe unter 5,8 m) ----------
+const MS=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.85,...o});
+// Bootsrumpf als Lathe-ähnliche Schale: Spanten entlang z, halbe Breite b(t), Höhe top(t)
+function hullShell(g,L,B,top,bot,mat,pw=.42){mesh(g,grid((u,v)=>{const t=v,z=-L/2+t*L,th=-Math.PI/2+u*Math.PI,b=B*Math.pow(Math.sin(Math.PI*Math.min(.999,Math.max(.001,t))),pw),tp=top(t),ct=Math.cos(th);
+ return[b*Math.sin(th)*(.55+.45*Math.pow(ct,.25)),tp-(tp-bot)*Math.pow(ct,.7),z,.75+.25*((u*10)%1<.85?1:.6)]},18,36),mat)
+ for(const t of[.012,.988]){const tp=top(t),h=tp-bot;const sm=mat.clone();sm.vertexColors=false;sm.color.multiplyScalar(.8);mesh(g,new T.BoxGeometry(.14,h,.5),sm,[0,bot+h/2,-L/2+t*L+(t<.5?.2:-.2)])}}   // Steven schließen Bug und Heck
+// Deck innerhalb des Rumpfs
+function hullDeck(g,L,B,y,mat,pw=.42){mesh(g,grid((u,v)=>{const t=.06+v*.88,b=B*Math.pow(Math.sin(Math.PI*t),pw)*.9;return[(u*2-1)*b,y,-L/2+t*L,1]},8,28,true),(()=>{const m=mat.clone();m.side=T.DoubleSide;return m})())}
+// Einbaum (Steinzeit), in der Hallstattzeit größer und mit Salzsäcken
+export function createDugout({big=false}={}){const g=new T.Group();g.isShip=true;const L=big?7:5.5,B=big?.75:.55,wood=MS(0x6a4a2c,{vertexColors:true,side:T.DoubleSide});
+ hullShell(g,L,B,t=>.55+.15*Math.pow(Math.abs(2*t-1),3),-.25,wood,.3);const inner=MS(0x4a3420);hullDeck(g,L,B,.32,inner,.3);
+ for(const z of big?[-1.6,0,1.6]:[-1,1]){const p=new T.Group();p.position.set(0,.35,z);g.add(p);mesh(p,new T.CylinderGeometry(.035,.035,1.6,6),MS(0x8a6a44),[.3,.5,0]).rotation.z=-.6;mesh(p,new T.BoxGeometry(.18,.45,.04),MS(0x8a6a44),[.75,-.1,0]).rotation.z=-.6}   // Stechpaddel
+ if(big)for(let i=0;i<4;i++)mesh(g,new T.SphereGeometry(.22,8,6),MS(0xe8e4dc),[(i%2-.5)*.4,.48,-.6+Math.floor(i/2)*.6]).scale.set(1,.7,1.3);
+ else{mesh(g,new T.SphereGeometry(.25,8,6),MS(0x7a5e40),[0,.45,.3]).scale.set(1,.6,1.4)}   // Fellbündel
+ return g}
+// Römische Flussgaleere (navis lusoria): schlanker Rumpf, Ruderreihen, Rahsegel, Schildreihe, Heckzier
+export function createGalley(){const g=new T.Group();g.isShip=true;const L=10,B=1.35,hull=MS(0x5a3a22,{vertexColors:true,side:T.DoubleSide}),red=MS(0x8a1e1a),white=MS(0xe8e2d0,{side:T.DoubleSide}),wood=MS(0x6a4a2c),bronze=MS(0xb08a3c,{metalness:.6,roughness:.4});
+ hullShell(g,L,B,t=>1.0+.9*Math.pow(Math.max(0,1-t*1.3),4)+.5*Math.pow(Math.max(0,t-.8)*5,2),-.35,hull,.38);hullDeck(g,L,B,.95,MS(0x9a7a52),.38);
+ for(const s of[-1,1]){mesh(g,new T.BoxGeometry(.06,.18,L*.8),red,[s*B*.57,1.05,0]);for(let i=0;i<9;i++){const z=-3.4+i*.85,o=new T.Group();o.position.set(s*B*.57,.95,z);g.add(o);const r=mesh(o,new T.CylinderGeometry(.03,.03,2.6,5),wood,[s*1.1,-.3,0]);r.rotation.z=s*1.25;o.userData.s=s;(g.userData.oars||(g.userData.oars=[])).push(o)}
+  for(let i=0;i<6;i++){const sh=mesh(g,new T.CylinderGeometry(.28,.28,.05,14),i%2?red:MS(0xc8a040),[s*(B*.58+.02),1.3,-2.6+i*1.0]);sh.rotation.z=Math.PI/2}}
+ mesh(g,new T.CylinderGeometry(.09,.1,4.6,8),wood,[0,3.2,.8]);mesh(g,new T.CylinderGeometry(.05,.05,3.2,6),wood,[0,5.1,.85]).rotation.z=Math.PI/2;
+ mesh(g,grid((u,v)=>[-1.5+3*u,5.0-2.4*v,.95+.35*Math.sin(Math.PI*u)*Math.sin(Math.PI*v),(Math.floor(u*5)%2)?[.6,.12,.1]:[.92,.9,.84]],10,8),new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.95}));
+ mesh(g,new T.TorusGeometry(.45,.07,6,14,Math.PI*1.2),bronze,[0,2.1,-L/2+.1]).rotation.y=Math.PI/2;mesh(g,new T.BoxGeometry(.12,1.6,.6),wood,[0,.6,-L/2-.2]);   // Heckzier (Aplustre), Steuerruder
+ mesh(g,new T.ConeGeometry(.12,.8,6),bronze,[0,.25,L/2+.3]).rotation.x=Math.PI/2;                                                                          // Rammsporn
+ g.shipAnim=dt=>{g.userData.t=(g.userData.t||0)+dt;const a=Math.sin(g.userData.t*2.4);for(const o of g.userData.oars)o.rotation.x=a*.35};return g}
+// Wikinger-Langschiff (Frühmittelalter): Klinkerrumpf mit hohem Steven, Drachenkopf, Schildreihe, rot-weiß gestreiftes Segel
+export function createLongship(){const g=new T.Group();g.isShip=true;const L=10,B=1.5,hull=MS(0x5e4228,{vertexColors:true,side:T.DoubleSide}),wood=MS(0x6a4a2c),cols=[0xb8201c,0xd8c070,0x2a4a7a,0xe8e2d0];
+ hullShell(g,L,B,t=>1.05+1.1*Math.pow(Math.abs(2*t-1),6),-.3,hull,.45);hullDeck(g,L,B,.9,MS(0x8a6a44),.45);
+ for(const sgn of[-1,1]){const pts=[];for(let i=0;i<=8;i++){const t=i/8;pts.push(new T.Vector3(0,1.1+t*1.3+Math.sin(t*2.6)*.2,sgn*(L/2-.2+t*.6)-sgn*Math.sin(t*3)*.3))}mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(pts),16,.09,6,false),wood)}
+ const head=mesh(g,new T.ConeGeometry(.16,.6,6),MS(0x8a1e1a),[0,2.55,L/2+.15]);head.rotation.x=Math.PI/2+.4;                                           // Drachenkopf
+ for(const s of[-1,1])for(let i=0;i<8;i++){const sh=mesh(g,new T.CylinderGeometry(.3,.3,.04,14),MS(cols[(i+(s>0?1:0))%4]),[s*(B*.58),1.15,-3.2+i*.9]);sh.rotation.z=Math.PI/2}
+ mesh(g,new T.CylinderGeometry(.1,.12,4.6,8),wood,[0,3.2,0]);mesh(g,new T.CylinderGeometry(.05,.05,3.6,6),wood,[0,5.2,.1]).rotation.z=Math.PI/2;
+ mesh(g,grid((u,v)=>[-1.7+3.4*u,5.1-2.9*v,.2+.4*Math.sin(Math.PI*u)*Math.sin(Math.PI*v),(Math.floor(u*7)%2)?[.72,.12,.1]:[.93,.9,.84]],14,8),new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.95}));
+ mesh(g,new T.BoxGeometry(.1,1.4,.5),wood,[B*.55,.5,-L/2+.9]);return g}
+// Plätte / Zille (Barock, Napoleon): flacher Donau-Lastkahn mit Hütte, Ruderbalken (Steuerruder) und Fässern
+export function createBarge(){const g=new T.Group();g.isShip=true;const L=10,W=3,wood=MS(0x7a5a38),dark=MS(0x4a3420),roof=MS(0x5a4a3a);
+ const plan=new T.Shape();plan.moveTo(-W/2,-L/2);plan.lineTo(W/2,-L/2);plan.lineTo(W/2,L/2-2.5);plan.quadraticCurveTo(W*.35,L/2,0,L/2+.2);plan.quadraticCurveTo(-W*.35,L/2,-W/2,L/2-2.5);plan.closePath();
+ const geo=new T.ExtrudeGeometry(plan,{depth:1.0,bevelEnabled:false});geo.rotateX(Math.PI/2);geo.translate(0,.75,0);mesh(g,geo,dark);
+ {const d=new T.ShapeGeometry(plan);d.rotateX(Math.PI/2);d.scale(.95,1,.97);d.translate(0,.78,0);const m=mesh(g,d,wood);m.material=wood.clone();m.material.side=T.DoubleSide}
+ box(g,2.2,1.4,2.8,wood,0,1.5,-2.6);const r1=box(g,1.4,.08,3.1,roof,-.58,2.45,-2.6);r1.rotation.z=.6;const r2=box(g,1.4,.08,3.1,roof,.58,2.45,-2.6);r2.rotation.z=-.6;   // Hütte
+ rod(g,[0,1.0,-L/2],[0,1.6,-L/2-2.2],.06,wood);box(g,.08,.9,1.2,wood,0,1.2,-L/2-2.0);                                                                     // langes Heckruder
+ for(let i=0;i<6;i++){const m=mesh(g,new T.CylinderGeometry(.3,.3,.65,10),MS(0x6a4a2c),[(i%3-1)*.75,1.1,.4+Math.floor(i/3)*.8]);m.rotation.z=Math.PI/2}for(let i=0;i<3;i++)box(g,.6,.5,.6,MS(0x8a6a44),(i-1)*.7,1.05,2.4);
+ return g}

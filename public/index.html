@@ -116,7 +116,7 @@ import {applyEraMaterials,eraPiece,eraWeapon,eraShield,eraShotOf,MELEE} from './
 import {createCharacter,animateCharacter,setTool,SWING,IMPACT,weapon,setShield,COA_N,shieldMesh} from './characters.js';
 import {look,OPT,defProf,FACTIONS,setPeopleEra} from './people.js';
 import {createAnimal} from './animals.js';
-import {createCog,createSteamer} from './ships.js';
+import {createCog,createSteamer,createDugout,createGalley,createLongship,createBarge} from './ships.js';
 let PROF=null,wmode='full',PV=null,MYFC=+(localStorage.getItem('burgenfall-fc')||0)||0,MYCOA=+(localStorage.getItem('burgenfall-coa')||0)||0;const PFC=new Map(),PCOA=new Map();try{PROF=JSON.parse(localStorage.getItem('burgenfall-char'))}catch(e){}if(!Array.isArray(PROF)||PROF.length!==12)PROF=null;
 import {heightAt,makeTerrain,forestTree,decorate,contactShadow,leafMats,TREE_SEASON,makeWater,riverX,WORLD_HALF_SIZE,MINI_MAP_RANGE,setWorldConfig,applyWorldSize} from './world.js';
 const $=id=>document.getElementById(id);
@@ -835,7 +835,8 @@ function hpbar(o,pc){if(pc>=100){if(o.hb){o.remove(o.hb);o.hb=null}return}
 function corpseMesh(){const g=shroudedBody(.98,.52);g.rotation.y=Math.random()*6;return g}
 function oreMesh(k){const g=new THREE.Group(),m=k==='iron'?MT.T:MT.U;for(let n=0;n<6;n++){const o=new THREE.Mesh(new THREE.DodecahedronGeometry(.7+Math.random()*.7),n%3?m:mD);o.position.set((Math.random()-.5)*4,.4,(Math.random()-.5)*4);o.scale.y=.7;o.castShadow=true;g.add(o)}
  const lb=tag(k==='iron'?'Eisen':'Gold','Vorkommen');lb.scale.set(3,.95,1);lb.position.y=2.4;g.add(lb);return g}
-function shipMesh(){if(ERA==='neuzeit'){const g=createSteamer({seed:Math.random()*1e6|0}),lb=tag('Handelsschiff','Raddampfer');lb.scale.set(3.6,1.15,1);lb.position.y=6.4;g.add(lb);return g}const SC=[[0xe8e0c8,0x9a2a24],[0xe8e0c8,0x2a4a8a],[0xe8e0c8,0x3a6a2a],[0xd8cfb8,0xc8a030],[0xe8e0c8,0x5a2a6a]],c=SC[Math.random()*SC.length|0];const g=createCog({sail:c,flag:c[1],seed:Math.random()*1e6|0});
+function shipMesh(){const SM={neuzeit:()=>createSteamer({seed:Math.random()*1e6|0}),steinzeit:()=>createDugout(),hallstatt:()=>createDugout({big:true}),roemer:createGalley,fruehmittelalter:createLongship,barock:createBarge,napoleon:createBarge}[ERA];   // Schiff je Epoche
+ if(SM){const g=SM(),lb=tag('Handelsschiff',Rules.ship(ERA));lb.scale.set(3.6,1.15,1);lb.position.y=ERA==='steinzeit'||ERA==='hallstatt'?2.6:6.4;g.add(lb);return g}const SC=[[0xe8e0c8,0x9a2a24],[0xe8e0c8,0x2a4a8a],[0xe8e0c8,0x3a6a2a],[0xd8cfb8,0xc8a030],[0xe8e0c8,0x5a2a6a]],c=SC[Math.random()*SC.length|0];const g=createCog({sail:c,flag:c[1],seed:Math.random()*1e6|0});
   const lb=tag('Handelsschiff','Kogge');lb.scale.set(3.6,1.15,1);lb.position.y=6.4;g.add(lb);return g}
 function caravanMesh(){const g=new THREE.Group();g.add(bx(1.8,.5,2.6,mW,0,.9,-2.2),bx(1.9,.06,2.6,MT.Z,0,2.2,-2.2));for(const x of[-.85,.85])for(const z of[-1.5,-2.9]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.12,12),mW);w.rotation.z=Math.PI/2;w.position.set(x,.5,z);g.add(w)}
  for(const x of[-.8,.8])for(const z of[-1.2,-3.2])g.add(bx(.08,1.2,.08,mW,x,1.5,z));const h=horse();h.position.z=.2;g.add(h);const lb=tag('Händler','Karawane');lb.position.y=3;lb.scale.set(2,.62,1);g.add(lb);return g}
@@ -1465,9 +1466,13 @@ const sfx=(n,d)=>{if(!AU.ctx)return;const v=d===undefined?1:att(d);if(v<.01)retu
 // Ereignis-Klänge nur in der Nähe des Geschehens (Position kommt vom Server); ohne Ort bleibt es still
 const attN=(d,R)=>Math.pow(Math.max(0,1-d/R),1.4);
 function auEvent(t,x,z){if(!AU.ctx||!t)return;const T=String(t),has=Number.isFinite(x)&&Number.isFinite(z),d=has?Math.hypot(x-px,z-pz):1e9;
+ if(/Raddampfer/.test(T))steamWhistle(.5);
  if(/zerstört|eingestürzt|niedergebrannt|eingerissen/i.test(T)&&d<90)playS('Gebaeude-Einsturz',.9*attN(d,90),'fx',6);
  if(/Banditen|Überfall|greifen an|Angriff/i.test(T)){const kp=[...M.b.values()].find(o=>o.userData.t==='keep'),dk=kp?Math.hypot(kp.userData.x-px,kp.userData.z-pz):d;if(dk<120)playS('Angriff-Banditen',.75*attN(dk,120),'amb',7)}
  if(/gestorben|verstorben|ist tot|gefallen|niedergestreckt|verhungert/i.test(T)&&d<70){playS('Tod',.7*attN(d,70),'fx',3);const ch=nearestChurch();if(ch&&ch.d<200)setTimeout(()=>playS('Totenglocke',.6*attBell(ch.d),'amb',9),2200)}}
+// Dampfpfeife: zwei Pfiffe, Akkord aus drei Tönen mit Rauschen
+function steamWhistle(v){const C=AU.ctx;if(!C)return;const out=C.createGain();out.connect(AU.fx);for(const [t0,len]of[[0,.9],[1.15,1.6]]){const g=C.createGain(),T0=C.currentTime+t0;g.gain.setValueAtTime(0,T0);g.gain.linearRampToValueAtTime(v*.22,T0+.08);g.gain.setValueAtTime(v*.22,T0+len-.15);g.gain.linearRampToValueAtTime(0,T0+len);g.connect(out);
+ for(const f of[392,494,587]){const o=C.createOscillator();o.type='triangle';o.frequency.setValueAtTime(f*.96,T0);o.frequency.linearRampToValueAtTime(f,T0+.12);o.connect(g);o.start(T0);o.stop(T0+len+.05)}}}
 const attBell=d=>Math.pow(Math.max(0,1-d/220),1.8);
 function nearestChurch(){let ch=null;for(const o of M.b.values()){const u=o.userData;if(u.t==='chapel'||u.t==='church'||u.t==='cathedral'){const d=Math.hypot(u.x-px,u.z-pz);if(!ch||d<ch.d)ch={d}}}return ch}
 // Umgebungsklänge kommen und gehen: jede Schleife hat zufällige Spiel- und Pausenphasen
