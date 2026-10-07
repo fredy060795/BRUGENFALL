@@ -204,3 +204,40 @@
 - **Zunftschilder aller Läden und Handwerker** (Rüstungsmacher, Schmied, Bäcker, Taverne, Lager …): Das Schild saß
   über dem Vordach bzw. an der Hausecke und wirkte freischwebend. Es hängt jetzt an einem Eisenausleger mit Wandplatte
   an der freien Seitenwand nahe der Front, quer zur Straße und von vorn lesbar.
+
+# Burgenfall 8.32 – Linz ANNO 1400, Münzprägerei, Bergfried-Innenleben, Holzbrücke
+
+## Karte „Linz ANNO 1400“ (letzte Karte in der Auswahl)
+- Vorgebaute Altstadt nach den alten Stadtansichten (Merian): ummauerte Stadt mit Zinnenmauer, Ecktürmen und vier
+  Toren (Brückentor, Schmiedtor, Oberes Tor, Schlosstor), langgestreckter **Hauptplatz** mit Marktplatz, Brunnen und
+  Marktständen, Häuserzeilen mit Gassen, **Stadtpfarrkirche**, **Minoritenkirche**, Landhaus, Spitalkirche, Rathaus,
+  Taverne, **Münzstätte**, Waag- und Zeughaus, Bäcker, Metzger, Schmied, Apotheke, Brauerei.
+- **Schloss** auf der Anhöhe nördlich der Stadt (Steinbergfried mit eigener Mauer, Türmen, Torbau, Garnison, Waffenkammer),
+  **Martinskirche** daneben.
+- **Donau** östlich der Stadt mit **Holzbrücke** hinüber nach **Urfahr** (Häuserzeilen, Kapelle, Fischerei, Höfe).
+- **Vorstadt an der Landstraße** im Süden, Gärten, Obstgärten, Felder, Mühle; Wälder und Felsen am Pöstlingberg/Freinberg,
+  Nachbarorte Wilhering und Ebelsberg, Raubritter im Norden.
+- Start mit 14 Bürgern, zusätzlichem Gold und Vorräten (nicht im Survival-Modus). Karte hat feste Größe (800 m).
+- Kartenformat erweitert: Karten können vorgebaute Gebäude enthalten; Vorschauen zeigen deren Grundrisse.
+
+## Gold und Münzprägerei
+- **Kupfer heißt jetzt Gold** (Golderz, Goldmine; Aussehen bleibt).
+- **Münzprägerei**: Steinbau mit vergitterten Fenstern, zwei Wachen vor der Tür, innen Schmelzofen mit Tiegel,
+  Prägestock, Waage, Münzen und beschlagene Schatztruhen. Zwei **Münzer** schmelzen 2 Golderz und prägen daraus
+  20–30 Gold (Taler und Groschen) in die Truhen – mit Schmiedehammer-Klang.
+- **Schatzkarren**: täglich um 10 Uhr fährt ein Karren mit **vier Wachen** vom Bergfried zu den Münzstätten, lädt die
+  Truhen und bringt das Gold in die Schatzkammer → passives Einkommen.
+
+## Bergfried innen (alle vier Ausbaustufen)
+- **Große Halle**: lange Tafel mit Bänken, Tischläufer und Kerzen, **Thron** auf Podest unter einem Ehrenbanner,
+  **Kamin** mit Rauchfang, **Wandteppiche** mit Wappen, Fackelhalter; im Steinbergfried **Kreuzrippengewölbe**.
+- **Kerker** jetzt als ummauerte Zelle in der Ecke mit Gittertür (überschneidet die Halle nicht mehr).
+- **Treppen** ins Obergeschoss: **Schlafgemach** mit Himmelbett und Truhe, **Schatzkammer** hinter Gittern mit Truhen,
+  Goldhaufen und Münzsäcken; im Steinbergfried zusätzlich die **Wachstube** mit Etagenbetten und Waffenständer.
+- **Festbankett** (Bergfried-Menü): 120 Gold + 8 Speisen; Gäste tafeln in der Halle (trinken, essen), Diener tragen
+  Spanferkel auf; auf der Tafel liegen Spanferkel, Äpfel, Brot, Krüge. **Beliebtheit +18 für zwei Tage, Ansehen +3**,
+  frühestens alle zwei Tage.
+
+## Brücke
+- Neue Brücken sind zuerst **Holzbrücken** (Pfahljoche mit Eisbrechern, Bohlenbelag, Geländer, flache Rampen);
+  Ausbau zur **steinernen Bogenbrücke** (50 Stein, 10 Holz) im Gebäudemenü. Bestehende Brücken bleiben aus Stein.
