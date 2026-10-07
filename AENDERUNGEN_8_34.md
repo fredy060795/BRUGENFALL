@@ -11,7 +11,8 @@
 ## Nachtwächter
 - **Unverwundbar** und **immun gegen Wölfe**; seine Fackel vertreibt Wölfe im Umkreis von 8 m.
 - **Feste Runde** von 20 bis 6 Uhr an Wohnhäusern, Toren, Marktplatz, Taverne, Brunnen und Bergfried.
-- **Stundenruf** zu jeder vollen Stunde („Hört, ihr Leut …“).
+- **Stundenruf** zu jeder vollen Stunde: „Hört, ihr Leut, und lasst euch sagen: die Glock hat zehn geschlagen!
+  Löscht das Feuer und das Licht, dass heut Nacht kein Unglück geschieht!“
 - **Brand in der Nacht**: läutet Alarm, weckt die 4 nächsten Bewohner für die Eimerkette, holt selbst Wasser
   (Brunnen oder Marktbrunnen) und löscht (-12 je Guss). Ohne Wasserstelle schlägt er die Flammen aus:
   das Feuer greift nicht über und richtet weniger Schaden an.

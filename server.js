@@ -832,7 +832,7 @@ function watchTick(r,n,dt){n.torch=1;n.inv=1;n.hp=Math.max(n.hp,500);   // unver
  // Fackel vertreibt Wölfe im Umkreis von 8 m
  for(const w of r.w){const d=dist(w,n);if(d<8){const k=(d||.1);mv(w,w.x+(w.x-n.x)/k*20,w.z+(w.z-n.z)/k*20,5,dt)}}
  // Stundenruf zu jeder vollen Stunde
- const hr=Math.floor(r.hr);if(n.call!==hr){if(n.call!==undefined)say(r,'🏮 Hört, ihr Leut, und lasst euch sagen: die Glock hat '+WATCH_CALL[hr%12]+' geschlagen!',n);n.call=hr}
+ const hr=Math.floor(r.hr);if(n.call!==hr){if(n.call!==undefined)say(r,'🏮 Hört, ihr Leut, und lasst euch sagen: die Glock hat '+WATCH_CALL[hr%12]+' geschlagen! Löscht das Feuer und das Licht, dass heut Nacht kein Unglück geschieht!',n);n.call=hr}
  // Brand in der Nacht: Alarm, Wasser holen, löschen – ohne Wasserstelle nur eindämmen
  const fb=r.fires&&r.fires.length?near(n,r.fires,1e9):null;
  if(fb){if(!r.alarmIds){const wake=r.n.filter(o=>o.hp>0&&!o.sk&&!o.tr&&o.k!=='child'&&(NT[o.k].job||o.k==='peasant')).sort((a,b)=>dist(a,fb)-dist(b,fb)).slice(0,4);r.alarmIds=wake.map(o=>o.id);say(r,'🔔 Feuer! Der Nachtwächter läutet Alarm'+(wake.length?' und weckt '+wake.length+' Bewohner':''),fb)}
