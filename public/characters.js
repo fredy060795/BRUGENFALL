@@ -31,6 +31,22 @@ export function weapon(type){const g=new T.Group();g.name=type;g.userData.second
  if(type==='torch'){rod(g,oak,[0,-.28,0],[0,.3,0],.022,.026);ell(g,dark,[.045,.06,.045],[0,.33,0]);const fm=[0xffc03a,0xff7a1a,0xfff0a0].map(c=>new T.MeshBasicMaterial({color:c}));g.userData.flames=[];
   for(let n=0;n<3;n++){const f=mesh(new T.ConeGeometry(.055-n*.012,.2+n*.05,6),fm[n],g,[(n-1)*.012,.47+n*.03,0]);f.castShadow=false;g.userData.flames.push(f)}
   const l=new T.PointLight(0xffaa55,20,13,2);l.position.y=.55;g.add(l);g.userData.light=l;return g}
+ // ===== Epochen-Waffen =====
+ const flint=new T.MeshStandardMaterial({color:0x6a6460,roughness:.6,flatShading:true}),bronze=new T.MeshStandardMaterial({color:0xb8863a,metalness:.7,roughness:.4}),walnut=new T.MeshStandardMaterial({color:0x5a3a22,roughness:.7}),brass=new T.MeshStandardMaterial({color:0xc8a040,metalness:.75,roughness:.3});
+ if(type==='club'){rod(g,oak,[0,-.12,0],[0,.62,0],.025,.045);const h=mesh(new T.DodecahedronGeometry(.085,0),flint,g,[0,.66,0]);h.scale.set(1,1.3,.8);for(const y of[.55,.6])rod(g,leather,[-.05,y,0],[.05,y+.03,0],.012);return g}   // Steinkeule: Holzschaft, geschäfteter Feuerstein
+ if(type==='stonespear'){rod(g,oak,[0,-.9,0],[0,1.4,0],.022,.018);const tp=mesh(new T.ConeGeometry(.045,.26,4),flint,g,[0,1.53,0]);tp.scale.z=.45;rod(g,leather,[-.03,1.38,0],[.03,1.42,0],.014);return g}   // Speer mit Feuersteinspitze
+ if(type==='sling'){const sm=new T.MeshStandardMaterial({color:0x8a6a44,roughness:1});rod(g,sm,[0,-.05,0],[.02,-.38,.02],.006);rod(g,sm,[0,-.05,0],[-.02,-.38,-.02],.006);const p=mesh(new T.SphereGeometry(.045,8,6),sm,g,[0,-.42,0]);p.scale.set(1.3,.6,1);mesh(new T.SphereGeometry(.035,6,5),flint,g,[0,-.42,0]);return g}   // Schleuder mit Stein
+ if(type==='gladius'){rod(g,walnut,[0,-.08,0],[0,.08,0],.022);ell(g,walnut,[.04,.035,.035],[0,-.11,0]);box(g,walnut,[.13,.04,.06],[0,.1,0]);   // Gladius: kurze breite Klinge mit Spitze
+  const sh=new T.Shape();sh.moveTo(-.04,.12);sh.lineTo(.04,.12);sh.lineTo(.036,.5);sh.lineTo(0,.6);sh.lineTo(-.036,.5);sh.closePath();mesh(new T.ExtrudeGeometry(sh,{depth:.01,bevelEnabled:true,bevelThickness:.005,bevelSize:.004,bevelSegments:1}),steel,g,[0,0,-.005]);return g}
+ if(type==='pilum'){rod(g,oak,[0,-.9,0],[0,.75,0],.024,.022);box(g,oak,[.06,.1,.06],[0,.78,0]);rod(g,dark,[0,.83,0],[0,1.45,0],.009);const tp=mesh(new T.ConeGeometry(.02,.1,4),steel,g,[0,1.5,0]);return g}   // Pilum: langer Eisenschaft
+ if(type==='pike'||type==='halberd'){const L=type==='pike'?4.6:2.4;rod(g,oak,[0,-1.2,0],[0,L-1.2,0],.022,.018);   // Pike (sehr lang) / Hellebarde (Beil, Haken, Spitze)
+  const sh=new T.Shape();sh.moveTo(-.03,0);sh.lineTo(.03,0);sh.lineTo(.008,.28);sh.lineTo(0,.32);sh.lineTo(-.008,.28);sh.closePath();mesh(new T.ExtrudeGeometry(sh,{depth:.01,bevelEnabled:false}),steel,g,[0,L-1.22,-.005]);
+  if(type==='halberd'){const ax=new T.Shape();ax.moveTo(0,0);ax.lineTo(.2,-.04);ax.quadraticCurveTo(.25,.12,.2,.28);ax.lineTo(0,.22);ax.closePath();mesh(new T.ExtrudeGeometry(ax,{depth:.012,bevelEnabled:false}),steel,g,[0,L-1.5,-.006]);box(g,steel,[.16,.03,.012],[-.08,L-1.36,0])}return g}
+ if(type==='saber'){rod(g,leather,[0,-.09,0],[0,.08,0],.021);const gd=mesh(new T.TorusGeometry(.07,.008,5,12,Math.PI),brass,g,[.04,0,0]);gd.rotation.z=-Math.PI/2;   // Säbel: gebogene Klinge, Bügelgefäß
+  const pts=[];for(let i=0;i<=10;i++){const t=i/10;pts.push(V(.03*Math.sin(t*1.4)+.06*t*t,.1+.82*t,0))}mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),12,.012,4,false),steel,g).scale.set(1,1,.35);return g}
+ if(type==='arquebus'||type==='musket'||type==='rifle'){const L={arquebus:1.2,musket:1.45,rifle:1.2}[type];   // Feuerwaffen: Kolben, Schaft, Lauf (Muskete mit Bajonett)
+  box(g,walnut,[.05,.38,.09],[0,-.32,-.02]);rod(g,walnut,[0,-.14,0],[0,L-.5,0],.028,.022);rod(g,dark,[0,-.1,.02],[0,L-.35,.02],.011);box(g,dark,[.03,.08,.04],[0,-.05,.035]);
+  if(type==='arquebus')rod(g,dark,[0,.0,-.04],[0,-.14,-.07],.005);if(type!=='arquebus')box(g,brass,[.04,.03,.06],[0,L-.55,.02]);if(type==='musket'){rod(g,steel,[0,L-.35,.025],[0,L+.05,.025],.006);mesh(new T.ConeGeometry(.012,.06,4),steel,g,[0,L+.08,.025])}return g}
  if(type==='sword'){
  rod(g,leather,[0,-.09,0],[0,.09,0],.023);ell(g,steel,[.035,.04,.027],[0,-.13,0]);box(g,steel,[.23,.035,.05],[0,.115,0]);
  const shape=new T.Shape();shape.moveTo(-.034,.14);shape.lineTo(.034,.14);shape.lineTo(.026,.82);shape.lineTo(0,.99);shape.lineTo(-.026,.82);shape.closePath();const blade=mesh(new T.ExtrudeGeometry(shape,{depth:.012,bevelEnabled:true,bevelThickness:.007,bevelSize:.006,bevelSegments:1,steps:1}),steel,g);blade.position.z=-.006;
@@ -258,6 +274,13 @@ function heraldTex(col,coa=0){const key=col+':'+coa;if(HERALD.has(key))return HE
   x.fillStyle='#fff2b0';for(let y=12;y<H;y+=26){x.beginPath();x.arc(W/2,y,2.6,0,7);x.fill()}for(let X=12;X<W;X+=26){x.beginPath();x.arc(X,H*.45,2.6,0,7);x.fill()}
   eagle(W/2,H*.45,1,'#4a4a48',true)}
  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;const m=new T.MeshStandardMaterial({map:t,roughness:.55,metalness:.15});HERALD.set(key,m);return m}
+// Scutum-Bemalung: rot mit Goldrand, Flügeln und Blitzbündeln (Legionsschild)
+let SCM=null;function scutumMat(){if(SCM)return SCM;const c=document.createElement('canvas');c.width=256;c.height=512;const x=c.getContext('2d'),G='#e2b44c';
+ x.fillStyle='#9a1e1a';x.fillRect(0,0,256,512);x.strokeStyle=G;x.lineWidth=10;x.strokeRect(8,8,240,496);x.lineWidth=5;x.lineCap='round';
+ for(const dir of[-1,1]){for(const dx of[-14,0,14]){x.beginPath();x.moveTo(128+dx,256+dir*40);for(let k=1;k<=6;k++)x.lineTo(128+dx+(k%2?10:-10),256+dir*(40+k*30));x.lineTo(128+dx,256+dir*235);x.stroke()}   // Blitzbündel
+  for(let f=0;f<6;f++){x.beginPath();x.moveTo(110,256+dir*30);x.quadraticCurveTo(40-f*4,256+dir*(70+f*22),70+f*6,256+dir*(150+f*14));x.stroke()}}                              // Flügel
+ x.fillStyle=G;x.fillRect(96,246,64,20);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;
+ return SCM=new T.MeshStandardMaterial({map:t,roughness:.7,side:T.DoubleSide})}
 export function shieldMesh(kind,col=0x8a2a22,coa=0){const g=new T.Group();g.name='Shield:'+kind;
  if(kind==='heater'){const sh=new T.Shape();sh.moveTo(-.31,.42);sh.quadraticCurveTo(0,.34,.31,.42);sh.lineTo(.3,.06);sh.quadraticCurveTo(.27,-.28,0,-.46);sh.quadraticCurveTo(-.27,-.28,-.3,.06);sh.closePath();
   const back=new T.ExtrudeGeometry(sh,{depth:.035,bevelEnabled:false});back.translate(0,0,-.035);mesh(back,shm(0x5a4028),g);
@@ -266,6 +289,13 @@ export function shieldMesh(kind,col=0x8a2a22,coa=0){const g=new T.Group();g.name
   for(let i=0;i<pts.length;i+=3){const p=pts[i];mesh(new T.SphereGeometry(.009,6,4),goldM,g,[p.x*.94,p.y*.95,.012])}
   g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
 const wood=shm(0x7a5a3a),iron=shm(0x55595c,{metalness:.6,roughness:.45}),paint=shm(col),light=shm(0xe8dcc0);
+ if(kind==='scutum'||kind==='oval'||kind==='hide'){   // Scutum (gewölbtes Rechteck, rot mit Buckel), Ovalschild (Hallstatt), Fell-/Flechtschild (Steinzeit)
+  const W=kind==='scutum'?.34:kind==='oval'?.28:.26,Hh=kind==='scutum'?.56:kind==='oval'?.5:.4,segs=10,geo=new T.CylinderGeometry(.62,.62,Hh*2,segs*3,1,true,-W/.62,2*W/.62);if(kind!=='scutum'){const P=geo.attributes.position;for(let i=0;i<P.count;i++){const y=P.getY(i)/Hh,x=Math.sin(Math.atan2(P.getX(i),P.getZ(i)))*.62/W;const k=Math.sqrt(Math.max(0,1-x*x));P.setY(i,y*Hh*Math.max(.25,k))}}
+  const m=mesh(geo,kind==='hide'?shm(0x8a6a48):paint,g,[0,0,-.6]);m.material=m.material.clone();m.material.side=T.DoubleSide;
+  const boss=mesh(new T.SphereGeometry(.07,12,8,0,Math.PI*2,0,Math.PI/2),kind==='scutum'?shm(0xc8a040,{metalness:.7,roughness:.35}):iron,g,[0,0,.02]);boss.rotation.x=Math.PI/2;
+  if(kind==='scutum')m.material=scutumMat();
+  if(kind==='hide')for(let i=-2;i<=2;i++)mesh(new T.BoxGeometry(.012,.7,.012),shm(0x5a4028),g,[i*.1,0,.015]);
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
  if(kind==='round'){const d=mesh(new T.CylinderGeometry(.34,.34,.035,28),wood,g);d.rotation.x=Math.PI/2;for(let i=0;i<6;i++){const s=mesh(new T.BoxGeometry(.025,.66,.01),i%2?paint:wood,g,[-.28+i*.112,0,.02]);s.scale.y=Math.sqrt(Math.max(.05,1-((-.28+i*.112)/.34)**2))}
   const rim=mesh(new T.TorusGeometry(.34,.016,6,32),iron,g,[0,0,.012]);const boss=mesh(new T.SphereGeometry(.075,14,8,0,Math.PI*2,0,Math.PI/2),iron,g,[0,0,.02]);boss.rotation.x=Math.PI/2}
  else{const sh=new T.Shape();if(kind==='heater'){sh.moveTo(-.27,.3);sh.lineTo(.27,.3);sh.lineTo(.27,.05);sh.quadraticCurveTo(.25,-.22,0,-.38);sh.quadraticCurveTo(-.25,-.22,-.27,.05);sh.closePath()}

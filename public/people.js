@@ -79,6 +79,8 @@ function style(o,r){const R=o.role,P=a=>a[Math.floor(r()*a.length)],ch=p=>r()<p,
   if(rk==='poacher'){o.head='hood';o.liri=true;o.hoodCol=P(PW.green)}
   o.title={leader:'Bandenführer',brute:'Schläger',poacher:'Wilderer',cutthroat:'Halsabschneider'}[rk];break}}
  if(o.patches&&!['tunic','dress','jerkin','vest','smock'].includes(o.outfit))o.patches=0}
+import {eraClothes,eraShotOf} from './eras.js';
+let ERA='hochmittelalter';export const setPeopleEra=e=>{ERA=e||'hochmittelalter'};
 export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook(id,prof,fc);const r=rng(id*7919+13+role.length*101);
  const jr=JR[role],female=role==='farmer'||role==='peasant'||role==='child'?r()<.5:jr&&jr.female?true:(jr&&['cook','keeper','shepherd','fisher'].includes(role)?r()<.35:role==='player'?(id>0&&r()<.4):false);
  const o={seed:id*31+7,role,female,skin:pick(r,SKIN),hair:pick(r,HAIR),eye:pick(r,EYE),nose:.7+r()*.6,chin:r(),
@@ -99,10 +101,11 @@ export function look(id,role,prof,fc){if(role==='player'&&prof)return playerLook
  if(role==='player'){o.outfit='jerkin';o.cloth=0x8f7651;o.over=0x5a3d22;if(female){o.outfit='dress';o.head='none'}}
  if(jr){Object.assign(o,{outfit:jr.outfit||(female?'dress':'tunic'),head:jr.head,tool:jr.tool,apron:!!jr.apron,cloak:jr.cloak||0,mask:!!jr.mask});if(jr.bag)o.bag=true;if(jr.cloth)o.cloth=jr.cloth;if(jr.beard&&!female)o.beard=jr.beard}
  if(female&&role!=='farmer'&&o.outfit==='tunic')o.outfit='dress';
- style(o,rng(id*131+role.length*17+5));const stT=o.title;if(female&&o.outfit==='tunic'&&role!=='farmer'&&role!=='peasant'&&role!=='bandit')o.outfit='dress';
+ style(o,rng(id*131+role.length*17+5));const stT=o.title;eraClothes(o,ERA,rng(id*577+role.length*13+3));if(female&&o.outfit==='tunic'&&role!=='farmer'&&role!=='peasant'&&role!=='bandit')o.outfit='dress';
  const lt=h=>new T.Color(h).multiplyScalar(1.5).getHex();o.cloth=lt(o.cloth);o.over=lt(o.over);if(o.cloak)o.cloak=lt(o.cloak);for(const k of['hoodCol','scap','apronCol','furCol','maskCol','vestCol','wrapCol','veil','capCol','hatCol','beltCol'])if(o[k]!=null)o[k]=lt(o[k]);
  o.name=(female?pick(r,FEMALE):pick(r,MALE));o.title=jr?(female&&!/in$/.test(jr.title)?(jr.title==='Hirte'?'Hirtin':jr.title+'in'):jr.title):(female&&(role==='farmer'||role==='peasant')?(role==='farmer'?'Bäuerin':'Dorfbewohnerin'):TITLE[role]);if(o.role==='sword'&&o.rank==='veteran')o.title='Ritter';if(stT)o.title=stT;
- const F=FACTIONS[fc];if(F){o.fac=F[1];if(['sword','spear','crossbow','knight'].includes(role))o.over=F[1];if(role==='knight')o.cloak=F[1];if(role==='archer'){o.cloth=F[1];o.cloak=new T.Color(F[1]).multiplyScalar(.75).getHex();if(o.hoodCol)o.hoodCol=F[1]}if(role==='player'){o.cloth=F[1];o.over=F[1];if(o.cloak)o.cloak=new T.Color(F[1]).multiplyScalar(.8).getHex()}}
+ if(o.eraTitle)o.title=o.eraTitle;
+ const F=FACTIONS[fc];if(F){o.fac=F[1];if(!o.uni&&['sword','spear','crossbow','knight'].includes(role))o.over=F[1];if(!o.uni&&role==='knight')o.cloak=F[1];if(!o.uni&&role==='archer'){o.cloth=F[1];o.cloak=new T.Color(F[1]).multiplyScalar(.75).getHex();if(o.hoodCol)o.hoodCol=F[1]}if(role==='player'){o.cloth=F[1];o.over=F[1];if(o.cloak)o.cloak=new T.Color(F[1]).multiplyScalar(.8).getHex()}}
  return o}
 const ssm=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
 const G=(x,y,cx,cy,sx,sy)=>Math.exp(-(((x-cx)/sx)**2+((y-cy)/sy)**2));
@@ -304,6 +307,50 @@ function kettleHat(H,A){const DA=1.12,DB=1.14,DC=1.22,yc=.18,o=.035,bw=.72,drop=
   for(const pe of[p0,p0+Math.PI]){mesh(cg('kbs'+pe,()=>paramGeo((u,v)=>{const ph=pe+(u-.5)*w/(DA+.03+v*bw);return brim(ph,v*.96,.03)},2,6)),A.st2,H);
    for(const t of[.45,.85])rv.push(brim(pe,t,.055))}}
  rivets(H,A.st,rv,.05)}
+// ---------- Galea (röm. Legionärshelm, Typ Weisenau): Kalotte mit Stirnschiene, breiter Nackenschirm, Wangenklappen, Helmbusch ----------
+function galeaHelm(H,A,o={}){const DA=1.1,DB=1.12,DC=1.18,yc=.16,yb=yc-.02,th0=Math.PI/2+.12,BR=A.brass;
+ const tm=ph=>1.12+(th0-1.12)*(1-Math.cos(ph))/2;                                                                                  // vorne höher ausgeschnitten (Gesicht frei)
+ mesh(cg('gd',()=>paramGeo((u,v)=>{const ph=u*2*Math.PI;return ellP(DA,DB,DC,yc,v*tm(ph),ph)},44,16)),A.st,H);
+ mesh(cg('gbrow',()=>paramGeo((u,v)=>{const ph=-1.35+2.7*u;return ellP(DA,DB,DC,yc,tm(ph)-.2+v*.16,ph,.05)},30,2)),BR,H);            // Stirnschiene
+ for(const ph of[-.75,.75])mesh(cg('gbr'+ph,()=>paramGeo((u,v)=>ellP(DA,DB,DC,yc,.35+u*.6,ph+(v-.5)*.1,.03),12,2)),BR,H);           // Augenbrauen-Ornament
+ mesh(cg('gneck',()=>paramGeo((u,v)=>{const ph=Math.PI-1.35+2.7*u,e=Math.cos((u-.5)*Math.PI)**.4,r=1+v*.62*e;return[DA*r*Math.sin(ph),yb-.05-v*.22*e,DC*r*Math.cos(ph)]},36,5)),A.st,H);   // Nackenschirm
+ mesh(cg('gneckr',()=>paramGeo((u,v)=>{const ph=Math.PI-1.3+2.6*u,e=Math.cos((u-.5)*Math.PI)**.4,r=1+.62*e+v*.03;return[DA*r*Math.sin(ph),yb-.05-.22*e-.02,DC*r*Math.cos(ph)]},36,1)),BR,H);
+ for(const sd of[-1,1]){                                                                                                            // Wangenklappen
+  mesh(cg('gch'+sd,()=>paramGeo((u,v)=>{const z=-.3+u*1.1,w=1-((u-.5)/.62)**2,y=yb+.02-v*(.8+.3*w),x=sd*(1.15-.3*v*v+.05*w);return[x,y,z*(1-.2*v)]},10,8)),A.st,H);
+  mesh(cg('gchr'+sd,()=>new T.TorusGeometry(.12,.03,5,12)),BR,H,[sd*1.18,yb-.5,.2]).rotation.y=Math.PI/2}
+ mesh(cg('gknob',()=>new T.CylinderGeometry(.09,.13,.22,10)),BR,H,[0,yc+DB+.07,0]);                                                   // Buschhalter
+ const crest=hatMat('feather',0xa81c18);
+ mesh(cg('gcrest',()=>{const pts=[];for(let k=0;k<=16;k++){const a=-1.25+2.5*k/16,r=DB+.42-.12*a*a;pts.push(new T.Vector3(0,yc+r*Math.cos(a),r*Math.sin(a)))}return new T.TubeGeometry(new T.CatmullRomCurve3(pts),24,.26,8,false)}),crest,H,[0,0,0],[.5,1,1]).rotation.y=o.crestX?Math.PI/2:0;                // Helmbusch aus rotem Rosshaar
+ rivets(H,BR,[ellP(DA,DB,DC,yc,1.0,0,.09),ellP(DA,DB,DC,yc,1.02,.6,.09),ellP(DA,DB,DC,yc,1.02,-.6,.09),[1.2,yb-.2,.3],[-1.2,yb-.2,.3]],.055)}
+// ---------- Lorica segmentata: Bauchreifen rundum, Brust-/Schulterschienen, Messingschnallen, Cingulum mit Schurz ----------
+function loricaSeg(g,A){const op=(a,y,e)=>{const p=outerPt(g,a,y);if(!p)return[0,y,0];const r=Math.hypot(p[0],p[2]),k=(r+e)/r;return[p[0]*k,y,p[2]*k]};
+ const q0=outerPt(g,0,1.0),q1=outerPt(g,0,1.25),ks=q0&&q1?':'+Math.round(q0[2]*400)+'/'+Math.round(q1[2]*400):'',cg2=(k,f)=>cg(k+ks,f);   // Körperform im Cache-Schlüssel
+ for(let k=0;k<6;k++){const y1=1.27-k*.062,y0=y1-.07;                                                                                // Gürtelreifen, untere überlappen die oberen
+  mesh(cg2('lsb'+k,()=>paramGeo((u,v)=>op(-Math.PI+2*Math.PI*u,y1-(y1-y0)*v,.016+.008*v+.004*k),56,3)),A.st,g);
+  tube(g,A.st2,Array.from({length:41},(_,i)=>op(-Math.PI+2*Math.PI*i/40,y0,.025+.004*k)),.004,true);
+  for(const s of[-1,1])rivets(g,A.brass,[op(s*.09,y1-.035,.03+.004*k)],.009)}
+ for(const s of[-1,1]){mesh(cg2('lsc'+s,()=>paramGeo((u,v)=>op(s*(.05+.9*u),1.465-.2*v,.02),24,3)),A.st,g);                             // Brustplatte
+  mesh(cg2('lsk'+s,()=>paramGeo((u,v)=>op(Math.PI-s*(.05+.9*u),1.465-.2*v,.02),24,3)),A.st,g);
+  rivets(g,A.brass,[op(s*.3,1.4,.03),op(s*.6,1.4,.03),op(s*.3,1.31,.03)],.01);tube(g,A.st2,Array.from({length:13},(_,i)=>op(s*(.05+.9*i/12),1.36,.027)),.004)}
+ for(let k=0;k<4;k++)for(const s of[-1,1]){const x=.1+k*.058,yc=1.37-k*.03,R=.15+k*.012;                                               // Schulterschienen
+  mesh(cg2('lss'+k+s,()=>paramGeo((u,v)=>{const f=-1.45+2.9*u;return[s*(x+(v-.5)*.07),yc+R*Math.cos(f),R*.85*Math.sin(f)]},20,2)),k%2?A.st2:A.st,g)}
+ const b0=op(0,.95,.03);mesh(cg2('lsbelt',()=>paramGeo((u,v)=>op(-Math.PI+2*Math.PI*u,.965-.04*v,.03),48,1)),A.lea,g);                    // Cingulum
+ for(let i=0;i<5;i++){const a=-.32+.16*i,p=op(a,.95,.034);rivets(g,A.brass,[op(a,.945,.04)],.016,[1,1,.4]);                            // Schurz: Lederriemen mit Messingnieten
+  mesh(cg2('lsap',()=>new T.BoxGeometry(.028,.26,.008)),A.lea,g,[p[0],.8,p[2]+.01]);
+  rivets(g,A.brass,[0,1,2,3,4].map(j=>[p[0],.9-j*.05,p[2]+.016]),.008,[1,1,.5])}}
+// ---------- Stahlhelm (Modell 1916): Glocke, ausgestellter Nackenschirm, kurzer Stirnschirm, Lüftungshörner; feldgrau lackiert ----------
+let SHM=null;function stahlHelm(H){const m=SHM||(SHM=new T.MeshStandardMaterial({color:0x5c6450,roughness:.55,metalness:.35,side:T.DoubleSide})),yc=.28,DA=1.14,DB=1.12,DC=1.22;
+ mesh(cg('shd',()=>paramGeo((u,v)=>{const ph=u*2*Math.PI;if(v<.62)return ellP(DA,DB,DC,yc,v/.62*Math.PI/2,ph);
+  const t=(v-.62)/.38,cf=Math.max(0,Math.cos(ph))**1.5,drop=(.14+.62*(1-cf))*t,fl=(.03+.22*t*t)*(1-cf)+.2*t*cf;return[(DA+fl)*Math.sin(ph),yc-drop,(DC+fl)*Math.cos(ph)]},56,22)),m,H);
+ for(const sd of[-1,1])mesh(cg('shlug',()=>new T.CylinderGeometry(.09,.09,.14,10)),m,H,[sd*1.11,.62,-.05]).rotation.z=Math.PI/2}
+// ---------- Pickelhaube mit Stoffbezug (feldgrau, rote Regimentsnummer) ----------
+let PKM=null;function pickelHaube(H){if(!PKM){const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');x.fillStyle='#8f8a6c';x.fillRect(0,0,128,64);x.fillStyle='#c8241c';x.font='bold 44px sans-serif';x.textAlign='center';x.fillText('121',64,48);
+  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;PKM={c:new T.MeshStandardMaterial({color:0x8f8a6c,roughness:1,side:T.DoubleSide}),n:new T.MeshStandardMaterial({map:t,roughness:1,transparent:true}),b:new T.MeshStandardMaterial({color:0xb8943c,metalness:.7,roughness:.35})}}
+ const yc=.2;mesh(cg('pkd',()=>paramGeo((u,v)=>ellP(1.12,1.3,1.2,yc,v*(Math.PI/2+.08),u*2*Math.PI),44,16)),PKM.c,H);
+ mesh(cg('pkv',()=>paramGeo((u,v)=>{const a=-1.25+2.5*u,r=1.18+v*.42;return[r*Math.sin(a)*.95,yc-.08-v*.14,r*Math.cos(a)]},20,2)),PKM.c,H);         // Vorderschirm
+ mesh(cg('pkn',()=>paramGeo((u,v)=>{const a=Math.PI-1.3+2.6*u,r=1.18+v*.36;return[r*Math.sin(a)*.95,yc-.1-v*.3,r*Math.cos(a)]},20,3)),PKM.c,H);        // Nackenschirm
+ mesh(cg('pkspk',()=>new T.ConeGeometry(.2,.72,14)),PKM.c,H,[0,yc+1.62,0]);mesh(cg('pkbase',()=>new T.CylinderGeometry(.24,.3,.12,16)),PKM.b,H,[0,yc+1.28,0]);
+ const n=mesh(cg('pknum',()=>new T.PlaneGeometry(.95,.45)),PKM.n,H,[0,yc+.62,1.12]);n.rotation.x=-.5}
 // ---------- Nasalhelm: spitze Glocke mit Grat, Randreif, Kreuzbeschlag und Nasal ----------
 function nasalHelm(H,A){const y0=.06,Hh=1.6,R0=1.13,sx=.94,sz=1.06,rr=y=>R0*(1-Math.min(1,Math.max(0,(y-y0)/Hh))**2.2);
  const P=(ph,y,o=0)=>{const h=(y-y0)/Hh,cr=.05*Math.exp(-((Math.sin(ph)/.07)**2))*Math.max(0,h*(1-h))*4,r=rr(y)+cr+o;return[r*sx*Math.sin(ph),y,r*sz*Math.cos(ph)]};
@@ -562,7 +609,7 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(new T.BoxGeometry(.38,o.female?.05:.085,.07),hairM,H,[s*.3,.43,.93]).rotation.z=-s*.16;
   mesh(ball,M.skin,H,[s*.88,0,-.02],[.1,.26,.17]).rotation.y=s*.3}
  mesh(new T.BoxGeometry(.28,.032,.045),new T.MeshStandardMaterial({color:0x4a1f1f}),H,[0,-.535,.93]);
- const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec'||hat==='plague',hidden=['helmet','hood','scarf','sallet','coifL','wimple','skullcap','gugel','gugelL'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
+ const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec'||hat==='plague',hidden=['helmet','galea','stahlhelm','pickel','shako','tricorne','hood','scarf','sallet','coifL','wimple','skullcap','gugel','gugelL'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
  if(!hidden&&o.hairStyle!=='bald'){const L=o.hairStyle==='long'||o.hairStyle==='braid';
   mesh(shell(geo,o.hairStyle==='tonsure'?(x,y,z)=>(y>.1&&y<.62&&z<.5)||(z<.1&&y>-.15&&y<.62):(x,y,z)=>y>.5||(z<.12&&y>(L?-.95:-.15)),.07,.05),hairM,H);
   if(L)mesh(new T.CylinderGeometry(.95,.8,2.4,20,1,true,Math.PI*.55,Math.PI*.9),new T.MeshStandardMaterial({color:o.hair,roughness:.85,side:T.DoubleSide}),H,[0,-1.25,-.12]);
@@ -575,6 +622,9 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
  if(hat==='cap'){mesh(shell(geo,(x,y,z)=>y>.15||(z<-.1&&y>-.35),.12,.02),hatMat('cloth',o.hatCol||0xd8cfb8),H);ring(H,hatMat('cloth',0xc8bea8),1.0,.2,.08,1.08);for(const sd of[-1,1]){const t=mesh(cg('capstr',()=>new T.CylinderGeometry(.04,.04,1.2,5)),hatMat('cloth',0xd8cfb8),H,[sd*.85,-.5,.1]);t.rotation.z=sd*.25}}
  if(o.mask)mesh(shell(geo,(x,y,z)=>y<-.2&&z>-.2,.12,.03),garMat('linen',o.maskCol||0x2a2420),H);
  if(hat==='helmet'){if(!o.noCoif)buildCoif(g,H,geo,o,AR.mail);kettleHat(H,AR)}                 // Eisenhut über Kettenhaube
+ if(hat==='stahlhelm')stahlHelm(H);
+ if(hat==='pickel')pickelHaube(H);
+ if(hat==='galea'){if(o.mailHood)buildCoif(g,H,geo,o,AR.mail);galeaHelm(H,AR,o)}   // römische Galea
  if(hat==='nasal'){if(o.mailHood)buildCoif(g,H,geo,o,AR.mail);nasalHelm(H,AR)}    // Nasalhelm (optional mit Kettenhaube)
  if(hat==='bascinet'||hat==='visored'){bascinet(H,AR,hat==='visored');mesh(capeGeo(o,{top1:1.548,top0:1.525,topR:.09,teeth:0,hem0:1.33}),AR.mail,g)}   // Beckenhaube + Helmbrünne
  if(hat==='sallet')salletHelm(H,AR);
@@ -597,6 +647,18 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   const bm=hatMat('cloth',o.hatCol||0x2a2a4a);mesh(cg('beret',()=>lat([[0,1.55],[.7,1.58],[1.25,1.42],[1.45,1.22],[1.32,1.05],[1.08,.92],[1.02,.85],[1.0,.95],[1.2,1.08],[1.05,1.32],[.6,1.45],[0,1.48]],30)),bm,H,[0,0,0],[1,1,1]).rotation.z=-.12;
   mesh(cg('brooch',()=>new T.SphereGeometry(.12,10,8)),hatMat('gold'),H,[.95,1.15,.55]);
   const fw=hatMat('feather',0xf0ece2);for(let f=0;f<3;f++)mesh(cg('plf'+f,()=>{const pts=[];for(let k=0;k<=14;k++){const t=k/14;pts.push(new T.Vector3(.95+.4*t+f*.06,1.2+1.0*t-.6*t*t,.5-1.6*t))}return new T.TubeGeometry(new T.CatmullRomCurve3(pts),18,.11-.02*f,6,false)}),f?hatMat('feather',0xd8c090):fw,H)}
+ if(hat==='shako'){      // Tschako (napoleonisch): steifer Filzzylinder, Lederschirm, Messingschild, Kokarde und Pompon in Fraktionsfarbe
+  const fm=hatMat('felt',o.hatCol||0x141414),gm=hatMat('gold');mesh(cg('shako',()=>lat([[0,2.2],[1.12,2.2],[1.14,2.14],[1.04,.98],[1.0,.88],[0,.88]],28)),fm,H);
+  ring(H,hatMat('band',0x0e0e0e),1.04,.92,.08,1.04);mesh(cg('shvis',()=>paramGeo((u,v)=>{const a=-1.2+2.4*u,r=1.02+v*.42;return[r*Math.sin(a),.9-v*.12,r*1.05*Math.cos(a)]},20,2)),hatMat('band',0x0e0e0e),H);
+  mesh(cg('shplate',()=>new T.CylinderGeometry(.34,.3,.05,6)),gm,H,[0,1.42,1.1]).rotation.x=Math.PI/2-.06;
+  mesh(cg('shcock',()=>new T.CylinderGeometry(.16,.16,.05,14)),hatMat('cloth',o.fac||0xf0f0f0),H,[0,2.0,1.14]).rotation.x=Math.PI/2;
+  mesh(cg('shpom',()=>new T.SphereGeometry(.2,10,8)),hatMat('cloth',o.fac||0xd02020),H,[0,2.36,1.0],[1,1.15,1])}
+ if(hat==='tricorne'){   // Dreispitz (Barock): niedrige Kalotte, an drei Seiten hochgeschlagene Krempe mit Borte, Kokarde
+  const fm=hatMat('felt',o.hatCol||0x141414);mesh(cg('tricr',()=>lat([[0,1.6],[.6,1.6],[.95,1.4],[1.04,1.05],[1.02,.86],[0,.86]],24)),fm,H);
+  const bri=(u,v,o2=0)=>{const a=u*2*Math.PI,k=Math.abs(Math.cos(1.5*a)),r=1.0+v*(.62+.5*k),up=v*v*(.78-.28*k);return[r*Math.sin(a),.84+up+o2,r*1.05*Math.cos(a)]};
+  mesh(cg('tribr',()=>paramGeo((u,v)=>bri(u,v),72,5)),fm,H);
+  mesh(cg('tribd',()=>paramGeo((u,v)=>bri(u,.97+v*.03,.01),72,1)),hatMat('gold'),H);
+  mesh(cg('tricock',()=>new T.CylinderGeometry(.17,.17,.05,14)),hatMat('cloth',o.fac||0xe8e4d8),H,[.95,1.35,.95]).rotation.set(Math.PI/2,0,-.7)}
  if(hat==='mitre'){      // Mitra: zwei spitze Schilde aus weißem Seidendamast mit Goldborten, Kreuz, herabhängende Bänder
   const wm=hatMat('cloth',0xf2eee2),gm=hatMat('gold');mesh(cg('mitb',()=>lat([[0,.98],[1.02,.98],[1.04,.8],[0,.8]],28)),gm,H);
   for(const zs of[1,-1]){const sh=new T.Shape();sh.moveTo(-.95,0);sh.lineTo(.95,0);sh.quadraticCurveTo(.9,1.2,0,2.1);sh.quadraticCurveTo(-.9,1.2,-.95,0);const q=new T.ExtrudeGeometry(sh,{depth:.06,bevelEnabled:false});q.translate(0,.95,zs*.42-(zs>0?0:.06));const m=mesh(q,wm,H);m.rotation.x=-zs*.12;
@@ -617,7 +679,8 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
  if(o.tabard&&o.outfit==='gambeson'){const ex=(o.breast?.03:0)+(o.mailShirt?.012:0),tc=o.fac||o.over||0x2a4a8a,S=tabardS(ex,false),S2=tabardS(ex,true);   // Wappenrock: ärmellos, seitlich offen, gezaddelter Saum in Kontrastfarbe
   mesh(garment(KEY('tb',[ex]),S),garMat('linen',tc),g);mesh(garment(KEY('tb2',[ex]),S2),garMat('linen',o.tabTrim||0xd8b040),g);addLayer(g,S)}
  if(['tunic','jerkin','vest','smock'].includes(o.outfit)){base=tunicS({...dz,hem:o.outfit==='smock'?.6:o.hem||.52});mesh(garment(KEY('tu',[bel,dirt,o.outfit==='smock',o.hem]),base),garMat(o.outfit==='smock'?'leather':'linen',o.cloth),g);addLayer(g,base)}
- if(o.outfit==='jerkin'){const S=jerkS(dz);mesh(garment(KEY('je',[bel,dirt]),S),garMat('leather',o.over),g);addLayer(g,S);const pts=[];for(let y=.78;y<1.46;y+=.045){const p=gPt(S,0,y);pts.push([0,y,p[2]+.004])}rivets(g,AR.brass,pts,.007,[1,1,.6])}
+ if(o.outfit==='jerkin'){const S=jerkS(dz);mesh(garment(KEY('je',[bel,dirt]),S),garMat(o.uni?'linen':'leather',o.over),g);addLayer(g,S);const pts=[];for(let y=.78;y<1.46;y+=.045){const p=gPt(S,0,y);pts.push([0,y,p[2]+.004])}rivets(g,AR.brass,pts,.007,[1,1,.6])}
+ if(o.lorica)loricaSeg(g,AR);
  if(o.outfit==='vest'){const S=vestS(dz);mesh(garment(KEY('ve',[bel,dirt]),S),garMat('leather',o.vestCol||o.over),g);addLayer(g,S);
   for(const y of[1.0,1.12,1.24]){const l=gPt(S,.3,y),r=gPt(S,-.3,y);tube(g,new T.MeshStandardMaterial({color:0x2a2018,roughness:1}),[l,[0,y,(l[2]+r[2])/2+.006],r],.003)}}
  if(o.outfit==='dress'){base=dressS(dz);mesh(garment(KEY('dr',[bel,dirt]),base),garMat('linen',o.cloth),g);addLayer(g,base);
@@ -658,7 +721,7 @@ export function gear(g,o,M){const R=o.role,AR=o.rust?rustMats(M):armMats(M),st=M
  boots(R==='archer'||R==='hunter'&&o.shins!=='boots'||R==='sword');
  if(o.bag&&o.outfit!=='gambeson')bag();
  if(R==='sword'&&o.rank!=='militia'){const sh=mesh(new T.CylinderGeometry(.18,.24,.1,18,1,true),cl(o.fac||(o.rank==='guard'?0x7a2a2a:0x2f4a6a)),g,[-.37,1.03,.07],[1.05,1,.18]);sh.rotation.z=Math.PI/2;mesh(new T.TorusGeometry(.19,.018,5,18),st,g,[-.42,1.03,.07]).rotation.y=Math.PI/2}
- if(R==='archer'){quiver();cy(g.left.elbow,lea,.068,.062,.13,[0,-.2,0]);dagger(-1.5);if(!o.mailHood)shoulders(lea,.1);if(o.rank==='marksman')hipBag(1.2,0x4d5a3a)}
+ if(R==='archer'){if(eraShotOf(ERA,'archer')==='arrow')quiver();else hipBag(-1.25,0x2a2018);cy(g.left.elbow,lea,.068,.062,.13,[0,-.2,0]);dagger(-1.5);if(!o.mailHood)shoulders(lea,.1);if(o.rank==='marksman')hipBag(1.2,0x4d5a3a)}
  if(R==='bandit'){dagger(1.5,-.08);if(o.rank!=='brute')dagger(-1.45);hipBag(-1.2,0x3a2e24);if(o.rank==='poacher'){mesh(BTN_GEO,cl(0x6a5a46),g,at(Math.PI+.2,1.1,.13),[.15,.17,.11]);quiver()}
   if(o.rank==='leader')hipBag(1.15,0x5a2a24)}
  if(R==='farmer'){const s2=grp(-1.35,.9,.02,.1);cy(s2,wd,.013,.013,.12,[0,.06,0]);const bl=mesh(new T.TorusGeometry(.085,.009,6,16,Math.PI*1.25),st,s2,[.05,-.05,0]);bl.rotation.z=1.6;
