@@ -81,9 +81,9 @@ export function createSteamer({seed=1}={}){const g=new T.Group();g.isShip=true;c
 // ---------- Weitere Schiffe je Epoche (Bug bei +z, Wasserlinie bei y≈0, Höhe unter 5,8 m) ----------
 const MS=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.85,...o});
 // Bootsrumpf als Lathe-ähnliche Schale: Spanten entlang z, halbe Breite b(t), Höhe top(t)
-function hullShell(g,L,B,top,bot,mat,pw=.42){mesh(g,grid((u,v)=>{const t=v,z=-L/2+t*L,th=-Math.PI/2+u*Math.PI,b=B*Math.pow(Math.sin(Math.PI*Math.min(.999,Math.max(.001,t))),pw),tp=top(t),ct=Math.cos(th);
+function hullShell(g,L,B,top,bot,mat,pw=.42,stems=true){mesh(g,grid((u,v)=>{const t=v,z=-L/2+t*L,th=-Math.PI/2+u*Math.PI,b=B*Math.pow(Math.sin(Math.PI*Math.min(.999,Math.max(.001,t))),pw),tp=top(t),ct=Math.cos(th);
  return[b*Math.sin(th)*(1-.45*Math.pow(ct,1.6)),tp-(tp-bot)*Math.pow(ct,.7),z,.75+.25*((u*10)%1<.85?1:.6)]},18,36),mat)
- for(const t of[.012,.988]){const tp=top(t),h=tp-bot;const sm=mat.clone();sm.vertexColors=false;sm.color.multiplyScalar(.8);mesh(g,new T.BoxGeometry(.14,h,.5),sm,[0,bot+h/2,-L/2+t*L+(t<.5?.2:-.2)])}}   // Steven schließen Bug und Heck
+ if(stems)for(const t of[.012,.988]){const tp=top(t),h=tp-bot;const sm=mat.clone();sm.vertexColors=false;sm.color.multiplyScalar(.8);mesh(g,new T.BoxGeometry(.14,h,.5),sm,[0,bot+h/2,-L/2+t*L+(t<.5?.2:-.2)])}}   // Steven schließen Bug und Heck
 // Außenkante des Rumpfs (Höhe der Bordwand) an Position z – damit Schilde, Reling und Ruder am Rumpf anliegen
 const edgeX=(L,B,z,pw=.42)=>{const t=Math.min(.999,Math.max(.001,(z+L/2)/L));return B*Math.pow(Math.sin(Math.PI*t),pw)};
 function gunwale(g,L,B,top,mat,pw,r=.05){for(const s of[-1,1]){const pts=[];for(let i=0;i<=30;i++){const t=.03+i/30*.94,z=-L/2+t*L;pts.push(new T.Vector3(s*edgeX(L,B,z,pw)*1.02,top(t)+.02,z))}mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(pts),60,r,6,false),mat)}}
@@ -97,15 +97,29 @@ export function createDugout({big=false}={}){const g=new T.Group();g.isShip=true
  else{mesh(g,new T.SphereGeometry(.25,8,6),MS(0x7a5e40),[0,.45,.3]).scale.set(1,.6,1.4)}   // Fellbündel
  return g}
 // Römische Flussgaleere (navis lusoria): schlanker Rumpf, Ruderreihen, Rahsegel, Schildreihe, Heckzier
-export function createGalley(){const g=new T.Group();g.isShip=true;const L=10,B=1.35,hull=MS(0x5a3a22,{vertexColors:true,side:T.DoubleSide}),red=MS(0x8a1e1a),white=MS(0xe8e2d0,{side:T.DoubleSide}),wood=MS(0x6a4a2c),bronze=MS(0xb08a3c,{metalness:.6,roughness:.4});
- const gt=t=>1.0+.9*Math.pow(Math.max(0,1-t*1.3),4)+.5*Math.pow(Math.max(0,t-.8)*5,2);hullShell(g,L,B,gt,-.35,hull,.38);gunwale(g,L,B,gt,red,.38,.06);hullDeck(g,L,B,.95,MS(0x9a7a52),.38);
- for(const s of[-1,1]){for(let i=0;i<9;i++){const z=-3.4+i*.85,o=new T.Group();o.position.set(s*edgeX(L,B,z,.38),.95,z);g.add(o);const r=mesh(o,new T.CylinderGeometry(.03,.03,2.6,5),wood,[s*1.1,-.3,0]);r.rotation.z=s*1.25;o.userData.s=s;(g.userData.oars||(g.userData.oars=[])).push(o)}
-  for(let i=0;i<6;i++){const sh=mesh(g,new T.CylinderGeometry(.28,.28,.05,14),i%2?red:MS(0xc8a040),[s*(edgeX(L,B,-2.6+i*1.0,.38)+.03),1.12,-2.6+i*1.0]);sh.rotation.z=Math.PI/2}}
- mesh(g,new T.CylinderGeometry(.09,.1,4.6,8),wood,[0,3.2,.8]);mesh(g,new T.CylinderGeometry(.05,.05,3.2,6),wood,[0,5.1,.85]).rotation.z=Math.PI/2;
- mesh(g,grid((u,v)=>[-1.5+3*u,5.0-2.4*v,.95+.35*Math.sin(Math.PI*u)*Math.sin(Math.PI*v),(Math.floor(u*5)%2)?[.6,.12,.1]:[.92,.9,.84]],10,8),new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.95}));
- mesh(g,new T.TorusGeometry(.45,.07,6,14,Math.PI*1.2),bronze,[0,2.1,-L/2+.1]).rotation.y=Math.PI/2;mesh(g,new T.BoxGeometry(.12,1.6,.6),wood,[0,.6,-L/2-.2]);   // Heckzier (Aplustre), Steuerruder
- mesh(g,new T.ConeGeometry(.12,.8,6),bronze,[0,.25,L/2+.3]).rotation.x=Math.PI/2;                                                                          // Rammsporn
- g.shipAnim=dt=>{g.userData.t=(g.userData.t||0)+dt;const a=Math.sin(g.userData.t*2.4);for(const o of g.userData.oars)o.rotation.x=a*.35};return g}
+export function createGalley(){const g=new T.Group();g.isShip=true;const L=10,B=1.3,PW=.5,hull=MS(0x5a3a22,{vertexColors:true,side:T.DoubleSide}),red=MS(0x8a1e1a),wood=MS(0x6a4a2c),bronze=MS(0xb08a3c,{metalness:.6,roughness:.4}),deckM=MS(0x9a7a52);
+ const gt=t=>1.25+.55*Math.pow(Math.abs(2*t-1),3)+.25*Math.pow(Math.max(0,.15-t)/.15,2);                                 // sanfter Sprung, Heck etwas höher
+ hullShell(g,L,B,gt,-.3,hull,PW,false);hullDeck(g,L,B,.72,deckM,PW);gunwale(g,L,B,gt,red,PW,.06);
+ // Bugsteven mit Rammsporn, Heckzier (Aplustre) als nach vorn gebogener Schwanenhals
+ const tube=(pts,r,m)=>mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(pts.map(p=>new T.Vector3(...p))),24,r,8,false),m);
+ tube([[0,gt(1)+.1,L/2-.05],[0,1.1,L/2+.15],[0,.5,L/2+.3],[0,.12,L/2+.35]],.1,wood);mesh(g,new T.ConeGeometry(.15,.9,8),bronze,[0,.12,L/2+.75]).rotation.x=Math.PI/2;   // Rammsporn auf der Wasserlinie
+ for(const y of[.35,.6])mesh(g,new T.BoxGeometry(.04,.06,.7),bronze,[0,y,L/2+.25]);
+ tube([[0,gt(0)-.2,-L/2+.15],[0,gt(0)+.6,-L/2-.25],[0,gt(0)+1.4,-L/2-.15],[0,gt(0)+1.75,-L/2+.25],[0,gt(0)+1.55,-L/2+.55]],.09,wood);
+ for(let i=0;i<5;i++){const a=i/4;tube([[0,gt(0)+.5,-L/2-.1],[(a-.5)*.7,gt(0)+1.0+a*.3,-L/2-.45],[(a-.5)*1.0,gt(0)+1.3+a*.2,-L/2-.5]],.03,bronze)}
+ // Heckkabine mit Ziegeldach
+ mesh(g,new T.BoxGeometry(1.3,.9,1.3),MS(0xd8cfb8),[0,1.17,-L/2+1.6]);for(const s of[-1,1]){const r=mesh(g,new T.BoxGeometry(.85,.06,1.45),MS(0xa8482c),[s*.36,1.72,-L/2+1.6]);r.rotation.z=-s*.45}
+ // Riemenkasten (Ausleger) entlang beider Seiten, Riemen schräg ins Wasser; zwei Seitenruder am Heck
+ g.userData.oars=[];for(const s of[-1,1]){const zs=[];for(let i=0;i<10;i++)zs.push(-3.0+i*.62);
+  const ex=z=>edgeX(L,B,z,PW),y0=1.12;{const pts=zs.map(z=>new T.Vector3(s*(ex(z)+.12),y0,z));mesh(g,new T.TubeGeometry(new T.CatmullRomCurve3(pts),30,.07,6,false),red)}
+  for(const z of zs){const o=new T.Group();o.position.set(s*(ex(z)+.12),y0,z);g.add(o);rod(o,[0,.25,0],[s*2.2,-1.3,0],.03,wood);mesh(o,new T.BoxGeometry(.04,.32,.14),wood,[s*2.25,-1.33,0]).rotation.z=s*1.03;g.userData.oars.push(o)}
+  for(let i=0;i<5;i++){const z=-2.4+i*1.1,sh=mesh(g,new T.CylinderGeometry(.26,.26,.05,16),i%2?red:MS(0xc8a040),[s*(ex(z)+.05),gt((z+L/2)/L)+.08,z]);sh.rotation.z=Math.PI/2;mesh(g,new T.SphereGeometry(.06,8,6),bronze,[s*(ex(z)+.08),gt((z+L/2)/L)+.08,z])}
+  const zr=-L/2+.9,xr=s*(ex(zr)+.1);rod(g,[xr,gt(.09)+.3,zr],[xr+s*.3,-.25,zr-.35],.05,wood);const bl=mesh(g,new T.BoxGeometry(.06,.9,.36),wood,[xr+s*.27,-.05,zr-.32]);bl.rotation.x=.3}
+ // Mast mit Rah und gestreiftem Rahsegel
+ mesh(g,new T.CylinderGeometry(.09,.1,4.4,8),wood,[0,2.9,.8]);mesh(g,new T.CylinderGeometry(.05,.05,3.2,6),wood,[0,5.0,.85]).rotation.z=Math.PI/2;
+ mesh(g,grid((u,v)=>[-1.5+3*u,4.9-2.3*v,.95+.35*Math.sin(Math.PI*u)*Math.sin(Math.PI*v),(Math.floor(u*5)%2)?[.6,.12,.1]:[.92,.9,.84]],10,8),new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.95}));
+ for(const s of[-1,1])rod(g,[0,5.0,.8],[s*ex0(L,B,.6,PW),gt(.6),L*.1],.012,MS(0xb09a6a));
+ g.shipAnim=dt=>{g.userData.t=(g.userData.t||0)+dt;const a=Math.sin(g.userData.t*2.4);for(const o of g.userData.oars)o.rotation.y=a*.3*Math.sign(o.position.x)};return g}
+const ex0=(L,B,t,pw)=>B*Math.pow(Math.sin(Math.PI*t),pw);
 // Wikinger-Langschiff (Frühmittelalter): Klinkerrumpf mit hohem Steven, Drachenkopf, Schildreihe, rot-weiß gestreiftes Segel
 export function createLongship(){const g=new T.Group();g.isShip=true;const L=10,B=1.5,hull=MS(0x5e4228,{vertexColors:true,side:T.DoubleSide}),wood=MS(0x6a4a2c),cols=[0xb8201c,0xd8c070,0x2a4a7a,0xe8e2d0];
  hullShell(g,L,B,t=>1.05+1.1*Math.pow(Math.abs(2*t-1),6),-.3,hull,.45);hullDeck(g,L,B,.9,MS(0x8a6a44),.45);
