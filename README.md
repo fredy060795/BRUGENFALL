@@ -1,4 +1,4 @@
-# Zeitreise 8.50
+# Zeitreise 8.51
 
 Figuren, Soldaten und Waffen je Epoche: Keulenkrieger und Schleuderer, Legionäre mit Gladius und Scutum, Landsknechte und Pikeniere, Musketiere, Grenadiere und Gendarmen; Kugeln mit Pulverdampf ab der Renaissance. Siehe AENDERUNGEN_8_41.md.
 
