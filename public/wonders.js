@@ -27,7 +27,7 @@ const reliefMat=(key,bg,fg)=>canvasMat(key,256,160,(x,W,H)=>{x.fillStyle=bg;x.fi
   x.fillRect(cx+(i%2?12:-22),b-66,10,4);if(i===2){x.beginPath();x.moveTo(cx,b-110);x.lineTo(cx+30,b-90);x.lineTo(cx,b-96);x.fill()}}},{roughness:.8,uvs:1});
 
 function mats(H){const S=H.stone,P=H.plaster;return{
- stone:tint(S,null,'stone'),stoneD:tint(S,0x8e8270,'stoneD'),trav:tint(P,0xeee4cc,'trav',{uvs:3.2}),travD:tint(P,0xd8caa8,'travD',{uvs:3.2}),
+ stone:tint(S,null,'stone'),stoneD:tint(S,0x8e8270,'stoneD'),trav:tint(P,0xfff8ea,'trav',{uvs:3.2}),travD:tint(P,0xeee2c8,'travD',{uvs:3.2}),
  marble:tint(P,0xf4efe4,'marble',{roughness:.5}),white:tint(P,0xfaf6ee,'white'),ochre:tint(P,0xf0cf86,'ochre'),plaster:tint(P,0xe8dcc4,'plaster'),
  slate:tint(H.slate,null,'slate'),copper:tint(H.slate,0x6fa58e,'copper',{roughness:.5,metalness:.2}),tiles:tint(H.redRoof,null,'tiles'),wood:tint(H.wood,null,'wood'),floor:tint(H.floor,null,'floor'),
  grass:tint(H.thatch,0x4f6a30,'grassmound'),gravel:tint(H.floor,0xd6c8a6,'gravel'),
@@ -123,10 +123,12 @@ function colosseum(g,M){const K=kit(g),tr=M.trav,trD=M.travD,mar=M.marble,A=9.3,
  const yA=.3+LV*LH;for(const [s,m]of[[0,tr],[-.9,trD]]){const at=new THREE.CylinderGeometry(1,1,2,96,1,true);at.scale(A+s,1,B+s);K.add(at,m,0,yA+1,0)}
  const ring=new THREE.RingGeometry(1,1.11,96);ring.rotateX(-PI/2);ring.scale(A-.9,1,B-.9);K.add(ring,trD,0,yA+2,0);
  for(let i=0;i<N;i++){const a=i/N*PI*2,[x,z]=P(a),ry=Math.atan2(x/A/A,z/B/B);K.box(.5,1.9,.18,trD,x*1.01,yA+.95,z*1.01,.03).rotation.y=ry;
-  if(i%2){const am=(i+.5)/N*PI*2,[wx,wz]=P(am);K.box(.55,.6,.98,M.dark,wx,yA+1.05,wz,0).rotation.y=Math.atan2(wx/A/A,wz/B/B)}
-  K.box(.25,.25,.4,trD,x*1.02,yA+1.85,z*1.02,.03).rotation.y=ry;if(i%2===0)K.cyl(.05,.06,1.3,M.wood,x*.995,yA+2.6,z*.995,6)}
+  if(i%2){const am=(i+.5)/N*PI*2,[wx,wz]=P(am),wr=Math.atan2(wx/A/A,wz/B/B);K.arched(.95,1.05,.22,[[0,.5,.75,.18]],trD,wx*1.012,yA+.5,wz*1.012,wr);K.box(.5,.55,.05,M.dark,wx*.998,yA+.95,wz*.998,0).rotation.y=wr}   // Attikafenster mit Rahmen
+  K.box(.25,.25,.4,trD,x*1.02,yA+1.85,z*1.02,.03).rotation.y=ry;if(i%2===0)K.box(.16,.5,.16,trD,x*.995,yA+2.25,z*.995,0)}   // Konsolen der Sonnensegel-Masten
  // Zuschauerränge (gestufter Ring), Rangmauern, Mundlöcher (Vomitorien), Podium mit Marmor, Arena mit Hypogäum-Gittern
- const prof=[[.42,0],[.42,1.6]];for(let k=0;k<11;k++){const r=.45+k*.048,y=1.6+k*.58;prof.push([r,y],[r+.048,y]);if(k<10)prof.push([r+.048,y+.58])}prof.push([.965,8.0],[.965,0]);
+ const prof=[[.42,0],[.42,1.6]];for(let k=0;k<11;k++){const r=.45+k*.048,y=1.6+k*.58;prof.push([r,y],[r+.048,y]);if(k<10)prof.push([r+.048,y+.58])}prof.push([.9,8.0],[.9,0]);
+ {const cor=new THREE.CylinderGeometry(1,1,7.7,96,1,true);cor.scale(A*.915,1,B*.915);K.add(cor,tint(null,0x2e2620,'corridor',{side:THREE.DoubleSide,roughness:1}),0,4.15,0);   // dunkle Umgänge hinter den Arkaden
+  for(let lv=1;lv<LV;lv++){const fl=new THREE.RingGeometry(.915,.99,96);fl.rotateX(-PI/2);fl.scale(A,1,B);K.add(fl,trD,0,.3+lv*LH+.02,0)}}
  const sea=new THREE.LatheGeometry(prof.map(([r,y])=>new THREE.Vector2(r,y)),96);sea.scale(A,1,B);K.add(sea,tint(tr,null,'seatDS',{side:THREE.DoubleSide}),0,0,0);
  for(const k of[3,7]){const w=new THREE.CylinderGeometry(1,1,.7,96,1,true);const r=.45+k*.048;w.scale(A*r,1,B*r);K.add(w,mar,0,1.6+k*.58+.35,0)}
  for(let i=0;i<16;i++){const a=(i+.5)/16*PI*2;for(const k of[2,6]){const r=.47+k*.048;const v=K.box(.7,.55,.3,M.dark,Math.sin(a)*A*r,1.6+k*.58+.3,Math.cos(a)*B*r,0);v.rotation.y=Math.atan2(Math.sin(a)/A,Math.cos(a)/B)}}

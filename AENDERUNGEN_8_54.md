@@ -39,3 +39,4 @@ Neue Bau-Kategorie **Wahrzeichen**: ein Prachtbau pro Welt (20 × 20 m, 250 Stei
   Broderie-Parterre, Orangenbäumchen und Fontäne mit Wasserbögen; Triumphbogen mit Kassettengewölbe, kannelierten Säulen, Statuen und
   Bronze-Quadriga; Eisenturm mit Aufzugskabinen, Galerien, Laternen, Restaurant und Kassenhäuschen; Stonehenge mit unregelmäßigen Steinen,
   Avenue und Feuerstelle; Grabhügel mit Trockenmauer-Eingang, Pfostenreihen und Opferfeuern.
+* Kolosseum: heller Travertin, dunkle Umgänge hinter den Arkaden (Bögen wirken tief), gerahmte Fenster in der Attika, Konsolen statt schwarzer Masten.
