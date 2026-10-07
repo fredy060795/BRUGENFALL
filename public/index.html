@@ -257,6 +257,17 @@ function piece(k,lv=0,v=0,att=0,paint=0){const reference=buildReference(k,lv,{H:
   g.fl=new THREE.PointLight(0xff7a28,55,18,2);g.fl.position.y=1.1;g.add(g.fl);
   g.em=new THREE.PointLight(0xffaa44,18,8,2);g.em.position.set(0,.3,0);g.add(g.em);
   return g}
+ if(k==='bridge'&&!lv){
+  // Holzbrücke (Ausbaustufe 1): Jochbrücke auf eingerammten Pfahljochen mit Eisbrechern, Bohlenbelag, Geländer, flache Rampen
+  const SPAN=14,DECK=.75,DW=3.4,wd=mW,dk=new THREE.MeshStandardMaterial({color:0x5a4430,roughness:1});g.walkAreas=[];
+  for(let i=0;i<29;i++){const x=-SPAN/2-.2+i*.5,pl=bx(.46,.08,DW,i%2?mW:dk,x,DECK,0);pl.rotation.x=(i%3-1)*.008;g.add(pl)}
+  for(const z of[-DW/2+.15,DW/2-.15])g.add(bx(SPAN+.4,.2,.18,mW,0,DECK-.12,z),bx(SPAN+.4,.2,.18,mW,0,DECK-.12,0));
+  for(const x of[-5.4,-1.8,1.8,5.4]){for(const z of[-1.3,-.45,.45,1.3])g.add(bx(.22,DECK+2.2,.22,dk,x,(DECK-2.2)/2,z));g.add(bx(.3,.24,DW+.3,mW,x,DECK-.28,0));
+   for(const z of[-1.3,1.3]){const br=bx(.12,1.5,.12,mW,x,-.2,z*.8);br.rotation.x=z>0?.5:-.5;g.add(br)}const ice=bx(.25,1.6,.25,dk,x,-.4,-DW/2-.5);ice.rotation.x=.6;g.add(ice)}
+  for(const z of[-DW/2+.08,DW/2-.08]){g.add(bx(SPAN+.4,.1,.1,mW,0,DECK+1.0,z),bx(SPAN+.4,.08,.08,mW,0,DECK+.55,z));for(let x=-SPAN/2;x<=SPAN/2+.01;x+=1.4)g.add(bx(.12,1.05,.12,mW,x,DECK+.5,z));for(let x=-SPAN/2;x<SPAN/2;x+=1.4){const d=bx(.06,1.5,.06,mW,x+.7,DECK+.5,z);d.rotation.z=.85;g.add(d)}}
+  for(const side of[-1,1]){const x0=side*(SPAN/2+.2),L=2.6,ramp=bx(L,.1,DW,dk,x0+side*L/2,DECK/2,0);ramp.rotation.z=-side*Math.atan2(DECK,L);g.add(ramp);for(let n=0;n<5;n++){const x=x0+side*(n+.5)*L/5;g.walkAreas.push([x,0,L/10+.05,DW/2-.1,DECK*(1-(n+.5)/5)+.05])}}
+  for(let i=0;i<14;i++)g.walkAreas.push([-SPAN/2+.5+i,0,.55,DW/2-.2,DECK+.05]);
+  g.colliders=[];return g}
  if(k==='bridge'){
   // Steinbogenbrücke: offene Durchfahrt unter dem Bogen, Treppen an beiden Enden
   const stone=mS;
@@ -991,7 +1002,7 @@ function bdef(){const o=M.b.get(manage);if(!o){mt=0;return menuDef()}const u=o.u
  if(t==='keep'){const lv=u.st|0;act.push(C(lv>=3?'Voll ausgebaut':'Ausbauen zu '+UPNt[lv+1],lv>=3?'':costTxt(UPGt[lv]),()=>send({t:'upgrade'}),{dis:lv>=3,poor:!creative&&lv<3&&!Object.entries(UPGt[lv]).every(([g,n])=>(INV[g]||0)>=n)}),C('Türme besetzen','Bogenschützen',()=>send({t:'post'})),C('Besatzung abziehen','',()=>send({t:'unpost'})))}
  if(t==='house'){const hl=u.lv|0,HUc=[{wood:12,stone:4,shingles:10},{wood:15,stone:6,shingles:12}].map(c=>{if(Rules.roofKind('house',u.v)!=='straw')return c;const o={...c,straw:c.shingles};delete o.shingles;return o}),HN=['Kleines Wohnhaus (nur Erdgeschoss)','Mittleres Wohnhaus (1 Obergeschoss)','Großes Wohnhaus (2 Obergeschosse)'];act.push(C(hl>=2?'Voll ausgebaut':'Ausbauen: '+HN[hl+1],hl>=2?HN[2]:costTxt(HUc[hl])+' · Platz für '+(4+2*hl)+' Bewohner',()=>send({t:'upgrade',b:manage}),{dis:hl>=2,poor:hl<2&&!creative&&!Object.entries(HUc[hl]).every(([g,n])=>(INV[g]||0)+((ME.bag||{})[g]||0)>=n)}))}
  if(UP2c[t])act.push(C('Ausbauen zu '+UP2c[t].to,costTxt(UP2c[t].c),()=>send({t:'upgrade',b:manage}),{poor:!Object.entries(UP2c[t].c).every(([g,n])=>(INV[g]||0)>=n)}));
- if(['garrison','gate','portcullis'].includes(t)&&!u.lv)act.push(C('Zum Steinbau ausbauen','45 Stein · 15 Holz',()=>send({t:'upgrade',b:manage})));
+ if(['garrison','gate','portcullis','bridge'].includes(t)&&!u.lv)act.push(C(t==='bridge'?'Zur Steinbrücke ausbauen':'Zum Steinbau ausbauen',t==='bridge'?'50 Stein · 10 Holz · Holzbrücke → steinerne Bogenbrücke':'45 Stein · 15 Holz',()=>send({t:'upgrade',b:manage})));
  if(t==='garrison'){act.push(C('Waffenkammer',(INV.weapons||0)+' Waffen im Lager'),C('Schwertkämpfer ausbilden','40 Gold · 1 Waffe',()=>send({t:'train',k:'sword'}),{dis:(INV.weapons||0)<1||PP[2]<1}),C('Bogenschütze ausbilden','50 Gold · 1 Waffe',()=>send({t:'train',k:'archer'}),{dis:(INV.weapons||0)<1||PP[2]<1}),C('Lanzenträger ausbilden','45 Gold · 1 Waffe – große Reichweite',()=>send({t:'train',k:'spear'}),{dis:(INV.weapons||0)<1||PP[2]<1}),C('Armbrustschütze ausbilden','70 Gold · 1 Waffe · 1 Eisen – starker Fernkampf',()=>send({t:'train',k:'crossbow'}),{dis:(INV.weapons||0)<1||(INV.iron||0)<1||PP[2]<1}),C('Ritter zu Pferd ausbilden','150 Gold · 1 Waffe · 1 Rüstung – schnell, sehr stark',()=>send({t:'train',k:'knight'}),{dis:(INV.weapons||0)<1||(INV.armor||0)<1||PP[2]<1}),C('Arbeitslose',PP[2]+' (1 bleibt als Reserve frei)'))}
  if(t==='armory')act.push(C('Waffenvorrat',(INV.weapons||0)+' Waffen · '+(INV.gambeson||0)+' Gambesons · '+(INV.armor||0)+' Rüstungen'));
  if(t==='apothecary')act.push(C('Heilvorrat',(INV.potions||0)+' Heiltränke · braucht Honig und Äpfel'));
@@ -1133,6 +1144,7 @@ function pad(dt){const gp=[...navigator.getGamepads()].find(g=>g);if(!gp)return[
 const deep=(x,z)=>heightAt(x,z)<-1.2&&Rules.riverDist(x,z)<9;
 function onBridge(x,z){for(const b of M.b.values()){const u=b.userData;if(u.t!=='bridge')continue;const dx=x-u.x,dz=z-u.z,c=Math.cos(u.r*Math.PI/2),s=Math.sin(u.r*Math.PI/2),lx=dx*c-dz*s,lz=dx*s+dz*c;
   if(Math.abs(lz)>2.0)continue;
+  if(!u.lv){const a=Math.abs(lx);if(a<=7.2)return .8;if(a<9.8)return .8*(1-(a-7.2)/2.6)+.05;continue}
   const SPAN=14,RISE=3.6,RING=.5;
   const archY=xx=>{const t=Math.max(0,Math.min(1,(xx+SPAN/2)/SPAN));return .2+RISE*Math.sin(Math.PI*t)};
   const deckY=xx=>archY(xx)+RING+.15;
