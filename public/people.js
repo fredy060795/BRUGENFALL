@@ -659,6 +659,12 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(cg('tribr',()=>paramGeo((u,v)=>bri(u,v),72,5)),fm,H);
   mesh(cg('tribd',()=>paramGeo((u,v)=>bri(u,.97+v*.03,.01),72,1)),hatMat('gold'),H);
   mesh(cg('tricock',()=>new T.CylinderGeometry(.17,.17,.05,14)),hatMat('cloth',o.fac||0xe8e4d8),H,[.95,1.35,.95]).rotation.set(Math.PI/2,0,-.7)}
+ if(hat==='antler'){     // Schamanen-Kopfschmuck: Fellband mit Hirschgeweih
+  const bm=hatMat('cloth',0x6a5a46),am=hatMat('cloth',0xd8ccb0);ring(H,bm,1.05,.6,.14,1.06);
+  for(const sd of[-1,1]){const pts=[[sd*.7,.9,0],[sd*1.0,1.5,-.1],[sd*1.15,2.1,-.15],[sd*1.05,2.6,-.1]];tube(H,am,pts,.06);for(const [k,dx]of[[1,.35],[2,.3]]){const p=pts[k];tube(H,am,[p,[p[0]+sd*dx*.3,p[1]+.45,p[2]+.25]],.045)}}}
+ if(hat==='laurel'){     // Lorbeerkranz: Blätter paarweise an einem Zweigring
+  const lm=hatMat('cloth',0x4e6e2c),lf=cg('laurleaf',()=>new T.SphereGeometry(.13,6,4));ring(H,hatMat('band',0x5a4a2a),1.05,.62,.05,1.06);
+  for(let i=0;i<24;i++){const a=Math.PI*.3+i/24*Math.PI*1.4,s=i%2?1:-1;const m=mesh(lf,lm,H,[Math.sin(a)*1.08,.62+s*.09,Math.cos(a)*1.13],[.8,.5,1.9]);m.rotation.y=a+Math.PI/2;m.rotation.z=s*.5}}
  if(hat==='mitre'){      // Mitra: zwei spitze Schilde aus weißem Seidendamast mit Goldborten, Kreuz, herabhängende Bänder
   const wm=hatMat('cloth',0xf2eee2),gm=hatMat('gold');mesh(cg('mitb',()=>lat([[0,.98],[1.02,.98],[1.04,.8],[0,.8]],28)),gm,H);
   for(const zs of[1,-1]){const sh=new T.Shape();sh.moveTo(-.95,0);sh.lineTo(.95,0);sh.quadraticCurveTo(.9,1.2,0,2.1);sh.quadraticCurveTo(-.9,1.2,-.95,0);const q=new T.ExtrudeGeometry(sh,{depth:.06,bevelEnabled:false});q.translate(0,.95,zs*.42-(zs>0?0:.06));const m=mesh(q,wm,H);m.rotation.x=-zs*.12;
