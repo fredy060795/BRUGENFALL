@@ -12,7 +12,12 @@ function ell(parent,mat,s,p){const o=mesh(new T.SphereGeometry(1,12,8),mat,paren
 function rod(parent,mat,a,b,r1,r2=r1){const va=V(...a),vb=V(...b),d=vb.clone().sub(va);const o=mesh(new T.CylinderGeometry(r2,r1,d.length(),10),mat,parent);o.position.copy(va.add(vb).multiplyScalar(.5));o.quaternion.setFromUnitVectors(V(0,1,0),d.normalize());return o}
 function box(parent,mat,s,p){return mesh(new T.BoxGeometry(...s),mat,parent,p)}
 function lathe(parent,mat,points,s,p){const o=mesh(new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),16),mat,parent,p);o.scale.set(...s);return o}
-export function weapon(type){const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);
+// Werkzeuge je Epoche: gleicher Werkzeugtyp (Animation, Logik), aber epochentypisches Aussehen
+let TERA='hochmittelalter';export const setToolEra=e=>{TERA=e||'hochmittelalter'};
+const TOOLMAP={steinzeit:{axe:'stoneaxe',pickaxe:'antlerpick',hoe:'diggingstick',hammer:'stonemaul',sword:'club'},roemer:{sword:'gladius'},napoleon:{sword:'saber'},neuzeit:{sword:'saber'}};
+export function weapon(type){const alt=(TOOLMAP[TERA]||{})[type];if(alt){const w=weapon(alt);w.name=type;return w}
+ if(['stoneaxe','antlerpick','diggingstick','stonemaul'].includes(type))return stoneTool(type);
+ const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);
  if(type==='none')return g;
  if(type==='spear'||type==='lance'){const L=type==='lance'?3.1:2.3;rod(g,oak,[0,-.9,0],[0,L-.9,0],.026,.02);
   if(type==='lance'){lathe(g,steel,[[.0,0],[.11,.02],[.035,.32],[.028,.34]],[1,1,1],[0,.05,0]);const tip=mesh(new T.ConeGeometry(.03,.22,6),steel,g,[0,L-.8,0]);ell(g,leather,[.05,.06,.05],[0,L-.98,0])}
@@ -139,6 +144,13 @@ export function createCharacter(color=0x756952,kind='sword',opts={}){
  g.noStow=!!P&&P.role!=='player';g.noSheath=!!P&&['peasant','farmer','wood','hunter','mason'].includes(P.role);
  setTool(g,P&&P.tool?P.tool:(kind==='archer'?'bow':'sword'));return g;
 }
+// Steinzeit-Werkzeuge: Feuersteinbeil mit Schäftung, Geweihhacke, Grabstock, Steinschlägel
+function stoneTool(type){const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);const wood=new T.MeshStandardMaterial({color:0x6a4a2c,roughness:.95}),flint=new T.MeshStandardMaterial({color:0x5a5a62,roughness:.6,flatShading:true}),antler=new T.MeshStandardMaterial({color:0xd8ccb0,roughness:.8}),lash=new T.MeshStandardMaterial({color:0x7a5a3a,roughness:1});
+ const stick=(y0,y1,r=.025)=>{const m=new T.Mesh(new T.CylinderGeometry(r,r*1.1,y1-y0,7),wood);m.position.y=(y0+y1)/2;g.add(m)};
+ if(type==='stoneaxe'||type==='stonemaul'){stick(-.42,.55);const h=new T.Mesh(new T.DodecahedronGeometry(type==='stonemaul'?.09:.075,0),flint);h.position.set(.09,.47,0);h.scale.set(type==='stonemaul'?1.4:1.9,1,.55);g.add(h);for(const y of[.43,.5]){const l=new T.Mesh(new T.TorusGeometry(.032,.01,5,10),lash);l.position.y=y;l.rotation.x=Math.PI/2;g.add(l)}}
+ else if(type==='antlerpick'){stick(-.42,.5);const a=new T.Mesh(new T.CylinderGeometry(.012,.035,.42,7),antler);a.position.set(.15,.43,0);a.rotation.z=-1.2;g.add(a)}
+ else{stick(-.42,1.0,.022);const t=new T.Mesh(new T.ConeGeometry(.03,.14,6),antler);t.position.y=1.06;g.add(t)}
+ return g}
 export function setTool(g,type){if(!g.isCharacter||g.toolType===type)return;g.tool&&g.right.wrist.remove(g.tool);g.toolType=type;g.tool=g.equipmentCache[type]||(g.equipmentCache[type]=weapon(type));g.right.wrist.add(g.tool);for(const [k,v]of Object.entries(g.stowed))v.visible=k!==type&&g.kind!=='archer'&&!g.noStow&&type!=='none';g.sheath.visible=!g.noSheath&&type!=='none'}
 const ease=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
 const Eu=(x,y,z)=>new T.Quaternion().setFromEuler(new T.Euler(x,y,z));

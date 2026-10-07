@@ -12,7 +12,8 @@ function engine(era){const g=new THREE.Group(),neu=era==='neuzeit',wheel=M(neu?0
  for(const sx of[-1,1]){const w=new THREE.Group();w.position.set(sx*.68,.55,-.15);g.add(w);const rim=add(w,new THREE.TorusGeometry(.52,.04,6,24),wheel,0,0,0);rim.rotation.y=Math.PI/2;
   for(let i=0;i<12;i++){const sp=add(w,new THREE.BoxGeometry(.03,.98,.035),wheel,0,0,0);sp.rotation.x=i/12*Math.PI}add(w,new THREE.CylinderGeometry(.09,.09,.16,10),iron,0,0,0).rotation.z=Math.PI/2;g.userData['w'+sx]=w}
  add(g,new THREE.CylinderGeometry(.035,.035,1.5,8),iron,0,.55,-.15).rotation.z=Math.PI/2;                                          // Achse
- add(g,new THREE.BoxGeometry(.95,.62,1.25),box,0,.95,-.1);add(g,new THREE.BoxGeometry(1.0,.05,1.3),brass,0,1.28,-.1);                 // Wasserkasten mit Messingkante
+ if(era==='roemer'){const b=add(g,new THREE.CylinderGeometry(.42,.42,1.2,14),box,0,.95,-.1);b.rotation.x=Math.PI/2;for(const z of[-.55,-.1,.35])add(g,new THREE.TorusGeometry(.43,.025,5,16),brass,0,.95,z-.1+.1)}   // Wasserfass (Vigiles)
+ else{add(g,new THREE.BoxGeometry(.95,.62,1.25),box,0,.95,-.1);add(g,new THREE.BoxGeometry(1.0,.05,1.3),brass,0,1.28,-.1)}                 // Wasserkasten mit Messingkante
  if(neu){const lab=add(g,new THREE.PlaneGeometry(.6,.22),M(0xd8c890),0,.98,.53);}                                                     // Aufschrift-Feld
  add(g,new THREE.CylinderGeometry(.13,.13,.5,12),brass,0,1.55,-.35);add(g,new THREE.SphereGeometry(.13,12,8),brass,0,1.8,-.35);        // Windkessel
  const lever=new THREE.Group();lever.position.set(0,1.62,-.05);g.add(lever);add(lever,new THREE.BoxGeometry(2.5,.07,.08),M(0x6a4a2c),0,0,0);for(const sx of[-1,1])add(lever,new THREE.CylinderGeometry(.03,.03,.5,8),M(0x8a6a44),sx*1.25,0,0).rotation.x=Math.PI/2;
@@ -24,6 +25,7 @@ function engine(era){const g=new THREE.Group(),neu=era==='neuzeit',wheel=M(neu?0
 
 function crewLook(era,i){const L=look(900+i,'peasant');Object.assign(L,{outfit:'jerkin',uni:true,apron:false,bag:false,rolled:false,cloak:0,mask:false,female:false,hairStyle:'short',acc:[]});
  if(era==='neuzeit')Object.assign(L,{over:0x1c2030,cloth:0x1c2030,head:'pickel',pkBrass:true,beard:i%2?'none':'short',title:'Feuerwehrmann'});
+ else if(era==='roemer')Object.assign(L,{outfit:'tunic',uni:false,cloth:0x8a6a4a,over:0x8a6a4a,head:'none',beard:'short',title:'Vigil'});
  else Object.assign(L,{over:0x6a4a2c,cloth:0x3a3430,head:i%2?'tricorne':'hunterhat',hatCol:0x2a2420,title:'Spritzenmann'});return L}
 
 export function fireBrigade(era,heightAt,sprayMat){const root=new THREE.Group(),cart=engine(era);root.add(cart);

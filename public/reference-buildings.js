@@ -573,8 +573,12 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   const W=10,D=8,t=.35,mh=.75,gravel=COLM.get('gravel')||(COLM.set('gravel',new T.MeshStandardMaterial({color:0xa49a86,roughness:1})),COLM.get('gravel')),earth=COLM.get('graveEarth')||(COLM.set('graveEarth',new T.MeshStandardMaterial({color:0x4a3a28,roughness:1})),COLM.get('graveEarth')),
    moss=COLM.get('mossStone')||(()=>{const m=H.stone.clone();m.color.set(0x8a9a78);m.onBeforeCompile=H.stone.onBeforeCompile;m.customProgramCacheKey=H.stone.customProgramCacheKey;COLM.set('mossStone',m);return m})(),dark=COLM.get('darkStone')||(()=>{const m=H.stone.clone();m.color.set(0x8a8478);m.onBeforeCompile=H.stone.onBeforeCompile;m.customProgramCacheKey=H.stone.customProgramCacheKey;COLM.set('darkStone',m);return m})();
   const CE=era==='steinzeit'?'stone':era==='hallstatt'?'iron':era==='roemer'?'rom':era==='fruehmittelalter'?'early':'chr',WM=CE==='stone'||CE==='iron'?H.wood:H.stone;   // Grabkultur je Epoche
-  box(W,mh,t,0,mh/2,-D/2+t/2,WM,true);for(const a of[-1,1]){box(t,mh,D,a*(W/2-t/2),mh/2,0,WM,true);const L=W/2-.9;box(L,mh,t,a*(.9+L/2),mh/2,D/2-t/2,WM,true);box(.5,1.3,.5,a*.95,.65,D/2-t/2,H.stone,true);cylinder(.2,.25,a*.95,1.42,D/2-t/2,H.stone,8)}
-  for(let q=0;q<26;q++){const a=q/26,x=-W/2+t/2+a*(W-t);box(.36,.1,.42,x,mh+.05,-D/2+t/2,H.stone)}
+  // Einfassung: Bruchsteinmauer, in Steinzeit/Hallstatt ein Flechtzaun aus Pfosten und Weidenruten
+  const seg=(w,h,d,x,y,z)=>{if(WM!==H.wood)return box(w,h,d,x,y,z,WM,true);g.colliders.push([x,z,w/2,d/2,y+h/2,y-h/2]);const along=w>d,len=along?w:d,wat=COLM.get('wattleC')||(COLM.set('wattleC',new T.MeshStandardMaterial({color:0x7a6040,roughness:1})),COLM.get('wattleC'));
+   for(let q=-len/2;q<=len/2+.01;q+=.5)along?box(.08,h+.15,.08,x+q,(h+.15)/2,z,H.wood):box(.08,h+.15,.08,x,(h+.15)/2,z+q,H.wood);
+   for(const yy of[.2,.4,.6])along?box(len,.09,.05,x,yy,z,wat):box(.05,.09,len,x,yy,z+0,wat)};
+  seg(W,mh,t,0,mh/2,-D/2+t/2);for(const a of[-1,1]){seg(t,mh,D,a*(W/2-t/2),mh/2,0);const L=W/2-.9;seg(L,mh,t,a*(.9+L/2),mh/2,D/2-t/2);if(WM===H.wood)box(.2,1.3,.2,a*.95,.65,D/2-t/2,H.wood,true);else{box(.5,1.3,.5,a*.95,.65,D/2-t/2,H.stone,true);cylinder(.2,.25,a*.95,1.42,D/2-t/2,H.stone,8)}}
+  if(WM!==H.wood)for(let q=0;q<26;q++){const a=q/26,x=-W/2+t/2+a*(W-t);box(.36,.1,.42,x,mh+.05,-D/2+t/2,H.stone)}
   addDoor(g,H,{x:0,z:D/2-t/2,width:1.5,height:1.05,style:'gate',double:true});
   box(1.2,.04,D-.6,0,.03,0,gravel);box(W-1,.03,.9,0,.025,-D/2+1.2,gravel);
   // Mal am Wegende: Dolmen (Steinzeit), Fürstengrabhügel (Hallstatt), Grabaltar (Römer), sonst Hochkreuz

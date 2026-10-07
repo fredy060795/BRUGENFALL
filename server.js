@@ -479,12 +479,12 @@ const waterPts=r=>r.b.filter(b=>b.t==='well').concat(r.b.filter(b=>b.t==='plaza'
 const FLAM=b=>!['wall','battle','tower','gate','portcullis','keep','cathedral','garrison','dungeon','torture','well','bridge','moat','chapel','quarry','ironmine','coppermine','plaza','field','cemetery'].includes(b.t);
 function ignite(r,b,why){if(b.fire>0||!FLAM(b))return false;b.fire=100;b.sp=0;r.dirty=true;say(r,'🔥 '+(why||'Feuer!')+' '+nm(r,b.t)+' brennt!'+(r.wells>0?'':' – ohne Brunnen kann niemand löschen'),b);return true}
 // Feuerwehr (Barock, Napoleon, Neuzeit): Mannschaft zieht die Handdruckspritze vom Spritzenhaus/der Feuerwache zum Brand und pumpt
-const FW_ERA={barock:'Die Spritzenmannschaft',napoleon:'Die Spritzenmannschaft',neuzeit:'Die Freiwillige Feuerwehr'};
+const FW_ERA={roemer:'Die Vigiles',barock:'Die Spritzenmannschaft',napoleon:'Die Spritzenmannschaft',neuzeit:'Die Freiwillige Feuerwehr'};
 function fwTick(r,dt){const E=FW_ERA[r.era],st=E&&r.b.find(b=>b.t==='watchpost');if(!st){r.fw=null;return}const home={x:st.x+2.4,z:st.z+2.4};let F=r.fw;
- if(!F||F.s===3){if(!r.fires.length){r.fw={x:home.x,z:home.z,ry:0,s:3,tx:home.x,tz:home.z};return}F=r.fw={x:home.x,z:home.z,ry:0,s:0,tx:home.x,tz:home.z};say(r,'🚒 '+E+' rückt mit der Handdruckspritze aus!',st)}
+ if(!F||F.s===3){if(!r.fires.length){r.fw={x:home.x,z:home.z,ry:0,s:3,tx:home.x,tz:home.z};return}F=r.fw={x:home.x,z:home.z,ry:0,s:0,tx:home.x,tz:home.z};say(r,'🚒 '+E+(r.era==='roemer'?' rücken mit der Siphon-Pumpe aus!':' rückt mit der Handdruckspritze aus!'),st)}
  if(r.fires.length){const fb=near(F,r.fires,1e9);F.tx=fb.x;F.tz=fb.z;if(dist(F,fb)>reach(fb)+2.5){F.s=0;mv(F,fb.x,fb.z,3,dt)}
   else{F.s=1;F.ry=Math.atan2(fb.x-F.x,fb.z-F.z);if(r.wells>0){fb.fire-=16*dt;r.dirty=true}else if(!F.dry){F.dry=1;say(r,'🚒 Kein Wasser – ohne Brunnen kann auch die Spritze nicht löschen',fb)}}}
- else{F.s=2;F.dry=0;if(mv(F,home.x,home.z,2.6,dt)<.8){F.s=3;F.ry=0;say(r,'🚒 '+E+' ist zurück',st)}}}
+ else{F.s=2;F.dry=0;if(mv(F,home.x,home.z,2.6,dt)<.8){F.s=3;F.ry=0;say(r,'🚒 '+E+(r.era==='roemer'?' sind zurück':' ist zurück'),st)}}}
 function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.fires=r.b.filter(b=>b.fire>0);if(!r.fires.length)r.alarmIds=null;fwTick(r,dt);
  if(r.omen>0){r.omen-=dt;const targets=omenTargets(r);for(const n of targets)n.omT=(n.omT||0)+dt;
   if(r.omen<=0){for(const n of r.n){n.om=0;n.omT=0}r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}
@@ -1070,7 +1070,7 @@ wss.on('connection',ws=>{let r,p;
    else if(R0.shield){p.shields[R0.shield]=1;p.sh=R0.shield;tell(p,'🛡 '+R0.n+' hergestellt – mit Taste 9 zum Schwert tragen')}
    else{bagAdd(r,p,R0.good,R0.out);tell(p,'🪵 +'+R0.out+' '+GN[R0.good])}p.bd=1}
   else if(m.t==='shield'){if(m.k&&!p.shields[m.k])return tell(p,'Diesen Schild besitzt du nicht');p.sh=m.k||'';p.bd=1}
-  else if(m.t==='mount'){if(!p.horse){if(r.gold<80)return;r.gold-=80;p.horse=1;say(r,p.name+' hat ein Pferd gekauft')}p.mt=!p.mt}
+  else if(m.t==='mount'){if(r.era==='steinzeit'&&!p.mt)return tell(p,'In der Steinzeit gibt es noch keine Reitpferde');if(!p.horse){if(r.gold<80)return;r.gold-=80;p.horse=1;say(r,p.name+' hat ein Pferd gekauft')}p.mt=!p.mt}
   else if(m.t==='eat'){const E=[['roast',50],['smoked',40],['bread',35],['sausage',35],['cheese',30],['meat',25],['honey',25],['fish',20],['apples',15]].find(([k])=>have(r,p,k)>=1);if(E){takeGoods(r,p,{[E[0]]:1});p.food=Math.min(100,p.food+E[1])}else if(have(r,p,'wheat')>=2){takeGoods(r,p,{wheat:2});p.food=Math.min(100,p.food+40)}}
   else if(m.t==='craft'&&RECIPE[m.k]){const R=RECIPE[m.k];if(!r.b.some(b=>b.t===R.at&&!b.off&&dist(b,p)<BD[b.t].w/2+6))return tell(p,'Dafür brauchst du '+(nm(r,R.at)||R.at)+' in der Nähe');
    if(!Object.entries(R.in).every(([k,n])=>inv(r,k)>=n))return tell(p,'Zu wenig Material: '+Object.entries(R.in).map(([k,n])=>n+' '+(GN[k]||k)).join(', '));
