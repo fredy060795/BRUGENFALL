@@ -109,7 +109,7 @@ import * as SU from 'three/addons/utils/SkeletonUtils.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {addDoor,updateDoors} from './doors.js';
 import {surfaceMaterial} from './materials.js';
-import {eraPlaza} from './plaza-eras.js';
+import {eraPlaza,eraFest} from './plaza-eras.js';
 import {fireBrigade} from './firebrigade.js';
 import {priestTitle,christian} from './eras.js';
 import {applyEraMaterials,eraPiece,eraWeapon,eraShield,eraShotOf,MELEE} from './eras.js';
@@ -375,7 +375,9 @@ function piece(k,lv=0,v=0,att=0,paint=0){if(ERA!=='hochmittelalter'){const C=CAT
     const addAnim=fn=>fn&&anims.push(fn);
     const crowd=(spots,fx,fz,y=0)=>{const c=plazaAudience(spots,fx,fz);c.position.y=y;g.plazaProps.add(c);addAnim(c.userData.anim);return c};
     const victim=(mode,y=.8)=>{const v=man(0,'sword','peasant',90);setTool(v,'none');if(mode==='burn'){v.position.set(0,y-.55,.36);const rope=new THREE.MeshStandardMaterial({color:0x8a7650,roughness:1});for(const ry of[.95,1.35,1.7]){const t=new THREE.Mesh(new THREE.TorusGeometry(1,.035,5,20),rope);t.rotation.x=Math.PI/2;t.position.set(0,ry,-.2);t.scale.set(.27,.36,.6);v.add(t)}if(v.left&&v.right)for(const a of[v.left,v.right]){a.shoulder.rotation.x=.55;a.elbow.rotation.x=-.25}}else{/* Galgen: Kopf in der Schlinge (Noose bei y≈2.5) */v.position.set(0,y,0);v.rotation.y=Math.PI;v.upper.rotation.z=.12;if(v.head)v.head.rotation.x=.35;if(v.arms){v.arms[0].shoulder.rotation.z=1.15;v.arms[1].shoulder.rotation.z=-1.15;v.arms[0].elbow.rotation.z=-.4;v.arms[1].elbow.rotation.z=.4}if(v.legs){v.legs[0].hip.rotation.x=-.22;v.legs[1].hip.rotation.x=.15;v.legs[0].knee.rotation.x=.35;v.legs[1].knee.rotation.x=.2}addAnim((dt,t)=>{v.position.x=.03*Math.sin(t*.0009);v.position.y=y+.02*Math.sin(t*.0014);v.rotation.z=.06*Math.sin(t*.0011)})}g.plazaProps.add(v);return v};
-    if(ev==='maypole'||ev==='tree'){
+    const EF=eraFest(ERA,ev);if(EF){g.plazaProps.add(EF.group);if(EF.anim)addAnim(EF.anim)}   // Fest-Aufbau je Epoche (ersetzt oder ergänzt den mittelalterlichen)
+    if(EF&&EF.replace&&ev==='tree'){crowd([[-2.8,2.4,'peasant'],[2.8,2.4,'farmer'],[-3,-2.2,'weaver'],[3,-2.2,'trader'],[0,3.2,'peasant'],[0,-3.2,'peasant']],0,0)}
+    if((ev==='maypole'||ev==='tree')&&!(EF&&EF.replace)){
       const trunk=bx(.2,4.5,.2,mW,0,2.25,0);g.plazaProps.add(trunk);
       if(ev==='maypole'){const ribbons=[],top=new THREE.Vector3(0,4.3,0),up=new THREE.Vector3(0,1,0);
         const wreath=new THREE.Mesh(new THREE.TorusGeometry(.32,.07,6,16),new THREE.MeshStandardMaterial({color:0x2f6a2a,roughness:1}));wreath.rotation.x=Math.PI/2;wreath.position.y=4.2;g.plazaProps.add(wreath);
@@ -386,7 +388,8 @@ function piece(k,lv=0,v=0,att=0,paint=0){if(ERA!=='hochmittelalter'){const C=CAT
          mid=top.clone().lerp(end,.5);mid.y-=.28;place(r.s1,top,mid);place(r.s2,mid,end)}));crowd([[-2.4,2.8,'weaver'],[2.4,2.8,'trader'],[-3.1,.8,'peasant'],[3.1,.8,'farmer'],[-2.3,-2.5,'peasant'],[2.3,-2.5,'peasant']],0,0)}
       else{for(let y=2;y<4.5;y+=.4)for(let i=0;i<5;i++){const a=i/5*6.28,r=.9-(y-2)*.2;const leaf=bx(.3,.3,.3,new THREE.MeshStandardMaterial({color:0x2a6a2a}),Math.cos(a)*r,y,Math.sin(a)*r);g.plazaProps.add(leaf)}}
     }
-    if(ev==='circus'){
+    if(ev==='circus'&&EF&&EF.replace)crowd([[-6,-1,'peasant'],[-2,1.5,'farmer'],[2,-1.2,'peasant'],[5.5,1.2,'weaver']],0,0);
+    if(ev==='circus'&&!(EF&&EF.replace)){
       // Jahrmarkt: Stände beidseits der Gasse (auch auf der Maibaumseite), Gauklerbühne am Ostende, im Frühling steht der Maibaum auf der Westseite
       const KINDS=['bread','pottery','cloth','apples','weapons','spices','candles','beer','armor','carver'],XS=[-9.2,-5.6,-2.2,3.6,7.2];
       KINDS.forEach((kd,i)=>{const side=i<5?-1:1,s=fairStall(kd,i);s.position.set(XS[i%5],0,side*4.35);s.rotation.y=side<0?0:Math.PI;g.plazaProps.add(s);addAnim(s.userData.anim)});

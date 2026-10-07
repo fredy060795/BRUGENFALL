@@ -84,3 +84,38 @@ function props(era,ctx){const g=new THREE.Group(),W=ctx.wood,S=ctx.stone,box=(w,
 export function eraPlaza(era,ctx){if(!era||era==='hochmittelalter'||era==='spaetmittelalter')return null;
  const ground=era==='steinzeit'?earth('earthS','#7e6a4e',['#6a5840','#8e7a5a','#5a4a36','#9a8a6a']):era==='hallstatt'||era==='fruehmittelalter'?earth('earthH','#857560',['#9a8e7a','#6e6050','#a8a08c','#5e5244']):era==='roemer'?slabs():null;
  return{ground,center:centerpiece(era,ctx),props:props(era,ctx),edge:era==='roemer'?mat('marble',0xe8e2d4,{roughness:.5}):['steinzeit','hallstatt','fruehmittelalter'].includes(era)?mat('edgeWood',0x5a4430):null}}
+
+// ---------- Fest-Aufbauten je Epoche: liefert {group, anim, replace} oder null (dann gilt der mittelalterliche Aufbau) ----------
+function bonfire(g,x,z,s=1){const logs=mat('firelog',0x4a3420),fl=[0xff8a2a,0xffb84a,0xff6a1a].map(c=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.85}));
+ for(let i=0;i<10;i++){const a=i/10*Math.PI*2,l=put(g,new THREE.Mesh(new THREE.CylinderGeometry(.09*s,.12*s,2.4*s,6),logs),x+Math.cos(a)*.5*s,1.0*s,z+Math.sin(a)*.5*s);l.rotation.set(Math.sin(a)*.42,0,-Math.cos(a)*.42)}
+ for(let i=0;i<12;i++){const a=i/12*Math.PI*2,b=new THREE.Mesh(new THREE.DodecahedronGeometry(.18*s,0),mat('boulder',0x8a8478,{flatShading:true}));put(g,b,x+Math.cos(a)*1.3*s,.1,z+Math.sin(a)*1.3*s)}
+ const F=[0,1,2,3,4].map(i=>{const f=new THREE.Mesh(new THREE.ConeGeometry((.55-.08*i)*s,(1.6+.3*i)*s,7),fl[i%3]);f.position.set(x+(i%2-.5)*.2*s,(.9+.15*i)*s,z+((i>>1)%2-.5)*.2*s);g.add(f);return f});
+ const L=new THREE.PointLight(0xff9a4a,30,16,2);L.position.set(x,2*s,z);g.add(L);
+ return t=>{F.forEach((f,i)=>{const k=1+.18*Math.sin(t*.012+i*1.7)+.08*Math.sin(t*.031+i);f.scale.set(1,k,1);f.rotation.y=t*.001*(i%2?1:-1)});L.intensity=26+6*Math.sin(t*.02)}}
+function saturnalia(g){const W=mat('tablewood',0x6a4a2c),cloth=mat('tcloth',0xe8e0cc),gold=mat('gilt',0xd4a838,{metalness:.8,roughness:.3}),fire=new THREE.MeshBasicMaterial({color:0xffc860});
+ put(g,new THREE.Mesh(new THREE.BoxGeometry(7,.1,1.4),W),0,.82,0);put(g,new THREE.Mesh(new THREE.BoxGeometry(7.1,.02,1.5),cloth),0,.88,0);for(const x of[-3.2,0,3.2])for(const z of[-.55,.55])put(g,new THREE.Mesh(new THREE.BoxGeometry(.12,.8,.12),W),x,.4,z);
+ for(const z of[-1.3,1.3])put(g,new THREE.Mesh(new THREE.BoxGeometry(6.6,.45,.8),mat('kline',0x8a2a22)),0,.25,z);                                     // Liegen (Klinen)
+ for(let i=0;i<8;i++){const x=-3+i*.86;put(g,new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.03,14),gold),x,.9,0);put(g,new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),mat('fruit'+i%3,[0xb02a20,0x6a8a2a,0x8a3a6a][i%3])),x,.98,0);
+  if(i%2){put(g,new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.22,8),mat('candle',0xf0ead8)),x+.3,1.0,.4);const f=new THREE.Mesh(new THREE.ConeGeometry(.025,.07,6),fire);f.position.set(x+.3,1.15,.4);g.add(f)}}
+ put(g,new THREE.Mesh(new THREE.SphereGeometry(.35,12,10),mat('roast',0xa0582a)),0,1.05,0).scale.set(1.5,.8,.9);                                       // Spanferkel
+ for(const x of[-3.7,3.7]){const a=put(g,new THREE.Mesh(new THREE.LatheGeometry([[0,0],[.12,.08],[.28,.45],[.28,.8],[.1,1.15],[.09,1.35],[.13,1.4]].map(q=>new THREE.Vector2(q[0],q[1])),12),mat('amph',0xb06a40)),x,0,0)}
+ const L=new THREE.PointLight(0xffc070,12,10,2);L.position.set(0,2,0);g.add(L);return null}
+function tradeCamp(g,era){const hide=mat('tenthide',era==='steinzeit'?0x8a6a48:0x9a8a6a),pole=mat('tentpole',0x5a4430);
+ for(const [x,z]of[[-8.5,-3.6],[-4.5,3.8],[3.5,-3.8],[8,3.6]]){put(g,new THREE.Mesh(new THREE.ConeGeometry(1.5,2.6,9,1,true),hide),x,1.3,z).material.side=THREE.DoubleSide;for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.3,p=put(g,new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,3.1,5),pole),x+Math.cos(a)*.2,1.5,z+Math.sin(a)*.2);p.rotation.set(Math.sin(a)*.12,0,-Math.cos(a)*.12)}
+  for(let i=0;i<3;i++)put(g,new THREE.Mesh(new THREE.BoxGeometry(.9,.06,.6),mat('pelt'+i,[0x6a4e34,0x9a8a6a,0x3a2e24][i])),x+1.7,.06+i*.07,z+(i-1)*.15);
+  for(let i=0;i<3;i++)put(g,new THREE.Mesh(new THREE.SphereGeometry(.2,8,6),mat('clay',0x9a5a36)),x-1.6,.25,z-.4+i*.4).scale.y=1.2;
+  if(era==='hallstatt')for(let i=0;i<2;i++)put(g,new THREE.Mesh(new THREE.SphereGeometry(.25,8,6),mat('saltsack',0xe8e4dc)),x+1.5,.25,z-.8+i*.5).scale.set(1,.8,1.3);
+  else for(let i=0;i<5;i++)put(g,new THREE.Mesh(new THREE.DodecahedronGeometry(.08,0),mat('flint',0x3a3a40,{flatShading:true})),x+1.4+(i%3)*.15,.06,z-.8+Math.floor(i/3)*.15)}}
+function carousel(g,x,z){const c=new THREE.Group();c.position.set(x,0,z);g.add(c);const rot=new THREE.Group();c.add(rot);const CL=[0xb8201c,0xf0e6c8,0x2a5a9a,0xd8b040];
+ put(rot,new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,.25,24),mat('carfloor',0x8a6a44)),0,.3,0);put(c,new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,3.6,10),mat('carpole',0xd8b040,{metalness:.5})),0,1.8,0);
+ for(let i=0;i<12;i++){const seg=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.1,12,1,true,i/12*Math.PI*2,Math.PI*2/12),mat('carroof'+i%2,CL[i%2]));seg.material.side=THREE.DoubleSide;put(rot,seg,0,3.75,0)}
+ const horses=[];for(let i=0;i<6;i++){const a=i/6*Math.PI*2,h=new THREE.Group();h.position.set(Math.cos(a)*1.6,1,Math.sin(a)*1.6);h.rotation.y=-a;rot.add(h);put(rot,new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,2.9,6),mat('carpole',0xd8b040,{metalness:.5})),Math.cos(a)*1.6,1.75,Math.sin(a)*1.6);
+  const hm=mat('horse'+i%3,[0xf0ead8,0x6a4a2c,0x2a2420][i%3]);put(h,new THREE.Mesh(new THREE.BoxGeometry(.3,.35,.9),hm),0,0,0);put(h,new THREE.Mesh(new THREE.BoxGeometry(.2,.45,.22),hm),0,.3,.45).rotation.x=-.4;for(const lx of[-.1,.1])for(const lz of[-.3,.3])put(h,new THREE.Mesh(new THREE.BoxGeometry(.06,.4,.06),hm),lx,-.3,lz);
+  put(h,new THREE.Mesh(new THREE.BoxGeometry(.32,.06,.35),mat('saddle',CL[(i+2)%4])),0,.2,0);horses.push(h)}
+ return t=>{rot.rotation.y=t*.0006;horses.forEach((h,i)=>h.position.y=1+.18*Math.sin(t*.004+i*1.1))}}
+export function eraFest(era,ev){if(!era||['hochmittelalter','spaetmittelalter'].includes(era))return null;const g=new THREE.Group();let anim=null,replace=true,x=0;
+ if(ev==='tree'){if(['steinzeit','hallstatt'].includes(era))anim=bonfire(g,0,0,1.2);else if(era==='roemer')saturnalia(g);else if(era==='fruehmittelalter'){anim=bonfire(g,2.6,0,.8)}else return null;
+  if(era==='fruehmittelalter')replace=false;}
+ else if(ev==='circus'){if(['steinzeit','hallstatt'].includes(era)){tradeCamp(g,era);anim=bonfire(g,-5.5,0,.6)}else if(era==='neuzeit'){anim=carousel(g,-7.5,0);replace=false}else return null}
+ else return null;
+ return{group:g,anim:anim?((dt,t)=>anim(t)):null,replace}}
