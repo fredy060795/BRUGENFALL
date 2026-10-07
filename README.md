@@ -1,3 +1,7 @@
+# Burgenfall 8.34
+
+Banditenüberfälle erst nach Garnison und ausgebildetem Soldaten; Nachtwächter unverwundbar, wolfsicher, mit fester Runde, Stundenruf und Löscheinsatz bei nächtlichen Bränden. Siehe AENDERUNGEN_8_34.md.
+
 # Burgenfall 8.33
 
 Marktplatz doppelt so lang mit mittelalterlichem Laufbrunnen (Löschwasser), Jahrmarkt mit Händler- und Ausstellerständen, Ritterturnier mit Tribünen, Wetten und eigener Teilnahme, echte Herbst-/Winteroptik, neue Bodengestaltung; Linz als eigene, bearbeitbare Karte. Siehe AENDERUNGEN_8_33.md.

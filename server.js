@@ -212,6 +212,11 @@ function room(code,map){let r=rooms.get(code);if(!r){const src=map||DEFAULT_MAP;
   rooms.set(code,r);applyMap(r,r.map)}return r}
 const tx=(r,s)=>r.pl.forEach(p=>{if(p.ws.readyState===1)p.ws.send(s)});
 const tell=(p,m)=>p.ws.send(JSON.stringify({t:'ev',m})),say=(r,m,pos)=>tx(r,JSON.stringify(pos?{t:'ev',m,x:r2(pos.x),z:r2(pos.z)}:{t:'ev',m}));
+// Überfälle erst scharf, wenn eine Garnison steht und mindestens ein Soldat selbst ausgebildet wurde (Start-Soldaten zählen nicht).
+// Einmal scharf, bleibt es so; alte Spielstände mit Garnison gelten als scharf.
+function raidArmed(r){if(r.raidArmed)return true;if(!r.b.some(b=>b.t==='garrison'))return false;
+ if(!(r.legacyRaid||r.n.some(n=>n.rec&&SOLDIER.includes(n.k)&&n.hp>0)))return false;
+ r.raidArmed=1;r.rt=300;r.dirty=true;if(!r.legacyRaid)say(r,'👁 Banditen haben deine Garnison bemerkt – in etwa 5 Minuten ist mit einem Überfall zu rechnen');return true}
 function raid(r){if(r.set.max<1||r.cq>0||!hasEnemy(r))return;const sol=r.n.filter(n=>SOLDIER.includes(n.k)).length,det=r.det||0,cap=Math.max(2,Math.floor(1.5*sol)),lim=Math.max(1,Math.min(r.set.max,Math.ceil(cap*(1-.5*det)))),n=1+Math.floor(Math.random()*lim),en=enemyTown(r),a=rnd(0,6.28);r.warned=false;
  for(let i=0;i<n;i++){const x=RD?Math.cos(a)*RD+rnd(-5,5):en.x+rnd(-8,8),z=RD?Math.sin(a)*RD+rnd(-5,5):en.z+rnd(-8,8);r.e.push({id:uid++,x,z,hp:70,cd:0,ry:0})}
  say(r,'⚠ Banditen aus '+en.n+' greifen an! ('+n+' Gegner, höchstens 1,5× deine Soldaten)');if(r.n.some(n=>n.m==='post'))say(r,'🔔 Wachposten sichten Banditen im Anmarsch!')}
@@ -366,6 +371,8 @@ function wakeUp(r,n,dt){const h=r.b.find(b=>b.id===n.slp.b),BP=h&&(h.t==='house'
  if(!BP||!n.slp.up){n.slp=null;n.fl=0;return false}const R=[...BP.P].reverse();n.slp.dn=n.slp.dn||0;
  if(n.slp.dn<R.length){if(pathStep(n,h,R,n.slp.dn,dt))n.slp.dn++;return true}n.slp=null;n.fl=0;return false}
 function lifeTick(r,n,dt){if(SOLDIER.includes(n.k)||['watch','trader','hangman','gravedigger'].includes(n.k)||n.tr||n.pd)return false;
+  // Alarm des Nachtwächters: aufstehen, hinaus, zur Eimerkette
+  if(r.alarmIds&&r.alarmIds.includes(n.id)&&r.fires&&r.fires.length){if(n.slp)return wakeUp(r,n,dt);if(n.insideId){const old=r.b.find(b=>b.id===n.insideId);if(old&&!exitBuilding(n,old,dt))return true}return false}
  const hr=r.hr,sleep=hr>=22||hr<6,eve=hr>=18&&hr<22,T=NT[n.k];
  if(!sleep&&!eve){if(n.slp)return wakeUp(r,n,dt);return false}
  if(!(T.job||n.k==='peasant'||n.k==='child'))return false;
@@ -423,7 +430,7 @@ function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))r
  if(n.tr){const g=near(n,r.b.filter(b=>b.t==='garrison'),1e9);if(!g){n.tr=null;return}
   const X=g.x,Z=g.z+5.5;if(dist(n,{x:X,z:Z})>1.2){mv(n,X,Z,2.8,dt);return}
   n.ry=0;n.tr.t+=dt;if(n.tr.t%1.2<dt)n.cd=NT[n.k].cd;
-  if(n.tr.t>=10){const s=mkNpc(r,n.tr.k,n.x,n.z,n.tr.o);s.p={x:g.x+rnd(-3,3),z:g.z+6+rnd(0,2)};n.hp=0;n.conv=1;say(r,'⚔ Ein Dorfbewohner wurde ausgebildet: '+(SOLN[n.tr.k]||n.tr.k))}
+  if(n.tr.t>=10){const s=mkNpc(r,n.tr.k,n.x,n.z,n.tr.o);s.rec=1;s.p={x:g.x+rnd(-3,3),z:g.z+6+rnd(0,2)};n.hp=0;n.conv=1;say(r,'⚔ Ein Dorfbewohner wurde ausgebildet: '+(SOLN[n.tr.k]||n.tr.k))}
   return}
  if(n.k==='peasant'){if(r.cs.length&&helpBuild(r,n,dt))return;return idle(r,n,dt)}
  let wb=n.wb&&r.b.find(b=>b.id===n.wb);if(!wb){n.wb=0;const f=freeSlot(r,n.k,n);if(f){n.wb=f.id;wb=f}}
@@ -453,16 +460,16 @@ function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))r
 const waterPts=r=>r.b.filter(b=>b.t==='well').concat(r.b.filter(b=>b.t==='plaza').map(b=>({...fp(b,0,2.1),id:b.id,t:'plaza'})));
 const FLAM=b=>!['wall','battle','tower','gate','portcullis','keep','cathedral','garrison','dungeon','torture','well','bridge','moat','chapel','quarry','ironmine','coppermine','plaza','field','cemetery'].includes(b.t);
 function ignite(r,b,why){if(b.fire>0||!FLAM(b))return false;b.fire=100;b.sp=0;r.dirty=true;say(r,'🔥 '+(why||'Feuer!')+' '+BN[b.t]+' brennt!'+(r.wells>0?'':' – ohne Brunnen kann niemand löschen'),b);return true}
-function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.fires=r.b.filter(b=>b.fire>0);
+function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.fires=r.b.filter(b=>b.fire>0);if(!r.fires.length)r.alarmIds=null;
  if(r.omen>0){r.omen-=dt;const targets=omenTargets(r);for(const n of targets)n.omT=(n.omT||0)+dt;
   if(r.omen<=0){for(const n of r.n){n.om=0;n.omT=0}r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}
   else if(targets.length){r.omenRise=(r.omenRise||0)+dt*(r.holy?.45:1);if(r.omenRise>=30){r.omenRise=0;triggerOmenVictim(r)}}
   else{r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}}
- for(const b of r.fires){b.hp-=5*dt;r.under=true;
+ for(const b of r.fires){const held=b.held&&r.tk-b.held<3;b.hp-=(held?1.5:5)*dt;r.under=true;
   // Regen bremst nur leicht – löschen geht NUR mit Brunnen (Eimerkette / Hammer)
   if(r.wx===1)b.fire-=(r.wells>0?4:0.4)*dt;
   b.sp=(b.sp||0)+dt;
-  if(b.sp>3){b.sp=0;for(const o of r.b)if(o!==b&&!o.fire&&FLAM(o)&&dist(o,b)<7&&Math.random()<.22)ignite(r,o,'Das Feuer greift über!')}
+  if(b.sp>3&&!held){b.sp=0;for(const o of r.b)if(o!==b&&!o.fire&&FLAM(o)&&dist(o,b)<7&&Math.random()<.22)ignite(r,o,'Das Feuer greift über!')}
   if(b.fire<=0){b.fire=0;r.dirty=true;say(r,'💧 Das Feuer am '+BN[b.t]+' ist gelöscht')}}
  const sk=r.n.filter(n=>n.sk);for(const a of sk)for(const o of r.n)if(!o.sk&&!((o.imm|0)>r.dy)&&!SICK_IMMUNE.has(o.k)&&dist(a,o)<4&&Math.random()<.015*dt*(r.bl===r.dy?.3:1)){o.sk=Math.min(2,Math.max(1,a.sk|0));o.sickStage=0;say(r,'🤒 Ein weiterer Bewohner ist erkrankt')}
  r.et-=dt;if(r.ev.on&&r.ev.every>0&&r.et<=0){r.et=r.ev.every*rnd(.7,1.3);const kinds=['fire','sick','omen','rats','thieves','ambush'].filter(k=>r.ev[k]);if(kinds.length)trigger(r,kinds[Math.random()*kinds.length|0])}
@@ -579,7 +586,7 @@ r.wt-=dt;if(r.wt<=0){
  r.deerTimer=(r.deerTimer||0)+dt;if(r.deerTimer>=60){r.deerTimer=0;if(r.dr.length<Math.min(120,14*SC(r)*SC(r))){for(let attempt=0;attempt<30;attempt++){const d=newDeer(r);if(!r.b.some(b=>dist(d,b)<reach(b)+4)&&![...r.pl.values()].some(p=>dist(d,p)<18)){r.dr.push(d);break}}}}
  deerTick(r,dt);for(const d of r.dr){if(d.hp<deerMax(d)&&![...r.pl.values(),...r.n.filter(n=>n.k==='hunter')].some(p=>dist(p,d)<18)){d.rest=(d.rest||0)+dt;if(d.rest>=30){d.hp=deerMax(d);d.rest=0}}else d.rest=0;d.x=Math.max(-DEER_LIMIT_(r),Math.min(DEER_LIMIT_(r),d.x));d.z=Math.max(-DEER_LIMIT_(r),Math.min(DEER_LIMIT_(r),d.z));if(inRiver(r,d.x,d.z,3)){d.w=null;const rx=d.x;d.x=rx+(Math.random()<.5?-10:10)}}
  fieldGrow(r,dt);regrow(r,dt);looseTick(r,dt);cartTick(r,dt);ecoTick(r,dt);herbTick(r,dt);watchSpawn(r);
- if(kp0&&r.set.interval>0&&r.set.max>0){r.rt=(r.rt===undefined?240:r.rt)-dt;if(r.rt<=0&&Math.random()<dt/r.set.interval*(1-(r.det||0))){raid(r);r.rt=90}}
+ if(kp0&&r.set.interval>0&&r.set.max>0&&raidArmed(r)){r.rt=(r.rt===undefined?240:r.rt)-dt;if(r.rt<=0&&Math.random()<dt/r.set.interval*(1-(r.det||0))){raid(r);r.rt=90}}
  for(const p of r.pl.values()){p.food=Math.max(0,p.food-(r.creative?0:dt/24)*(season(r)===3?1.3:1));if(p.sl&&!(r.hr>=19||r.hr<5))p.sl=false;playerSick(r,p,dt);p.hp=p.food>0?(p.sk?p.hp-dt*(p.sk===2?.12:0):Math.min(100,p.hp+dt)):p.hp-dt*2;if(p.hp<=0){p.hp=100;p.food=100;p.sk=0;p.bd=1;const sp=spawnOf(r);p.x=sp.x;p.z=sp.z;p.ws.send(JSON.stringify({t:'rs'}));say(r,p.name+' wurde niedergestreckt',p)}}
  for(const n of r.n){const T=NT[n.k];n.cd-=dt;n.aim=0;n.work=0;if(!T.job)n.cr=0;
   n.pr=0;n.ps=0;if(n.sk){sickTick(r,n,dt,stf);continue}
@@ -671,7 +678,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0,p.fc||0,p.tool==='sword'&&p.sh&&p.shields[p.sh]?p.sh:'',p.coa|0]),
   n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.id===bishopId(r,n.wb)?1:0,n.torch&&SOLDIER.includes(n.k)?1:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
-  w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),
+  w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),ra:r.raidArmed?1:0,
   evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,tny:r.tny?{k:r.tny.k.map(q=>[q.n,q.c,q.od,q.pl?1:0,q.a]),ph:r.tny.ph,t:Math.round(r.tny.t),pr:r.tny.pairs[Math.min(r.tny.m,r.tny.pairs.length-1)],p:r.tny.pass,pt:+r.tny.pt.toFixed(2),o:r.tny.o,sc:r.tny.sc,ch:r.tny.ch,b:r.tny.bets}:0,fair:r.plazaEvent==='circus'?r.fairG|0:-1,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,bq:r.banq?1:0,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
  if(r.tk%10===1){m.act=r.b.filter(b=>b.act&&r.tk-b.act<25).map(b=>b.id);m.lg={};for(const b of r.b)if(b.lg)m.lg[b.id]=b.lg}
  if(r.tk%10===1){m.hapF=r.hapF||[];m.hapT=Math.round(r.hapT||0);m.imm2=r.immWhy||'';m.tax2=r.lastTax||0;m.food2=Math.round(food(r))}
@@ -818,14 +825,31 @@ function gatherIdle(r,n,dt){const kp=r.b.find(b=>b.t==='keep');if(!kp)return fal
 function watchSpawn(r){const night=r.hr>=20||r.hr<6,kp=r.b.find(b=>b.t==='keep'),w=r.n.find(n=>n.k==='watch');
  if(night&&kp&&!w&&r.b.length>=4){const n=mkNpc(r,'watch',kp.x,kp.z+BD.keep.d/2+2,[...r.pl.keys()][0]||0);n.torch=1;say(r,'🏮 Der Nachtwächter beginnt seine Runde',n)}
  if(!night&&w){r.n=r.n.filter(n=>n!==w)}}
-function watchTick(r,n,dt){n.torch=1;if(!n.w||mv(n,n.w.x,n.w.z,1.7,dt)<1){const L=r.b.filter(b=>!['field','moat','bridge','orchard','hopfield','fire','bed','bench'].includes(b.t));const b=L[Math.random()*L.length|0];if(b){const P=fp(b,0,BD[b.t].d/2+2.5);n.w={x:P.x,z:P.z}}}
- const wf=near(n,r.w,10);if(wf){if(dist(n,wf)>1.8)mv(n,wf.x,wf.z,3,dt);else if(n.cd<=0){wf.hp-=8;n.cd=1}}}
+const WATCH_CALL=['Mitternacht','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf'];
+// Feste Runde: Wohnhäuser, Tore, Marktplatz und Bergfried, als Rundgang nach Nähe geordnet
+function watchRoute(r,from){const L=r.b.filter(b=>['house','bighouse','gate','portcullis','plaza','keep','tavern','well'].includes(b.t)).map(b=>fp(b,0,BD[b.t].d/2+2.5));const R=[];let cur=from;while(L.length){let bi=0,bd=1e9;L.forEach((P,i)=>{const d=dist(P,cur);if(d<bd){bd=d;bi=i}});cur=L.splice(bi,1)[0];R.push(cur)}return R}
+function watchTick(r,n,dt){n.torch=1;n.inv=1;n.hp=Math.max(n.hp,500);   // unverwundbar: Lebenspunkte werden jeden Tick aufgefüllt
+ // Fackel vertreibt Wölfe im Umkreis von 8 m
+ for(const w of r.w){const d=dist(w,n);if(d<8){const k=(d||.1);mv(w,w.x+(w.x-n.x)/k*20,w.z+(w.z-n.z)/k*20,5,dt)}}
+ // Stundenruf zu jeder vollen Stunde
+ const hr=Math.floor(r.hr);if(n.call!==hr){if(n.call!==undefined)say(r,'🏮 Hört, ihr Leut, und lasst euch sagen: die Glock hat '+WATCH_CALL[hr%12]+' geschlagen!',n);n.call=hr}
+ // Brand in der Nacht: Alarm, Wasser holen, löschen – ohne Wasserstelle nur eindämmen
+ const fb=r.fires&&r.fires.length?near(n,r.fires,1e9):null;
+ if(fb){if(!r.alarmIds){const wake=r.n.filter(o=>o.hp>0&&!o.sk&&!o.tr&&o.k!=='child'&&(NT[o.k].job||o.k==='peasant')).sort((a,b)=>dist(a,fb)-dist(b,fb)).slice(0,4);r.alarmIds=wake.map(o=>o.id);say(r,'🔔 Feuer! Der Nachtwächter läutet Alarm'+(wake.length?' und weckt '+wake.length+' Bewohner':''),fb)}
+  const W=waterPts(r);
+  if(!W.length){if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);n.cd=.4;fb.held=r.tk;return}
+  if(!n.bucket){const w=near(n,W,1e9);if(dist(n,w)>1.6){mv(n,w.x,w.z,3.4,dt);return}n.bucket=1;n.cd=.5;return}
+  if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);if(n.cd<=0){n.cd=.5;fb.fire-=12;n.bucket=0;r.dirty=true}return}
+ if(r.alarmIds){r.alarmIds=null;n.route=null}
+ // Rundgang
+ if(!n.route||!n.route.length||n.ri>=n.route.length){n.route=watchRoute(r,n);n.ri=0;if(!n.route.length)return}
+ const P=n.route[n.ri];if(mv(n,P.x,P.z,1.7,dt)<1)n.ri++;}
 // ---- Speichern (saves/welt.json, alle 30 s, bei Verlassen und beim Beenden) ----
 const SAVE=process.env.SAVE_FILE||path.join(__dirname,'saves','welt.json');
 let deletedAny=false;
-function save(){if(!rooms.size&&!deletedAny)return false;const o={};rooms.forEach((r,k)=>o[k]={creative:!!r.creative,map:r.map,paths:r.paths||[],deerTimer:r.deerTimer||0,foodShortage:r.foodShortage||0,heatShortage:r.heatShortage||0,nm:r.nm,sv:(r.sv=Date.now()),b:r.b,ru:r.ru,n:r.n,co:r.co,gold:r.gold,inv:r.inv,tl:r.tl,hr:r.hr,dy:r.dy,set:r.set,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,next:r.next,tr:r.tr,rk:r.rk,dr:r.dr,pr:r.pr,fame:r.fame,gr:r.gr,sup:r.sup||0,or:r.or,ev:r.ev,cq:r.cq,hb:r.hb||[],eco:r.eco||{},fests:r.fests||{},v827:1,v830:1,cs:r.cs,lo:r.lo,sw:r.sw,ca:r.ca||[],bags:(()=>{for(const p of r.pl.values())r.bags[p.name]={bag:p.bag,tools:p.tools,shields:p.shields,sh:p.sh};return r.bags})()});
+function save(){if(!rooms.size&&!deletedAny)return false;const o={};rooms.forEach((r,k)=>o[k]={creative:!!r.creative,map:r.map,paths:r.paths||[],deerTimer:r.deerTimer||0,foodShortage:r.foodShortage||0,heatShortage:r.heatShortage||0,nm:r.nm,sv:(r.sv=Date.now()),b:r.b,ru:r.ru,n:r.n,co:r.co,gold:r.gold,inv:r.inv,tl:r.tl,hr:r.hr,dy:r.dy,set:r.set,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,surv:r.surv?1:0,next:r.next,tr:r.tr,rk:r.rk,dr:r.dr,pr:r.pr,fame:r.fame,gr:r.gr,sup:r.sup||0,or:r.or,ev:r.ev,cq:r.cq,hb:r.hb||[],eco:r.eco||{},fests:r.fests||{},raidArmed:r.raidArmed||0,v834:1,v827:1,v830:1,cs:r.cs,lo:r.lo,sw:r.sw,ca:r.ca||[],bags:(()=>{for(const p of r.pl.values())r.bags[p.name]={bag:p.bag,tools:p.tools,shields:p.shields,sh:p.sh};return r.bags})()});
  try{fs.mkdirSync(path.dirname(SAVE),{recursive:true});fs.writeFileSync(SAVE+'.tmp',JSON.stringify(o));fs.renameSync(SAVE+'.tmp',SAVE);return true}catch(e){console.log('Speichern fehlgeschlagen',e.message);return false}}
-try{const o=JSON.parse(fs.readFileSync(SAVE));for(const k in o){const r=o[k];const src=r.map||DEFAULT_MAP;const allowEmpty=isBlankMap(src);r.noImm=r.imm===0;r.surv=!!r.surv;Object.assign(r,{pl:new Map(),map:Rules.sanitizeMap(src,!!allowEmpty),tw:[],pathDirty:true,paths:r.paths||[],e:[],w:[],ar:[],an:[],pt:10,bt:40,bw:0,dirty:true,dt:true,hr:r.hr||8,dy:r.dy||0,wx:0,wt:60,tk:0,hap:50,ru:r.ru||[],co:r.co||[],pr:r.pr||0,fame:r.fame||0,gr:r.gr||0,sup:r.sup||10,tl:r.tl||{axe:0,pick:0,hoe:0},or:r.or||[],tr:r.tr||[],rk:r.rk||[],ev:r.ev||{on:1,every:240,fire:1,sick:1,omen:1,rats:1,thieves:1,ambush:1,cyc:1,sl:4},et:200,fires:[],cv:[],tt:150,cq:r.cq||0,campOn:false,cr:5,omen:0});r.tw=r.map.towns.map(t=>({...t}));if(r.set){r.set.autosave=r.set.autosave!==undefined?r.set.autosave:30}else r.set={interval:120,max:6,autosave:30};r.tax=r.tax??1;r.ration=r.ration??1;Object.assign(r.inv,{gambeson:r.inv.gambeson||0,armor:r.inv.armor||0,potions:r.inv.potions||0});if(!r.ev.rats&&r.ev.rats!==0)Object.assign(r.ev,{rats:1,thieves:1,ambush:1});// Ressourcen aus Karte nachladen falls Save leer
+try{const o=JSON.parse(fs.readFileSync(SAVE));for(const k in o){const r=o[k];if(!r.v834)r.legacyRaid=1;const src=r.map||DEFAULT_MAP;const allowEmpty=isBlankMap(src);r.noImm=r.imm===0;r.surv=!!r.surv;Object.assign(r,{pl:new Map(),map:Rules.sanitizeMap(src,!!allowEmpty),tw:[],pathDirty:true,paths:r.paths||[],e:[],w:[],ar:[],an:[],pt:10,bt:40,bw:0,dirty:true,dt:true,hr:r.hr||8,dy:r.dy||0,wx:0,wt:60,tk:0,hap:50,ru:r.ru||[],co:r.co||[],pr:r.pr||0,fame:r.fame||0,gr:r.gr||0,sup:r.sup||10,tl:r.tl||{axe:0,pick:0,hoe:0},or:r.or||[],tr:r.tr||[],rk:r.rk||[],ev:r.ev||{on:1,every:240,fire:1,sick:1,omen:1,rats:1,thieves:1,ambush:1,cyc:1,sl:4},et:200,fires:[],cv:[],tt:150,cq:r.cq||0,campOn:false,cr:5,omen:0});r.tw=r.map.towns.map(t=>({...t}));if(r.set){r.set.autosave=r.set.autosave!==undefined?r.set.autosave:30}else r.set={interval:120,max:6,autosave:30};r.tax=r.tax??1;r.ration=r.ration??1;Object.assign(r.inv,{gambeson:r.inv.gambeson||0,armor:r.inv.armor||0,potions:r.inv.potions||0});if(!r.ev.rats&&r.ev.rats!==0)Object.assign(r.ev,{rats:1,thieves:1,ambush:1});// Ressourcen aus Karte nachladen falls Save leer
 if(!r.or.length&&(r.map.ores||[]).length)r.or=r.map.ores.map(o=>({id:uid++,k:o.k,x:+o.x,z:+o.z}));
 if(!r.or.length){const q=()=>Math.random();for(const k of['iron','iron','copper','copper']){const a=q()*6.28,d=50+q()*70;r.or.push({id:uid+=1,k,x:Math.cos(a)*d,z:Math.sin(a)*d})}}
 if((!r.tr||!r.tr.length)&&((r.map.forests||[]).length||(r.map.rocks||[]).length)){const tmp={map:r.map,tw:r.tw,or:r.or,tr:[],rk:[],dr:[]};applyMap(tmp,r.map);r.tr=tmp.tr;r.rk=tmp.rk;r.or=tmp.or.length?tmp.or:r.or}
