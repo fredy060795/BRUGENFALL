@@ -247,7 +247,7 @@ const invWork=(r,n)=>{const H=id=>Rules.has(r.era,id);let f=1;if(H('bronze')&&n.
 const eraWork=(r,n)=>{const e=r.era;if(e==='steinzeit'&&n.k==='hunter')return 1.5;if(e==='hallstatt'&&['miner','mason'].includes(n.k))return 1.3;if(e==='roemer')return 1.1;if(e==='renaissance'&&['healer','priest','weaver'].includes(n.k))return 1.3;if(e==='neuzeit'&&!['priest','healer','gravedigger','hangman','trader'].includes(n.k))return 1.3;return 1},
  eraTrain=r=>({fruehmittelalter:7,napoleon:6}[r.era]||10);
 const stockCap=r=>(r.era==='roemer'?1.25:1)*(300+r.b.reduce((s,b)=>s+(b.t==='keep'?300+200*(b.st|0):0)+(BD[b.t].store||0),0));
-function shoot(r,n,t,dmg){const d=dist(n,t),dur=Math.max(.25,d/22);r.ar.push({t:dur,tg:t,dmg});r.an.push([r2(n.x),r2(n.z),t.id||0,r2(t.x),r2(t.z),r2(dur),r2(n.el||0),n.k||''])}
+function shoot(r,n,t,dmg){const d=dist(n,t),dur=Math.max(.25,d/22);r.ar.push({t:dur,tg:t,dmg});r.an.push([r2(n.x),r2(n.z),t.id||0,r2(t.x),r2(t.z),r2(dur),r2(n.el||0),n.k||(n.name?'archer':'')])}   // Spieler schießen wie die Bogentruppe ihrer Epoche (Pfeil, Kugel …)
 const season=r=>Math.floor((r.dy||0)/((r.ev&&r.ev.sl)||4))%4,FG=r=>[1,1.2,.8,0][season(r)]*(r.wx===1?1.5:1);
 const BASEP={flour:25,wood:15,stone:25,wheat:20,bread:40,meat:30,cheese:50,wool:30,cloth:70,gambeson:95,fish:25,weapons:90,armor:140,potions:85,iron:35,copper:45,honey:40,leather:60,apples:15,beer:30,sausage:45,smoked:45};
 const priceOf=(r,k)=>ecoPrice(r,k)*BASEP[k]*(['wheat','bread','meat','cheese','fish','apples','sausage','smoked','honey'].includes(k)?[1,.95,.85,1.35][season(r)]:k==='wood'?[1,1,1,1.3][season(r)]:1)*(1+.08*Math.sin((r.dy||0)*1.7+k.length*2.1));

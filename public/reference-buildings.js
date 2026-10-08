@@ -5,7 +5,7 @@ import {forestTree} from './world.js';
 import {eraBuild} from './eras.js';
 
 // Material tiles are copied into independent canvases: no atlas-neighbour bleeding.
-const atlasCache=new Map(),COLM=new Map();
+const atlasCache=new Map(),COLM=new Map(),FACTORY=['smithy','weaver','brewery','tannery','armorer','mint'];   // Neuzeit: nur diese Werkstätten werden Fabriken mit Schlot
 // Schilderhaus: schräg schwarz-weiß-rot gestreift
 function stripeMat(){if(COLM.has('stripes'))return COLM.get('stripes');const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),C=['#141414','#f0f0ea','#b8201c'];
  for(let i=-8;i<16;i++){x.fillStyle=C[(i%3+3)%3];x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16+16,0);x.lineTo(i*16+16-128,128);x.lineTo(i*16-128,128);x.fill()}const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set('stripes',m);return m}
@@ -90,7 +90,7 @@ export const referenceTypes=[...TYPES];
 const PAINT=[0,0xf4f0e6,0xe8d9b0,0xd9b060,0xd8a8a0,0xb8c8d8,0xb8c8a0,0xb85a48,0xc8c0b0,0x9ab0c0,0xe0c890,0x8a9a70];
 export const PAINT_N=['Standard','Weiß','Creme','Ocker','Rosé','Hellblau','Salbei','Ochsenblut','Grau','Taubenblau','Sand','Moos'];
 function tintPlaster(H,c){const key='pl'+c;if(COLM.has(key))return COLM.get(key);const m=H.plaster.clone();m.color.set(c);m.onBeforeCompile=H.plaster.onBeforeCompile;m.customProgramCacheKey=H.plaster.customProgramCacheKey;COLM.set(key,m);return m}
-export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,era='hochmittelalter'}){const S=eraBuild(era);
+export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,era='hochmittelalter'}){const S=eraBuild(era);const FACTORY_CH=S.extras==='industry'&&FACTORY.includes(k);
  if(paint&&PAINT[paint])H={...H,plaster:tintPlaster(H,PAINT[paint])};
  if(!TYPES.has(k))return null;
  const V=(v|0)&3; // 4 Varianten 0..3
@@ -142,7 +142,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
  // Fenster nie im Türstock: auf der Türseite seitlich neben die Tür schieben (oder weglassen)
  if(Math.abs(Math.sin(side))<.01)for(const D of g._doors||[]){if(Math.abs(z-D.z)>.3||y-height/2>D.h+.15)continue;const need=D.w/2+.3+(stone?width/2:width);if(Math.abs(x-D.x)<need){const nx=D.x+(x>=D.x?1:-1)*need;if(g._halfW&&Math.abs(nx)+(stone?width/2:width)>g._halfW-.1)return;x=nx}}
  (g._wins=g._wins||[]).push({x,y,z,side,w:width,h:height});const group=new T.Group();group.position.set(x,y,z);group.rotation.y=side;const put=(w,h,d,mat,xx,yy,zz)=>{const mesh=new T.Mesh(boxUV(new T.BoxGeometry(w,h,d)),mat);mesh.position.set(xx,yy,zz);group.add(mesh)};put(width,height,.06,stone?H.dark:((Math.round(x*7+z*13+y*3)&3)===0?(H.winDark||H.dark):(H.win||H.dark)),0,0,0);for(const a of[-1,1])put(.1,height+.15,.12,stone?H.stone:H.wood,a*width/2,0,.04);for(const a of[-1,1])put(width+.15,.12,.14,stone?H.stone:H.wood,0,a*height/2,.04);put(.045,height,.13,H.wood,0,0,.09);put(width,.045,.13,H.wood,0,0,.09);if(!stone)for(const a of[-1,1])put(width*.4,height,.07,H.green,a*width*.8,0,0);g.add(group)}
- function chimney(x,z,y){if(S.chimney==='none')return;if(S.chimney==='brick'){box(.7,3.6,.75,x,y+1.8,z,H.plaster);box(.85,.2,.9,x,y+3.6,z,H.stone);box(.45,.02,.5,x,y+3.71,z,H.dark);return}box(.65,2.7,.7,x,y+1.35,z,H.stone);box(.8,.15,.85,x,y+2.7,z,H.stone);box(.45,.02,.5,x,y+2.79,z,H.dark)}
+ function chimney(x,z,y){if(S.chimney==='none'||FACTORY_CH)return;/* Fabrikbauten der Neuzeit: nur der große Schlot */if(S.chimney==='brick'){box(.7,3.6,.75,x,y+1.8,z,H.plaster);box(.85,.2,.9,x,y+3.6,z,H.stone);box(.45,.02,.5,x,y+3.71,z,H.dark);return}box(.65,2.7,.7,x,y+1.35,z,H.stone);box(.8,.15,.85,x,y+2.7,z,H.stone);box(.45,.02,.5,x,y+2.79,z,H.dark)}
  function barrel(x,z,y=0){cylinder(.32,.72,x,y+.36,z,H.wood);for(const yy of[.15,.58]){const geo=new T.TorusGeometry(.327,.025,5,14);geo.rotateX(Math.PI/2);geo.translate(x,y+yy,z);staticMesh(geo,H.iron)}}
  function table(x,z){box(1.6,.12,.75,x,.86,z,H.wood);for(const xx of[-.65,.65])box(.12,.8,.55,x+xx,.4,z,H.wood,true)}
  function crate(x,z,y=.25,w=.75,h=.5,d=.55,mat=H.wood){box(w,h,d,x,y,z,mat,true);for(const xx of[-w/2+.06,w/2-.06])box(.05,h+.02,d+.02,x+xx,y,z,H.wood);for(const zz of[-d/2+.06,d/2-.06])box(w+.02,.05,.05,x,y+h/2-.04,z+zz,H.wood)}
@@ -853,7 +853,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   else if(X==='late'){if(home)box(w+.1,.35,.25,0,.18,F+.12,H.stone)}
   else if(X==='cornice'||X==='baroque'||X==='industry'){box(w+.3,.22,d+.3,0,h+.02,0,H.stone);for(const sx of[-1,1])for(const sz of[-1,1])box(.3,h,.3,sx*(w/2+.02),h/2,sz*(F+.02),X==='industry'?H.stone:H.floor);
    if(X==='baroque'&&home)box(1.6,.5,.12,0,h-.35,F+.08,H.floor);
-   if(X==='industry'){if(PROD.includes(k)){const sxx=-w/2+.7,szz=-F+.7,hh=h+9;cylinder(.5,hh,sxx,hh/2,szz,H.plaster,14);box(1.3,1.2,1.3,sxx,.6,szz,H.stone);for(let y=2;y<hh;y+=2.6)cylinder(.53,.12,sxx,y,szz,H.stone,14);cylinder(.6,.3,sxx,hh,szz,H.dark,14)}
+   if(X==='industry'){if(FACTORY_CH){const sxx=-w/2+.7,szz=-F+.7,hh=h+9;cylinder(.5,hh,sxx,hh/2,szz,H.plaster,14);box(1.3,1.2,1.3,sxx,.6,szz,H.stone);for(let y=2;y<hh;y+=2.6)cylinder(.53,.12,sxx,y,szz,H.stone,14);cylinder(.6,.3,sxx,hh,szz,H.dark,14)}
     if(home){box(.08,2.6,.08,w/2+.4,1.3,F+.6,H.iron);box(.3,.38,.3,w/2+.4,2.75,F+.6,H.win||cm('gaslamp',0xf2e6b0));box(.36,.06,.36,w/2+.4,2.97,F+.6,H.iron)}}}}
  // Static parts merge by material. Detail-rich buildings stay cheap to draw.
  for(const [material,geos]of batches){if(!geos.length)continue;const geometry=mergeGeometries(geos,false),mesh=new T.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);geos.forEach(geo=>geo.dispose())}
