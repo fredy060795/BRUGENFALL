@@ -860,7 +860,10 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   else if(X==='cornice'||X==='baroque'||X==='industry'){box(w+.3,.22,d+.3,0,h+.02,0,H.stone);for(const sx of[-1,1])for(const sz of[-1,1])box(.3,h,.3,sx*(w/2+.02),h/2,sz*(F+.02),X==='industry'?H.stone:H.floor);
    if(X==='baroque'&&home)box(1.6,.5,.12,0,h-.35,F+.08,H.floor);
    if(X==='industry'){if(FACTORY_CH){const sxx=-w/2+.7,szz=-F+.7,hh=h+9;cylinder(.5,hh,sxx,hh/2,szz,H.plaster,14);box(1.3,1.2,1.3,sxx,.6,szz,H.stone);for(let y=2;y<hh;y+=2.6)cylinder(.53,.12,sxx,y,szz,H.stone,14);cylinder(.6,.3,sxx,hh,szz,H.dark,14)}
-    if(home){box(.08,2.6,.08,w/2+.4,1.3,F+.6,H.iron);box(.3,.38,.3,w/2+.4,2.75,F+.6,H.win||cm('gaslamp',0xf2e6b0));box(.36,.06,.36,w/2+.4,2.97,F+.6,H.iron)}}}}
+    if(home){const RS=cm('rustica',0xd8ccb0);for(let y=.45;y<h-.3;y+=.45)box(w+.06,.05,.04,0,y,F+.02,cm('rustGroove',0x8a8070));box(w+.2,.22,.3,0,h,F+.1,RS);   // Gründerzeit: genutetes Erdgeschoss, Gurtgesims
+     if(k==='bighouse'||lv>=1){const by=h+.12,bw2=Math.min(2.4,w-1.6);box(bw2,.14,.75,0,by,F+.42,RS);for(let x=-bw2/2;x<=bw2/2+.01;x+=.22)box(.04,.8,.04,x,by+.47,F+.76,H.iron);box(bw2+.04,.05,.06,0,by+.88,F+.76,H.iron);for(const sx of[-1,1])box(.05,.8,.75,sx*bw2/2,by+.47,F+.42,H.iron);   // Balkon mit Eisengeländer
+      for(const sx of[-1,1]){const kb=new T.CylinderGeometry(.06,.14,.5,8);kb.rotateX(Math.PI);kb.translate(sx*(bw2/2-.25),by-.3,F+.3);staticMesh(kb,RS)}}
+box(.3,.38,.3,w/2+.4,2.75,F+.6,H.win||cm('gaslamp',0xf2e6b0));box(.36,.06,.36,w/2+.4,2.97,F+.6,H.iron)}}}}
  // Static parts merge by material. Detail-rich buildings stay cheap to draw.
  for(const [material,geos]of batches){if(!geos.length)continue;const geometry=mergeGeometries(geos,false),mesh=new T.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);geos.forEach(geo=>geo.dispose())}
  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g;
