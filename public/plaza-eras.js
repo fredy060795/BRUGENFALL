@@ -113,8 +113,21 @@ function carousel(g,x,z){const c=new THREE.Group();c.position.set(x,0,z);g.add(c
   const hm=mat('horse'+i%3,[0xf0ead8,0x6a4a2c,0x2a2420][i%3]);put(h,new THREE.Mesh(new THREE.BoxGeometry(.3,.35,.9),hm),0,0,0);put(h,new THREE.Mesh(new THREE.BoxGeometry(.2,.45,.22),hm),0,.3,.45).rotation.x=-.4;for(const lx of[-.1,.1])for(const lz of[-.3,.3])put(h,new THREE.Mesh(new THREE.BoxGeometry(.06,.4,.06),hm),lx,-.3,lz);
   put(h,new THREE.Mesh(new THREE.BoxGeometry(.32,.06,.35),mat('saddle',CL[(i+2)%4])),0,.2,0);horses.push(h)}
  return t=>{rot.rotation.y=t*.0006;horses.forEach((h,i)=>h.position.y=1+.18*Math.sin(t*.004+i*1.1))}}
-export function eraFest(era,ev){if(!era||['hochmittelalter','spaetmittelalter'].includes(era))return null;const g=new THREE.Group();let anim=null,replace=true,x=0;
- if(ev==='tree'){if(['steinzeit','hallstatt'].includes(era))anim=bonfire(g,0,0,1.2);else if(era==='roemer')saturnalia(g);else if(era==='fruehmittelalter'){anim=bonfire(g,2.6,0,.8)}else return null;
+// Perchten: zottiges Fellgewand, geschnitzte Holzmaske mit Hörnern, Kuhglocke – sie ziehen im Kreis ums Feuer
+function perchten(g,n,R){const L=[];for(let i=0;i<n;i++){const p=new THREE.Group(),fur=mat('perchtfur'+i%3,[0x3a2a1e,0x5a4430,0x2a2420][i%3],{roughness:1,flatShading:true});
+  put(p,new THREE.Mesh(new THREE.ConeGeometry(.5,1.6,9),fur),0,.8,0);put(p,new THREE.Mesh(new THREE.DodecahedronGeometry(.42,0),fur),0,1.55,0);
+  put(p,new THREE.Mesh(new THREE.BoxGeometry(.34,.42,.12),mat('perchtmask',0x8a5a3a)),0,1.75,.32);for(const sx of[-1,1]){put(p,new THREE.Mesh(new THREE.BoxGeometry(.07,.05,.03),mat('perchteye',0xe8e0c8)),sx*.08,1.82,.39);const h=put(p,new THREE.Mesh(new THREE.ConeGeometry(.06,.6,6),mat('perchthorn',0xd8ccb0)),sx*.2,2.15,.2);h.rotation.z=-sx*.5}
+  put(p,new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,.22,8),mat('bell',0xb89a40,{metalness:.6,roughness:.4})),.3,.9,.2);g.add(p);L.push(p)}
+ return t=>L.forEach((p,i)=>{const a=t*.0005+i/n*6.283;p.position.set(Math.cos(a)*R,Math.abs(Math.sin(t*.008+i))*.15,Math.sin(a)*R);p.rotation.y=-a})}
+// Christkindlmarkt: Holzstandl mit Satteldach, Lichterketten, Lebkuchenherzen
+function christkindl(g){const wood=mat('ckwood',0x7a5232),roof=mat('ckroof',0x5a3a26),glow=mat('cklight',0xfff0b0,{emissive:0xffc860,emissiveIntensity:1}),heart=mat('ckheart',0xa0482a);
+ for(const[x,z,ry]of[[3.2,-4.2,0],[6.4,-4.2,0],[3.2,4.2,Math.PI],[6.4,4.2,Math.PI],[9.4,0,-Math.PI/2]]){const s=new THREE.Group();s.position.set(x,0,z);s.rotation.y=ry;g.add(s);
+  put(s,new THREE.Mesh(new THREE.BoxGeometry(2.4,2,1.4),wood),0,1,-.1);put(s,new THREE.Mesh(new THREE.BoxGeometry(2.3,1,.05),mat('ckopen',0x2a1a10)),0,1.45,.62);put(s,new THREE.Mesh(new THREE.BoxGeometry(2.5,.12,.6),wood),0,.95,.85);
+  const rg=new THREE.CylinderGeometry(.01,.01,1,3);const r=put(s,new THREE.Mesh(new THREE.ConeGeometry(1.75,.9,4,1),roof),0,2.45,-.1);r.rotation.y=Math.PI/4;r.scale.set(1,1,.6);
+  for(let i=0;i<9;i++)put(s,new THREE.Mesh(new THREE.SphereGeometry(.05,6,4),glow),-1.15+i*.29,2.05+Math.sin(i)*.05,.62);for(let i=0;i<4;i++)put(s,new THREE.Mesh(new THREE.CircleGeometry(.12,10),heart),-.8+i*.5,1.75,.66)}
+ const L=new THREE.PointLight(0xffc870,10,14,2);L.position.set(5,3,0);g.add(L)}
+export function eraFest(era,ev){if(!era||(['hochmittelalter','spaetmittelalter'].includes(era)&&ev!=='tree'))return null;const g=new THREE.Group();let anim=null,replace=true,x=0;
+ if(ev==='tree'){if(era==='steinzeit')anim=bonfire(g,0,0,1.2);else if(era==='hallstatt'){const b=bonfire(g,0,0,1.2),p=perchten(g,6,2.6);anim=t=>{b(t);p(t)}}else if(era==='roemer')saturnalia(g);else if(era==='fruehmittelalter'){const b=bonfire(g,2.6,0,.8),p=perchten(g,5,4.4);anim=t=>{b(t);p(t)}}else{christkindl(g);replace=false}
   if(era==='fruehmittelalter')replace=false;}
  else if(ev==='circus'){if(['steinzeit','hallstatt'].includes(era)){tradeCamp(g,era);anim=bonfire(g,-5.5,0,.6)}else if(era==='neuzeit'){anim=carousel(g,-7.5,0);replace=false}else return null}
  else return null;

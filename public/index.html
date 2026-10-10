@@ -393,6 +393,9 @@ function piece(k,lv=0,v=0,att=0,paint=0){if(k==='wonder'){const W=buildWonder(ER
       const trunk=bx(.2,4.5,.2,mW,0,2.25,0);g.plazaProps.add(trunk);
       if(ev==='maypole'){const ribbons=[],top=new THREE.Vector3(0,4.3,0),up=new THREE.Vector3(0,1,0);
         const wreath=new THREE.Mesh(new THREE.TorusGeometry(.32,.07,6,16),new THREE.MeshStandardMaterial({color:0x2f6a2a,roughness:1}));wreath.rotation.x=Math.PI/2;wreath.position.y=4.2;g.plazaProps.add(wreath);
+        if(!['steinzeit','hallstatt','roemer'].includes(ERA)){const wip=new THREE.Mesh(new THREE.ConeGeometry(.45,1.3,8),new THREE.MeshStandardMaterial({color:0x2f6a2a,roughness:1}));wip.position.y=5.1;g.plazaProps.add(wip);   // österreichischer Maibaum: grüner Wipfel, zweiter Kranz, Zunftzeichen an Querbalken
+         const w2=wreath.clone();w2.position.y=3.5;w2.scale.setScalar(1.25);g.plazaProps.add(w2);const ZC=[0xb01e1e,0x1f3a7a,0xd8b030,0x2a6a3a,0xf0ece0,0x6a3a8a];
+         for(const[y,ry]of[[2.6,0],[1.9,Math.PI/2]]){const bar=bx(1.9,.06,.06,mW,0,y+.35,0);bar.rotation.y=ry;g.plazaProps.add(bar);for(const sx of[-1,1]){const b=bx(.42,.5,.03,new THREE.MeshStandardMaterial({color:ZC[(y*10+sx+3)%6|0],roughness:.7}),Math.cos(ry)*sx*.75,y,-Math.sin(ry)*sx*.75);b.rotation.y=ry;g.plazaProps.add(b);const f=bx(.48,.56,.02,new THREE.MeshStandardMaterial({color:0xf0e6c8}),Math.cos(ry)*sx*.75,y,-Math.sin(ry)*sx*.75-.002);f.rotation.y=ry;g.plazaProps.add(f)}}}
         // Bänder hängen vom Kranz schräg nach unten zu den Tänzern (zwei Abschnitte mit Durchhang)
         const place=(m,a,b)=>{const d=b.clone().sub(a),l=d.length();m.position.copy(a).addScaledVector(d,.5);m.scale.set(1,l,1);m.quaternion.setFromUnitVectors(up,d.normalize())};
         for(let i=0;i<8;i++){const mat=i%2?FEST_RED:FEST_LIGHT,s1=bx(.06,1,.015,mat,0,0,0),s2=bx(.06,1,.015,mat,0,0,0);g.plazaProps.add(s1,s2);ribbons.push({s1,s2,a:i/8*6.283,ph:i*.7})}
