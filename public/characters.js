@@ -206,11 +206,11 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  if(g._vp===undefined){g._vp=null;g.traverse(c=>{if(c.userData&&c.userData.visorPivot)g._vp=c})}
  if(g._vp){g._va=attacking?2.5:Math.max(0,(g._va||0)-dt);const open=g.visorUp!=null?g.visorUp:g._va<=0&&!fx.closeVisor,tg=open?-1.3:0;g._vp.rotation.x+=(tg-g._vp.rotation.x)*Math.min(1,dt*6)}
  g.t+=dt;g.sp+=(speed-g.sp)*(1-Math.exp(-dt*9));
- const sp=mounted?0:g.sp,k=Math.min(1,sp/3.2),run=Math.max(0,Math.min(1,(sp-4)/3)),type=g.toolType,bow=type==='bow',two=type==='axe'||type==='pickaxe'||type==='hoe',kind=kindOf(type);
+ const sp=mounted?0:g.sp,k=Math.min(1,sp/3.2),run=Math.max(0,Math.min(1,(sp-4)/3)),type=g.toolType,bow=type==='bow',gun=type==='arquebus'||type==='musket'||type==='rifle',two=type==='axe'||type==='pickaxe'||type==='hoe',kind=kindOf(type);
  if(sp>.2)g.phase+=dt*sp*1.75;
  if(attacking&&g.sw<0)g.sw=0;
  if(g.sw>=0){g.sw+=dt/(bow?.8:(SWING[type]||.75));if(g.sw>=1)g.sw=attacking?0:-1}
- const u=g.sw,A=Math.min(.5,sp*.095),lift=.14*k,busy=!!(fx.carry||fx.work===1||fx.work===3||fx.pray),SW=(u>=0&&!bow&&!busy)?swingPose(kind,u):null,pz=SW?SW.pz:0;
+ const u=g.sw,A=Math.min(.5,sp*.095),lift=.14*k,busy=!!(fx.carry||fx.work===1||fx.work===3||fx.pray),SW=(u>=0&&!bow&&!gun&&!busy)?swingPose(kind,u):null,pz=SW?SW.pz:0;
  const foot=i=>{const w=(((g.phase/6.2832+(i?.5:0))%1)+1)%1;if(w<.6)return[A*(1-2*w/.6),0];const s=(w-.6)/.4;return[-A+2*A*(1-Math.cos(Math.PI*s))/2,lift*Math.sin(Math.PI*s)]};
  const f0=foot(0),f1=foot(1),dy=(mounted?0:-.05*k+.035*k*Math.cos(2*(g.phase-.6*Math.PI)))+(SW?SW.pd:0);
  if(mounted){g.legs.forEach(({hip,knee},i)=>{hip.rotation.set(-1.05,0,i?-.22:.22);knee.rotation.x=.85});pel.position.set(0,0,0)}
@@ -252,6 +252,8 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  else if(fx.carry){R=V(.2,1.05,.4);Lh=V(-.2,1.05,.4);q=Eu(0,0,0)}
  else if(fx.pray){R=V(.1,1,.38);Lh=V(-.1,1,.38);q=Eu(0,0,0);ux+=.3}
  else if(fx.work===1||fx.work===3){const pose=workPose(g.role,g.t*(fx.work===3?.65:1),type),k2=Math.sin(g.t*(fx.work===3?3:7));if(pose){R=pose.R;Lh=pose.Lh;q=pose.q;ux+=pose.ux||0;uy+=pose.uy||0;py+=pose.py||0}else{R=V(.16,1,.42+.07*k2);Lh=V(-.16,1,.42-.07*k2);q=Eu(0,0,0);ux+=.18}}
+ else if(gun&&(fx.firstPerson||u>=0||fx.aim>0)){const rc=u>=0?Math.max(0,1-u*4):0;   // Feuerwaffe im Anschlag: Kolben an der Schulter, Lauf nach vorn, Rückstoß beim Schuss
+  R=V(.13,1.36,.36-.07*rc);q=Eu(Math.PI/2-.06-.25*rc,0,0);Lh=V(.02,1.33,.78-.07*rc);ux-=.05*rc}
  else if(bow){let draw;const a=fx.aim;
   if(a!==undefined){g.dr=(g.dr||0)+(a-(g.dr||0))*(1-Math.exp(-dt*12));draw=g.dr;if(attacking&&!g.wa)g.rl=.28;g.wa=attacking;if(g.rl>0){g.rl-=dt;draw=0;g.dr=0}}
   else draw=u>=0?(u<.62?ease(u/.58):0):0;
@@ -263,8 +265,8 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
   if(SW){h=SW.h;d=SW.d;const a=swingPose(kind,Math.max(0,u-.03)),b=swingPose(kind,Math.min(1,u+.03));tan=b.h.clone().sub(a.h);if(tan.lengthSq()<1e-6)tan=FW.clone();ux+=SW.lean;uy+=SW.tw;py-=SW.tw*.5}
   else{const K0=SWK[kind][0];h=V(K0[1],K0[2],K0[3]);d=V(K0[4],K0[5],K0[6]).normalize();tan=FW.clone()}
   R=h.clone();q=toolQ(d,tan);Lh=two?R.clone().addScaledVector(d,-.25):V(-.3,1,.25)}
- if(fx.firstPerson&&!SW&&!bow&&!busy){R.y=Math.max(R.y,1.2);R.z=Math.max(R.z,.45);Lh.y=Math.max(Lh.y,1.15);Lh.z=Math.max(Lh.z,.4)}
- if(fx.shield&&!two&&!bow&&!busy){Lh=fx.firstPerson?V(-.32,1.28,.5+(SW?.08:0)):V(-.24,1.12,.36+(SW?.08:0));qL=Eu(0,fx.firstPerson?.5:.25,0)}
+ if(fx.firstPerson&&!SW&&!bow&&!gun&&!busy){R.y=Math.max(R.y,1.2);R.z=Math.max(R.z,.45);Lh.y=Math.max(Lh.y,1.15);Lh.z=Math.max(Lh.z,.4)}
+ if(fx.shield&&!two&&!bow&&!gun&&!busy){Lh=fx.firstPerson?V(-.32,1.28,.5+(SW?.08:0)):V(-.24,1.12,.36+(SW?.08:0));qL=Eu(0,fx.firstPerson?.5:.25,0)}
  else if(fx.torch&&!two&&!bow&&!busy){Lh=V(-.3,1.15,.38);qL=Eu(.35,0,.15)}
  up.rotation.set(ux,uy-yawA,uz);pel.rotation.y=py-yawA*.45;up.scale.y=1+br*.004;
  if(yawA)q=Eu(0,yawA,0).multiply(q);

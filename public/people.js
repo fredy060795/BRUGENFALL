@@ -652,14 +652,14 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   const bm=hatMat('cloth',o.hatCol||0x2a2a4a);mesh(cg('beret',()=>lat([[0,1.55],[.7,1.58],[1.25,1.42],[1.45,1.22],[1.32,1.05],[1.08,.92],[1.02,.85],[1.0,.95],[1.2,1.08],[1.05,1.32],[.6,1.45],[0,1.48]],30)),bm,H,[0,0,0],[1,1,1]).rotation.z=-.12;
   mesh(cg('brooch',()=>new T.SphereGeometry(.12,10,8)),hatMat('gold'),H,[.95,1.15,.55]);
   const fw=hatMat('feather',0xf0ece2);for(let f=0;f<3;f++)mesh(cg('plf'+f,()=>{const pts=[];for(let k=0;k<=14;k++){const t=k/14;pts.push(new T.Vector3(.95+.4*t+f*.06,1.2+1.0*t-.6*t*t,.5-1.6*t))}return new T.TubeGeometry(new T.CatmullRomCurve3(pts),18,.11-.02*f,6,false)}),f?hatMat('feather',0xd8c090):fw,H)}
- if(hat==='shako'){      // Tschako (napoleonisch): steifer Filzzylinder, Lederschirm, Messingschild, Kokarde und Pompon in Fraktionsfarbe
-  const fm=hatMat('felt',o.hatCol||0x141414),gm=hatMat('gold');mesh(cg('shako',()=>lat([[0,2.2],[1.12,2.2],[1.14,2.14],[1.04,.98],[1.0,.88],[0,.88]],28)),fm,H);
-  ring(H,hatMat('band',0x0e0e0e),1.04,.92,.08,1.04);mesh(cg('shvis',()=>paramGeo((u,v)=>{const a=-1.2+2.4*u,r=1.02+v*.42;return[r*Math.sin(a),.9-v*.12,r*1.05*Math.cos(a)]},20,2)),hatMat('band',0x0e0e0e),H);
-  mesh(cg('shplate',()=>new T.CylinderGeometry(.34,.3,.05,6)),gm,H,[0,1.42,1.1]).rotation.x=Math.PI/2-.06;
-  mesh(cg('shcock',()=>new T.CylinderGeometry(.16,.16,.05,14)),hatMat('cloth',o.fac||0xf0f0f0),H,[0,2.0,1.14]).rotation.x=Math.PI/2;
-  mesh(cg('shpom',()=>new T.SphereGeometry(.2,10,8)),hatMat('cloth',o.fac||0xd02020),H,[0,2.36,1.0],[1,1.15,1])}
- if(hat==='shako'&&o.cords){const gm=hatMat('gold');for(const[y,r]of[[1.05,1.07],[1.18,1.08]])mesh(cg('shcord'+y,()=>{const q=new T.TorusGeometry(r,.03,5,24,Math.PI*1.1);q.rotateX(Math.PI/2);q.rotateY(-Math.PI*.05);return q}),gm,H,[0,y,0]);   // Fangschnüre
-  mesh(cg('shcock2',()=>new T.CylinderGeometry(.1,.1,.06,12)),hatMat('cloth',0x141414),H,[0,2.0,1.17]).rotation.x=Math.PI/2}
+ if(hat==='shako'){const HS=new T.Group();HS.position.y=-0.3;HS.scale.setScalar(1.05);H.add(HS);      // Tschako (napoleonisch): steifer Filzzylinder, Lederschirm, Messingschild, Kokarde und Pompon in Fraktionsfarbe
+  const fm=hatMat('felt',o.hatCol||0x141414),gm=hatMat('gold');mesh(cg('shako',()=>lat([[0,2.2],[1.12,2.2],[1.14,2.14],[1.04,.98],[1.0,.88],[0,.88]],28)),fm,HS);
+  ring(HS,hatMat('band',0x0e0e0e),1.04,.92,.08,1.04);mesh(cg('shvis',()=>paramGeo((u,v)=>{const a=-1.2+2.4*u,r=1.02+v*.42;return[r*Math.sin(a),.9-v*.12,r*1.05*Math.cos(a)]},20,2)),hatMat('band',0x0e0e0e),HS);
+  mesh(cg('shplate',()=>new T.CylinderGeometry(.34,.3,.05,6)),gm,HS,[0,1.42,1.1]).rotation.x=Math.PI/2-.06;
+  mesh(cg('shcock',()=>new T.CylinderGeometry(.16,.16,.05,14)),hatMat('cloth',o.fac||0xf0f0f0),HS,[0,2.0,1.14]).rotation.x=Math.PI/2;
+  mesh(cg('shpom',()=>new T.SphereGeometry(.2,10,8)),hatMat('cloth',o.fac||0xd02020),HS,[0,2.36,1.0],[1,1.15,1])}
+ if(hat==='shako'&&o.cords){const HS=new T.Group();HS.position.y=-0.3;HS.scale.setScalar(1.05);H.add(HS);const gm=hatMat('gold');for(const[y,r]of[[1.05,1.07],[1.18,1.08]])mesh(cg('shcord'+y,()=>{const q=new T.TorusGeometry(r,.03,5,24,Math.PI*1.1);q.rotateX(Math.PI/2);q.rotateY(-Math.PI*.05);return q}),gm,HS,[0,y,0]);   // Fangschnüre
+  mesh(cg('shcock2',()=>new T.CylinderGeometry(.1,.1,.06,12)),hatMat('cloth',0x141414),HS,[0,2.0,1.17]).rotation.x=Math.PI/2}
  if(hat==='bicorne'){    // Zweispitz (Offiziere): quer getragen, halbmondförmige Krempe mit Goldborte und Kokarde
   const fm=hatMat('felt',o.hatCol||0x141414),gm=hatMat('gold');mesh(cg('bicr',()=>lat([[0,1.5],[.6,1.5],[.95,1.3],[1.04,1.0],[1.02,.86],[0,.86]],24)),fm,H);
   const half=sh=>{sh.moveTo(-1.75,0);sh.quadraticCurveTo(-1.15,.5,-.62,1.08);sh.quadraticCurveTo(0,1.4,.62,1.08);sh.quadraticCurveTo(1.15,.5,1.75,0);sh.lineTo(-1.75,0);return sh};
@@ -674,13 +674,13 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   const fur=hatMat('cloth',0x1e1812);mesh(cg('bmfur',()=>lat([[0,2.75],[.55,2.7],[.98,2.35],[1.14,1.7],[1.1,1.05],[1.05,.92],[0,.92]],24)),fur,H);
   mesh(cg('bmpl',()=>{const sh=new T.Shape();sh.moveTo(-.5,0);sh.lineTo(.5,0);sh.lineTo(.42,.7);sh.quadraticCurveTo(0,1.05,-.42,.7);sh.closePath();return new T.ShapeGeometry(sh,8)}),hatMat('gold'),H,[0,1.0,1.11]).rotation.x=-.12;
   mesh(cg('bmbag',()=>new T.SphereGeometry(.3,10,8)),hatMat('cloth',o.fac||0xb01e1e),H,[0,2.2,-.95],[1,1.6,.6])}
- if(hat==='raupe'){      // Raupenhelm (Kürassiere, Dragoner): schwarzes Leder, Messingkamm, Raupe aus Rosshaar, Stirnschild, Schirm
-  const lm=hatMat('felt',0x161412),gm=hatMat('gold');mesh(cg('rpsk2',()=>lat([[0,2.1],[.55,2.04],[.95,1.72],[1.1,1.25],[1.12,.9],[0,.9]],24)),lm,H);
-  ring(H,gm,1.08,.95,.06,1.08);mesh(cg('shvis',()=>paramGeo((u,v)=>{const a=-1.2+2.4*u,r=1.02+v*.42;return[r*Math.sin(a),.9-v*.12,r*1.05*Math.cos(a)]},20,2)),hatMat('band',0x0e0e0e),H);
-  mesh(cg('rpcomb',()=>{const q=new T.TorusGeometry(1.12,.09,6,24,Math.PI);q.rotateY(Math.PI/2);q.translate(0,.98,0);return q}),gm,H);
-  mesh(cg('rpcr2',()=>{const q=new T.TorusGeometry(1.2,.34,10,28,Math.PI*1.15);q.rotateY(Math.PI/2);q.scale(.5,1,1);q.translate(0,1.05,-.1);return q}),hatMat('cloth',0x101010),H);   // mächtige Raupe aus Rosshaar
-  mesh(cg('rpdrag',()=>new T.CylinderGeometry(.12,.12,.06,10)),gm,H,[0,2.18,1.1]).rotation.x=Math.PI/2;
-  mesh(cg('rpfp2',()=>new T.CircleGeometry(.46,24)),gm,H,[0,1.4,1.13]).rotation.x=-.25}
+ if(hat==='raupe'){const HS=new T.Group();HS.position.y=-0.26;HS.scale.setScalar(1.05);H.add(HS);      // Raupenhelm (Kürassiere, Dragoner): schwarzes Leder, Messingkamm, Raupe aus Rosshaar, Stirnschild, Schirm
+  const lm=hatMat('felt',0x161412),gm=hatMat('gold');mesh(cg('rpsk2',()=>lat([[0,2.1],[.55,2.04],[.95,1.72],[1.1,1.25],[1.12,.9],[0,.9]],24)),lm,HS);
+  ring(HS,gm,1.08,.95,.06,1.08);mesh(cg('shvis',()=>paramGeo((u,v)=>{const a=-1.2+2.4*u,r=1.02+v*.42;return[r*Math.sin(a),.9-v*.12,r*1.05*Math.cos(a)]},20,2)),hatMat('band',0x0e0e0e),HS);
+  mesh(cg('rpcomb',()=>{const q=new T.TorusGeometry(1.12,.09,6,24,Math.PI);q.rotateY(Math.PI/2);q.translate(0,.98,0);return q}),gm,HS);
+  mesh(cg('rpcr3',()=>{const q=new T.TorusGeometry(1.2,.32,10,28,Math.PI*.95);q.rotateZ(-Math.PI*.22);q.rotateY(Math.PI/2);q.scale(.5,1,1);q.translate(0,1.0,-.12);return q}),hatMat('cloth',0x101010),HS);   // mächtige Raupe aus Rosshaar
+  mesh(cg('rpdrag',()=>new T.CylinderGeometry(.12,.12,.06,10)),gm,HS,[0,2.18,1.1]).rotation.x=Math.PI/2;
+  mesh(cg('rpfp3',()=>new T.CircleGeometry(.3,24)),gm,HS,[0,1.55,1.04]).rotation.x=-.45}
  if(hat==='tricorne'){   // Dreispitz (Barock): niedrige Kalotte, an drei Seiten hochgeschlagene Krempe mit Borte, Kokarde
   const fm=hatMat('felt',o.hatCol||0x141414);mesh(cg('tricr',()=>lat([[0,1.6],[.6,1.6],[.95,1.4],[1.04,1.05],[1.02,.86],[0,.86]],24)),fm,H);
   const bri=(u,v,o2=0)=>{const a=u*2*Math.PI,k=Math.abs(Math.cos(1.5*a)),r=1.0+v*(.62+.5*k),up=v*v*(.78-.28*k);return[r*Math.sin(a),.84+up+o2,r*1.05*Math.cos(a)]};
