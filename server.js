@@ -87,6 +87,7 @@ BD.church=J(12,16,{stone:80,wood:40},1500,{jobs:{priest:2}});BD.stairs=J(2,6,{st
 Object.assign(BN,{church:'Kirche',stairs:'Treppe zum Wehrgang',mill:'Mühle',well:'Brunnen',moat:'Wassergraben',ironmine:'Eisenmine',coppermine:'Goldmine',pigsty:'Schweinestall',apiary:'Imkerei',butcher:'Metzgerei',tannery:'Gerberei',orchard:'Obstplantage',hopfield:'Hopfenfeld',brewery:'Brauerei',smokehouse:'Räucherei',cathedral:'Kathedrale',wonder:'Wahrzeichen',torture:'Folterkammer',portcullis:'Torhaus mit Fallgitter',harbor:'Hafen'});
 BD.gate.w=BD.portcullis.w=8;BD.gate.d=BD.portcullis.d=4;BD.gate.post.y=BD.portcullis.post.y=4;BD.church.w=8;BD.church.d=12;BD.farm.w=18;BD.farm.d=16;
 Object.assign(BD,{bower:J(5,5,{wood:25,stone:8},420,{jobs:{smith:1},prod:{every:45,in:{wood:3},out:{weapons:1},dest:'garrison'}}),armorer:J(5,5,{wood:25,stone:20,iron:5},600,{jobs:{smith:1}}),armory:J(6,5,{stone:30,wood:15},900,{store:150}),granary:J(6,5,{wood:30,stone:10},500,{store:250})});
+BD.station=J(14,8,{stone:60,wood:40,iron:15},900,{station:1});BN.station='Bahnhof';
 BD.mint=J(6,5,{stone:45,wood:20,iron:6},900,{jobs:{minter:2},prod:{every:45,in:{copper:2},out:{}}});
 Object.assign(BN,{mint:'Münzprägerei',bower:'Bogenbauer',armorer:'Rüstungsmacher',armory:'Waffenkammer',granary:'Nahrungsmittellager'});
 Object.assign(BD,{pyre:J(3,3,{wood:20,stone:5},200),gallows:J(3,2,{wood:25},180),plaza:J(12,12,{stone:40,wood:15},500,{plaza:1})});
@@ -576,11 +577,15 @@ const TOLL=12;function cvMove(r,c,x,z,sp,dt){c.tx=x;c.tz=z;while(c.wp&&c.wp.leng
 function tradeTick(r,dt){for(const c of r.cv){c.t-=dt;
   if(c.kind==='caravan'){const m=r.b.find(b=>b.t==='market');if(c.st==='go'){if(!m){c.st='leave'}else if(cvMove(r,c,m.x,m.z+BD.market.d/2+3.5,3.6,dt)<2){c.st='wait';c.t=75;say(r,'🛒 Handelskarawane aus '+c.from+' ist am Marktstand eingetroffen (75 s, bessere Preise)');ecoArrive(r,c.from)}}
    else if(c.st==='wait'&&c.t<=0){c.st='leave';const T0=townsOf(r).find(t=>t.n===c.from)||friendTowns(r)[0];c.wp=T0?(landRoute(r,c,T0)||[]).slice():[]}else if(c.st==='leave'){const T0=townsOf(r).find(t=>t.n===c.from)||friendTowns(r)[0];if(!T0||cvMove(r,c,T0.x,T0.z,3.6,dt)<4)c.gone=1}}
+  else if(c.kind==='train'){if(c.st==='go'){if(mv(c,c.ex,c.ez,9,dt)<.5){c.st='wait';c.t=70;say(r,'🚂 Der Zug aus '+c.from+' ist im Bahnhof eingefahren (70 s, gute Preise)');ecoArrive(r,c.from)}}
+   else if(c.st==='wait'){if(c.t<=0)c.st='leave';if(!r.b.some(b=>b.t==='station'))c.st='leave'}else if(c.st==='leave'){if(mv(c,c.sx,c.sz,9,dt)<1)c.gone=1;c.ry=Math.atan2(c.sx-c.x,c.sz-c.z)}}
   else{const h=r.b.find(b=>b.t==='harbor');if(c.st==='go'){if(!h){c.st='leave'}else{c.z-=6*dt;c.x=riverAt(r,c.z);c.ry=Math.atan2(riverAt(r,c.z-1)-riverAt(r,c.z),-1);if(c.z<=h.z){c.st='wait';c.t=80;{const rx=riverAt(r,h.z),side=Math.sign(h.x-rx)||1;c.x=rx+side*Math.min(4.2,Math.abs(h.x-rx));c.ry=Math.PI}say(r,'⚓ Ein Handelsschiff aus '+c.from+' hat im Hafen angelegt (80 s, beste Preise)');ecoArrive(r,c.from)}}}
   else if(c.st==='wait'&&c.t<=0)c.st='leave';else if(c.st==='leave'){c.z+=6*dt;c.x=riverAt(r,c.z);c.ry=Math.atan2(riverAt(r,c.z+1)-riverAt(r,c.z),1);if(c.z>WH(r))c.gone=1}}}
  r.cv=r.cv.filter(c=>!c.gone);r.tt-=dt;
  if(r.tt<=0){r.tt=rnd(170,260);spawnTrade(r)}}
 function spawnTrade(r,force){const fr=friendTowns(r);if(!fr.length)return;const f=fr[Math.random()*fr.length|0],h=r.b.find(b=>b.t==='harbor'),m=r.b.find(b=>b.t==='market');
+ const stn=Rules.eraOf(r.era).id==='neuzeit'&&r.b.find(b=>b.t==='station');if(stn&&(force==='train'||Math.random()<.5)){const th=(stn.r||0)*Math.PI/2,co=Math.cos(th),sn=Math.sin(th),S=2.4,lim=WH(r)-4;let L=7;while(L<600){const wx=stn.x+L*co-S*sn,wz=stn.z-L*sn-S*co;if(Math.abs(wx)>lim||Math.abs(wz)>lim)break;L+=4}
+  const sx=stn.x+L*co-S*sn,sz=stn.z-L*sn-S*co,ex=stn.x-S*sn,ez=stn.z-S*co;r.cv.push({id:uid++,kind:'train',x:sx,z:sz,sx,sz,ex,ez,ry:Math.atan2(ex-sx,ez-sz),st:'go',t:0,from:f.n});say(r,'🚂 Ein Zug aus '+f.n+' ist unterwegs – Pfiff am Bahnhof!');return}
  if(h&&shipRiver(r)&&(!m||Math.random()<.5||force==='ship')){r.cv.push({id:uid++,kind:'ship',x:riverAt(r,WH(r)-20),z:WH(r)-20,ry:0,st:'go',t:0,from:f.n});{const sn=Rules.shipName(r.era);say(r,(r.era==='neuzeit'?'🚢':'⚓')+' '+({Einbaum:'Ein Einbaum',Salzboot:'Ein Salzboot',Flussgaleere:'Eine Flussgaleere',Langschiff:'Ein Langschiff',Zille:'Eine Zille','Plätte':'Eine Plätte',Raddampfer:'Der Raddampfer'}[Rules.ship(r.era)]||'Ein Handelsschiff')+(sn?' „'+sn+'“':'')+' aus '+f.n+' nähert sich dem Hafen')}}
  else if(m){const wp=landRoute(r,f,{x:m.x,z:m.z+BD.market.d/2+3.5});
   if(!wp){if(!r.cvNo||r.dy-r.cvNo>=3){r.cvNo=r.dy;say(r,'🛒 Händler aus '+f.n+' kommen nicht über den Fluss – baue eine Brücke'+(h?'':' oder einen Hafen'))}return}
