@@ -2,7 +2,7 @@
 
 Ordnerstruktur zum eigenen Bearbeiten:
 
-- grundmaterialien/   – Atlanten und BaseColor-Texturen (Stein, Holz, Dach, Gras, Detail-Atlas)
+- grundmaterialien/   – nur Hinweis: die Atlanten/BaseColor-Texturen liegen direkt in public/textures/ (keine Doppel mehr)
 - haeuser/            – ausgeklappte Haus-Rückwände / Fachwerk-Vorlagen (PNG mit Transparenz)
 - kirchenfenster/     – gotische Buntglas-Vorlagen (Rautenmuster)
 - tierfelle/          – Fell-/Wolle-Vorlagen (Wolf, Hirsch, Schaf, Schwein)

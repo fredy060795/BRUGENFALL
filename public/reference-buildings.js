@@ -820,6 +820,11 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
   else if(era==='neuzeit'){cylinder(.28,1.0,.4,.5,-2.2,cm3('stove',0x2a2a2a,{metalness:.5,roughness:.5}),14);cylinder(.07,1.9,.4,1.95,-2.2,cm3('stove',0x2a2a2a),8);box(.35,.5,.12,-.6,1.8,-2.42,H.wood);
    const cf=new T.CircleGeometry(.12,16);cf.translate(-.6,1.9,-2.355);staticMesh(cf,cm3('clockface',0xf2ecd8))}}
  eraExtras();
+ // Bindenschild-Banner (Rot-Weiß-Rot, Babenberger/Habsburger) an der Vorderseite des Bergfrieds, Hoch- bis Spätmittelalter und Renaissance
+ if(k==='keep'&&g._wd&&['hochmittelalter','spaetmittelalter','renaissance'].includes(era)){const[w,d]=g._wd,top=Math.min((g._h||4)-.4,7.5),bm=COLM.get('bindenB')||(()=>{const c=document.createElement('canvas');c.width=64;c.height=160;const x=c.getContext('2d');
+   x.fillStyle='#b01e1e';x.fillRect(0,0,64,160);x.fillStyle='#f2eee4';x.fillRect(0,52,64,40);x.fillStyle='#d8b030';x.fillRect(0,0,64,6);for(let i=0;i<4;i++){x.clearRect(i*16,140,16,20);x.fillStyle='#b01e1e';x.beginPath();x.moveTo(i*16,140);x.lineTo(i*16+8,160);x.lineTo(i*16+16,140);x.fill()}
+   const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.9,transparent:true,alphaTest:.5,side:T.DoubleSide});COLM.set('bindenB',m);return m})();
+  for(const sx of[-1,1]){const b=new T.Mesh(new T.PlaneGeometry(1.1,2.6),bm);b.position.set(sx*(w/2-.75),top-1.4,d/2+.06);g.add(b);box(1.4,.08,.08,sx*(w/2-.75),top-.06,d/2+.1,H.iron,false)}}
  // ===== Epochentypische Anbauten: Zäune, Trockengestelle, Säulenvorhallen, Gesimse, Fabrikschlote =====
  function eraExtras(){const X=S.extras;if(!X||!g._wd||g._bunker)return;const[w,d]=g._wd,h=g._h||3,F=d/2,home=['house','bighouse'].includes(k),PROD=['bakery','smithy','weaver','brewery','tannery','butcher','dairy','smokehouse','armorer','bower','mint','apothecary','lumber','quarry','lodge','fishery'];
   const cm=(key,c)=>{if(!COLM.has(key))COLM.set(key,new T.MeshStandardMaterial({color:c,roughness:.95}));return COLM.get(key)},dw=(g.doorWidth||1.5)/2+.25;
