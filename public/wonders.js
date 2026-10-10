@@ -313,8 +313,8 @@ function ironTower(g,M){const K=kit(g),iron=M.iron,dk=M.ironD,glass=M.glass,gold
 
 const BUILD={steinzeit:stonehenge,hallstatt:burialMound,roemer:colosseum,fruehmittelalter:palaceChapel,hochmittelalter:imperialPalace,spaetmittelalter:cityGate,renaissance:domeCathedral,barock:pleasurePalace,napoleon:triumphArch,neuzeit:schoenbrunn};
 // ================= Neuzeit: Schloss Schönbrunn – Schönbrunner Gelb, grüne Fensterläden, Hufeisentreppe, Parterre, Neptunbrunnen, Gloriette =================
-const stucco=(key,col)=>canvasMat(key,128,128,(x,W,H)=>{x.fillStyle=col;x.fillRect(0,0,W,H);for(let i=0;i<900;i++){const v=Math.random();x.fillStyle=`rgba(${v<.5?0:255},${v<.5?0:255},${v<.5?0:255},${.03+Math.random()*.04})`;x.fillRect(Math.random()*W,Math.random()*H,2,2)}},{roughness:.85,uvs:3});   // glatter Putz unabhängig von der Epochen-Wandtextur
-function schoenbrunn(g,M){const K=kit(g),yel=stucco('sbgelb','#eebd45'),wh=stucco('sbweiss','#f4f0e6'),roof=tint(M.slate,0x70757a,'sbroof'),shut=tint(null,0x2f5e36,'sbgreen',{roughness:.7}),st=M.stone,hedge=M.hedge,lawn=tint(M.grass,0x5f8a34,'sblawn');
+const stucco=(key,col)=>canvasMat(key,128,128,(x,W,H)=>{x.fillStyle=col;x.fillRect(0,0,W,H);for(let i=0;i<900;i++){const v=Math.random();x.fillStyle=`rgba(${v<.5?0:255},${v<.5?0:255},${v<.5?0:255},${.015+Math.random()*.02})`;x.fillRect(Math.random()*W,Math.random()*H,2,2)}},{roughness:.85,uvs:3});   // glatter Putz unabhängig von der Epochen-Wandtextur
+function schoenbrunn(g,M){const K=kit(g),yel=stucco('sbgelb2','#f3d683'),wh=stucco('sbweiss','#f4f0e6'),roof=tint(M.slate,0x70757a,'sbroof'),shut=tint(null,0x2f5e36,'sbgreen',{roughness:.7}),st=stucco('sbsockel','#e6dcc4'),hedge=M.hedge,lawn=tint(M.grass,0x5f8a34,'sblawn');
  const Z=-7,FR=Z+2.3,FM=Z+2.9;
  // Corps de logis mit Sockel, Mittel- und Eckrisaliten
  K.box(19.2,.6,5.2,st,0,.3,Z,.05);K.box(18.8,7.2,4.6,yel,0,4.2,Z,.05);K.col(0,Z,9.4,2.6,8);

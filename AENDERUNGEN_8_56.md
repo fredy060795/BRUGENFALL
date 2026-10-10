@@ -27,3 +27,7 @@
 * Wahrzeichen-Boden: Kies- und Rasenflächen mit eigener Geländetextur statt Dielen-/Strohmuster.
 * Handelskarawane: zieht nicht mehr über das Wasser. Liegt der Markt jenseits des Flusses, nimmt sie eine Brücke; ohne Brücke kommt
   keine Karawane (Hinweis: Brücke oder Hafen bauen).
+
+## Nachtrag
+* Schloss Schönbrunn: Fassade in hellem Schönbrunner Gelb (Eierschale) mit glattem Putz; Sockel, Treppenwangen und Torpfeiler
+  ebenfalls verputzt statt Steinoptik.
