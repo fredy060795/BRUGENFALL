@@ -129,10 +129,14 @@
    names:{keep:'Stadtpalast',church:'Stadtkirche',cathedral:'Dom',plaza:'Piazza',garrison:'Zeughaus',storage:'Handelshaus',mint:'Bank'}},
   {id:'barock',units:{sword:'Musketier',spear:'Pikenier',archer:'Grenadier',crossbow:'Kanonier',knight:'Dragoner'},n:'Frühe Neuzeit (Barock)',y:'ca. 1600–1790',d:'Sternfestung, Schloss, Manufakturen, stehendes Heer',
    names:{keep:'Schloss',watchpost:'Spritzenhaus',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
-  {id:'napoleon',units:{sword:'Grenadier',spear:'Füsilier',archer:'Jäger (Plänkler)',crossbow:'Voltigeur',knight:'Husar'},n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
+  {id:'napoleon',units:{sword:'Grenadier',spear:'Füsilier',archer:'Jäger',crossbow:'Grenzer',knight:'Kürassier'},n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
    names:{keep:'Kommandantur',watchpost:'Spritzenhaus',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
-  {id:'neuzeit',units:{sword:'Gendarm',spear:'Infanterist',archer:'Scharfschütze',crossbow:'Schütze',knight:'Dragoner'},n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
+  {id:'neuzeit',units:{sword:'Gendarm',spear:'Infanterist',archer:'Kaiserjäger',crossbow:'Feldjäger',knight:'Dragoner'},n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
    names:{keep:'Rathaus',church:'Stadtkirche',cathedral:'Münster',plaza:'Marktplatz',garrison:'Kaserne',armory:'Bunker & Munitionsdepot',watchpost:'Feuerwache',weaver:'Textilfabrik',smithy:'Eisenwerk',tavern:'Wirtshaus',storage:'Lagerhalle',mint:'Sparkasse'}}];
+ // Österreichische Landesgeschichte je Epoche: Herrschaft/Dynastie (Babenberger, dann Habsburger)
+ const LAND={steinzeit:'Jungsteinzeitliche Bauern im Alpenvorland',hallstatt:'Salzherren von Hallstatt',roemer:'Provinz Noricum am Donaulimes',fruehmittelalter:'Bairisches Ostland, Karolingische Mark',
+  hochmittelalter:'Herzogtum Österreich der Babenberger',spaetmittelalter:'Herzogtum Österreich der Habsburger',renaissance:'Habsburgermonarchie (Kaiser Maximilian I.)',
+  barock:'Habsburgermonarchie (Maria Theresia)',napoleon:'Kaisertum Österreich (Kaiser Franz I.)',neuzeit:'k.u.k. Monarchie (Kaiser Franz Joseph I.)'};for(const e of ERAS)e.land=LAND[e.id];
  const ERA_DEFAULT='hochmittelalter',eraOf=id=>ERAS.find(e=>e.id===id)||ERAS.find(e=>e.id===ERA_DEFAULT);
  function presetMaps(){return HAND.map(m=>sanitizeMap({river:BASE_MAP.river,...m}))}
  // Sonderkarten (z. B. Linz mit vorgebauter Altstadt): keine Standardkarten, sondern als bearbeitbare eigene Karten angeboten
@@ -269,9 +273,9 @@
  // Wahrzeichen je Epoche (Gebäude 'wonder', einmal pro Welt)
  const WONDER={steinzeit:{n:'Großer Steinkreis (Stonehenge)',d:'Trilithen aus riesigen Sandsteinblöcken, Ausrichtung zur Sonnenwende'},hallstatt:{n:'Fürstengrabhügel',d:'Grabhügel mit Steinkranz, Prozessionsweg und Kriegerstatue'},
   roemer:{n:'Kolosseum',d:'Amphitheater mit drei Bogenreihen und Arena'},fruehmittelalter:{n:'Pfalzkapelle',d:'Achteckiger Kuppelbau nach Aachener Vorbild'},
-  hochmittelalter:{n:'Kaiserpfalz',d:'Große Königshalle mit Arkadenfenstern und Bergfried'},spaetmittelalter:{n:'Stadttor mit Doppeltürmen',d:'Backsteintor mit zwei Rundtürmen wie das Holstentor'},
+  hochmittelalter:{n:'Babenberger Pfalz',d:'Herzogspfalz der Babenberger mit Arkadenfenstern, Bergfried und Bindenschild-Bannern'},spaetmittelalter:{n:'Stadttor mit Doppeltürmen',d:'Backsteintor mit zwei Rundtürmen wie das Holstentor'},
   renaissance:{n:'Kuppeldom',d:'Achteckige Kuppel auf Tambour mit Laterne wie in Florenz'},barock:{n:'Lustschloss mit Fontäne',d:'Orangerie, Parterre und große Fontäne'},
-  napoleon:{n:'Triumphbogen',d:'Mächtiger Siegesbogen mit Attika und Reliefs'},neuzeit:{n:'Eiserner Aussichtsturm',d:'Genieteter Stahlturm mit Aussichtsplattform'}},
+  napoleon:{n:'Triumphbogen',d:'Mächtiger Siegesbogen mit Attika und Reliefs'},neuzeit:{n:'Schloss Schönbrunn',d:'Kaiserliche Sommerresidenz in Schönbrunner Gelb mit Hufeisentreppe, Neptunbrunnen und Gloriette'}},
   wonder=era=>WONDER[eraOf(era).id];
  // Werkzeugnamen in der Werkzeugleiste je Epoche
  const TOOLN={spaetmittelalter:{bow:'Langbogen'},renaissance:{bow:'Arkebuse'},steinzeit:{sword:'Steinkeule',axe:'Steinbeil',pickaxe:'Geweihhacke',hoe:'Grabstock',hammer:'Schlägel'},hallstatt:{axe:'Bronzebeil',pickaxe:'Bronzepickel',hammer:'Bronzehammer'},roemer:{sword:'Gladius',axe:'Dolabra',pickaxe:'Dolabra'},barock:{sword:'Säbel',bow:'Muskete'},napoleon:{sword:'Säbel',bow:'Gewehr'},neuzeit:{bow:'Gewehr',sword:'Säbel',axe:'Stahlaxt',pickaxe:'Kreuzhacke',hoe:'Spaten',hammer:'Vorschlaghammer'}},toolNames=era=>TOOLN[eraOf(era).id]||{};

@@ -179,9 +179,9 @@ function imperialPalace(g,M){const K=kit(g),st=M.stone,stD=M.stoneD,roof=M.slate
  for(let i=0;i<6;i++){const x=-6.25+i*2.5;K.arched(2.3,2.6,.4,[[-.45,.68,1.85],[.45,.68,1.85]],st,x,4.3,.66);K.box(1.9,2.2,.08,M.glass,x,5.35,.42,0);
   K.cyl(.09,.1,1.75,stD,x,5.18,.66,10);K.box(.32,.2,.32,stD,x,6.12,.66,.03);K.archi(1.05,.08,stD,x,6.15,.86,0,.12);K.box(2.3,.16,.32,stD,x,4.35,.86,.03)}
  for(let i=0;i<6;i++){const x=-6.25+i*2.5;K.arched(.9,1.4,.15,[[0,.45,.9,.1]],stD,x,1.5,.58);K.box(.45,1.1,.06,M.glass,x,2.05,.5,0)}
- // Banner mit Reichsadler
- const eagle=canvasMat('eagle',128,256,(x,W,H)=>{x.fillStyle='#d8b030';x.fillRect(0,0,W,H);x.fillStyle='#1a1a1a';x.beginPath();x.ellipse(64,110,18,34,0,0,7);x.fill();x.beginPath();x.moveTo(64,90);x.lineTo(8,70);x.lineTo(20,120);x.lineTo(64,115);x.lineTo(108,120);x.lineTo(120,70);x.closePath();x.fill();x.beginPath();x.arc(64,66,12,0,7);x.fill();x.fillRect(48,140,10,40);x.fillRect(70,140,10,40);
-  for(let i=0;i<6;i++){x.beginPath();x.moveTo(i*21,H);x.lineTo(i*21+10,H-24);x.lineTo(i*21+21,H);x.fillStyle='#b01e1e';x.fill()}},{roughness:.95,side:THREE.DoubleSide,uvs:1});
+ // Banner der Babenberger: Bindenschild Rot-Weiß-Rot mit Zaddeln
+ const eagle=canvasMat('binden',128,256,(x,W,H)=>{x.fillStyle='#b01e1e';x.fillRect(0,0,W,H);x.fillStyle='#f2eee4';x.fillRect(0,H*.36,W,H*.26);x.strokeStyle='#d8b030';x.lineWidth=6;x.strokeRect(3,3,W-6,H-30);
+  for(let i=0;i<6;i++){x.beginPath();x.moveTo(i*21,H-24);x.lineTo(i*21+10,H);x.lineTo(i*21+21,H-24);x.fillStyle='#8a1616';x.fill()}},{roughness:.95,side:THREE.DoubleSide,uvs:1});
  for(const x of[-3.75,3.75]){const b=K.box(1,2.2,.03,eagle,x,5.5,.75,0);b.userData.keep=1}
  // Freitreppe mit Wangenmauern, Stufenportal mit drei Archivolten
  for(let i=0;i<9;i++)K.box(3.6,.45,.7,stD,0,.22+i*.45,4.7-i*.6,.04);for(const sx of[-1,1]){const s=new THREE.Shape();s.moveTo(0,0);s.lineTo(4.8,0);s.lineTo(4.8,4.75);s.lineTo(0,.5);s.closePath();const sg=new THREE.ExtrudeGeometry(s,{depth:.35,bevelEnabled:true,bevelSize:.03,bevelThickness:.03,bevelSegments:1});sg.rotateY(PI/2);sg.translate(sx>0?1.8:-2.15,0,5.4);K.add(sg,st);K.box(.45,.18,.45,stD,sx*1.97,.6,5.3,.03)}   // Treppenwangen
@@ -311,7 +311,46 @@ function ironTower(g,M){const K=kit(g),iron=M.iron,dk=M.ironD,glass=M.glass,gold
  // Kassenhäuschen am Fuß
  for(const sx of[-1,1]){K.box(1.6,2.2,1.4,tint(M.plaster,0xe8dcc4,'kiosk'),sx*3,1.1,7.5,.05);K.add(new THREE.ConeGeometry(1.2,1,4),M.slate,sx*3,2.7,7.5).rotation.y=PI/4;K.box(.8,.6,.05,glass,sx*3,1.4,8.2,0)}}
 
-const BUILD={steinzeit:stonehenge,hallstatt:burialMound,roemer:colosseum,fruehmittelalter:palaceChapel,hochmittelalter:imperialPalace,spaetmittelalter:cityGate,renaissance:domeCathedral,barock:pleasurePalace,napoleon:triumphArch,neuzeit:ironTower};
+const BUILD={steinzeit:stonehenge,hallstatt:burialMound,roemer:colosseum,fruehmittelalter:palaceChapel,hochmittelalter:imperialPalace,spaetmittelalter:cityGate,renaissance:domeCathedral,barock:pleasurePalace,napoleon:triumphArch,neuzeit:schoenbrunn};
+// ================= Neuzeit: Schloss Schönbrunn – Schönbrunner Gelb, grüne Fensterläden, Hufeisentreppe, Parterre, Neptunbrunnen, Gloriette =================
+const stucco=(key,col)=>canvasMat(key,128,128,(x,W,H)=>{x.fillStyle=col;x.fillRect(0,0,W,H);for(let i=0;i<900;i++){const v=Math.random();x.fillStyle=`rgba(${v<.5?0:255},${v<.5?0:255},${v<.5?0:255},${.03+Math.random()*.04})`;x.fillRect(Math.random()*W,Math.random()*H,2,2)}},{roughness:.85,uvs:3});   // glatter Putz unabhängig von der Epochen-Wandtextur
+function schoenbrunn(g,M){const K=kit(g),yel=stucco('sbgelb','#eebd45'),wh=stucco('sbweiss','#f4f0e6'),roof=tint(M.slate,0x70757a,'sbroof'),shut=tint(null,0x2f5e36,'sbgreen',{roughness:.7}),st=M.stone,hedge=M.hedge,lawn=tint(M.grass,0x5f8a34,'sblawn');
+ const Z=-7,FR=Z+2.3,FM=Z+2.9;
+ // Corps de logis mit Sockel, Mittel- und Eckrisaliten
+ K.box(19.2,.6,5.2,st,0,.3,Z,.05);K.box(18.8,7.2,4.6,yel,0,4.2,Z,.05);K.col(0,Z,9.4,2.6,8);
+ K.box(7,8.4,5.8,yel,0,4.8,Z+.1,.05);for(const sx of[-1,1])K.box(2.6,7.6,5.1,yel,sx*8.1,4.4,Z,.05);
+ K.box(19,.35,4.9,wh,0,7.95,Z,.04);K.box(7.2,.35,6,wh,0,9.15,Z+.1,.04);for(const sx of[-1,1])K.box(2.8,.35,5.3,wh,sx*8.1,8.35,Z,.04);
+ K.box(19,.25,.3,wh,0,3.6,FR+.15,.02);
+ // Fenster: weiße Faschen, Verdachungen, grüne Läden – zwei Geschosse
+ const win=(x,y,z,big)=>{const h=big?1.9:1.5;K.box(.78,h+.15,.08,wh,x,y,z+.04,0);K.box(.58,h-.1,.06,M.glass,x,y,z+.08,0);K.box(.92,.14,.16,wh,x,y+h/2+.16,z+.08,0);for(const s of[-1,1])K.box(.26,h-.1,.05,shut,x+s*.55,y,z+.08,0)};
+ for(let x=-8.8;x<=8.81;x+=1.35){if(Math.abs(x)<3.6)continue;const z=Math.abs(x)>6.7?Z+2.55:FR;win(x,2.2,z,false);win(x,5.5,z,true)}
+ for(const x of[-2.4,-.8,.8,2.4]){win(x,5.6,FM,true);win(x,2.2,FM,false)}
+ // Mittelrisalit: Pilaster, Uhr, Balkon auf Säulen über der Durchfahrt, Attika mit Trophäen
+ for(const x of[-3.3,-1.6,0,1.6,3.3]){if(x)K.box(.35,7.6,.2,wh,x,4.4,FM+.1,.02)}
+ K.add(new THREE.CircleGeometry(.55,24),tint(null,0xf2ecd8,'sbclock'),0,8.4,FM+.12);K.box(.05,.4,.02,M.dark,0,8.55,FM+.14,0);
+ K.box(5.6,.25,1.8,wh,0,3.75,FM+.9,.03);for(const x of[-2.5,-.9,.9,2.5])K.cyl(.17,.2,3.5,wh,x,1.95,FM+1.55,12);for(let i=0;i<14;i++)K.lathe([[.06,0],[.09,.15],[.05,.3],[.08,.4],[0,.4]],wh,-2.6+i*.4,3.88,FM+1.72,8);K.box(5.6,.1,.18,wh,0,4.33,FM+1.72,0);
+ K.arched(2.2,3.2,.3,[[0,1.4,2.2]],wh,0,0,FM+.05);K.box(1.5,2.9,.06,M.door,0,1.45,FM-.05,0);
+ for(const x of[-3.2,3.2])K.statue(tint(M.stone,0xe8e2d4,'sbstat'),x,9.3,FM-.3,.55);
+ // Walmdach mit Gauben und Kaminen
+ const rs=new THREE.Shape();rs.moveTo(-2.45,0);rs.lineTo(2.45,0);rs.lineTo(1.0,1.5);rs.lineTo(-1.0,1.5);rs.closePath();const rg=new THREE.ExtrudeGeometry(rs,{depth:18.4,bevelEnabled:true,bevelSize:.04,bevelThickness:.04,bevelSegments:1});rg.translate(0,0,-9.2);rg.rotateY(PI/2);K.add(rg,roof,0,8.1,Z);
+ for(const x of[-6,-4.6,4.6,6]){K.box(.7,.8,.6,wh,x,8.75,Z+1.6,.03);K.box(.4,.5,.05,M.glass,x,8.75,Z+1.92,0);K.gable(.6,.7,.35,roof,x,9.15,Z+1.6,.06,PI/2)}
+ for(const x of[-7.5,-3.8,3.8,7.5])K.box(.45,1.1,.45,wh,x,9.5,Z-.6,.03);
+ // Habsburger Fahne (Schwarz-Gelb) auf dem Mittelrisalit
+ K.cyl(.05,.05,3.4,M.ironD,0,11,Z-.4,8);for(const[i,c]of[[0,0x141414],[1,0xe8c020]])K.box(1.5,.42,.03,tint(null,c,'sbflag'+i,{side:THREE.DoubleSide}),.78,12.35-i*.42,Z-.4,0).userData.keep=1;
+ // Hufeisentreppe: zwei Rampen aus dem Hof hinauf zum Balkon, Wangenmauern mit Brüstung
+ for(const sx of[-1,1]){const tri=new THREE.Shape();tri.moveTo(sx*2.8,0);tri.lineTo(sx*8.2,0);tri.lineTo(sx*2.8,3.6);tri.closePath();const tg=new THREE.ExtrudeGeometry(tri,{depth:1.4,bevelEnabled:false});tg.translate(0,0,-.7);K.add(tg,st,0,0,FM+1.2);
+  const L=Math.hypot(5.4,3.6),a=Math.atan2(3.6,5.4),r1=K.box(L,.2,1.5,wh,sx*5.5,1.9,FM+1.2,.02);r1.rotation.z=-sx*a;const r2=K.box(L,.5,.14,wh,sx*5.5,2.25,FM+1.9,.02);r2.rotation.z=-sx*a}
+ // Ehrenhof/Garten: Kies, Rasenparterres mit Broderie, Obelisk-Eiben, Neptunbrunnen, Gloriette auf dem Hügel
+ K.box(19.6,.05,13,M.gravel,0,.03,3,0);for(const sx of[-1,1]){const cx=sx*5.3;K.box(4.8,.3,5.4,hedge,cx,.16,2.4,.06);K.box(4.3,.32,4.9,lawn,cx,.17,2.4,0);
+  for(let k=0;k<2;k++)K.tube(Array.from({length:13},(_,i)=>{const t=i/12*PI*2;return[cx+Math.cos(t)*(1.5-k*.6),.36,2.4+Math.sin(t*2)*(1.9-k*.7)]}),.1,hedge,true);
+  for(const z of[-.6,5.4])K.add(new THREE.ConeGeometry(.42,2,12),hedge,cx+sx*2.6,1,z)}
+ K.lathe([[0,0],[2.4,0],[2.55,.2],[2.55,.5],[2.4,.56],[2.3,.56],[2.3,.18],[0,.18]],wh,0,0,6.1,40);K.col(0,6.1,2.4,2.4,.6);K.add(new THREE.CircleGeometry(2.3,40).rotateX(-PI/2),M.water,0,.48,6.1);
+ K.rock(2.2,1.2,1.4,tint(M.stone,0xa8a296,'sbrock'),0,.9,6.4,3,.12);K.statue(tint(M.stone,0xe8e2d4,'sbstat'),0,1.5,6.4,.75);for(const sx of[-1,1])K.tube([[sx*.6,1.3,6.9],[sx*1.3,1.1,7.2],[sx*1.8,.5,7.4]],.04,M.spray);
+ // Haupttor zum Ehrenhof: Obelisken mit vergoldeten Adlern, schmiedeeisernes Gitter
+ for(const sx of[-1,1]){K.box(1.1,.8,1.1,st,sx*2.2,.4,9.4,.04);K.add(new THREE.CylinderGeometry(.18,.42,4.2,4).rotateY(PI/4),wh,sx*2.2,2.9,9.4);K.add(new THREE.SphereGeometry(.32,12,10),M.gold,sx*2.2,5.25,9.4);
+  for(let x=sx*3;Math.abs(x)<9.6;x+=sx*.3)K.box(.04,1.5,.04,M.ironD,x,.75,9.6,0);K.box(6.8,.06,.06,M.ironD,sx*6.2,1.4,9.6,0);K.box(6.8,.06,.06,M.ironD,sx*6.2,.2,9.6,0);for(let x=sx*3.3;Math.abs(x)<9.6;x+=sx*2.2)K.box(.35,1.7,.35,st,x,.85,9.6,.03)}
+ for(let x=-1.6;x<=1.6;x+=.2)K.box(.04,2.1,.04,M.ironD,x,1.05,9.6,0);K.box(3.4,.07,.07,M.ironD,0,2.0,9.6,0);K.box(.5,.5,.06,M.gold,0,2.3,9.6,0)}
+
 export function buildWonder(era,H={}){for(const k of[...CACHE.keys()])if(k.startsWith('t:'))CACHE.delete(k);   // Spielmaterialien ändern sich je Epoche – Tönungen neu ableiten
  const g=new THREE.Group();g.colliders=[];g.walkAreas=[];const Mt=mats(H);(BUILD[era]||imperialPalace)(g,Mt);
  const out=finalize(g);out.isWonder=true;return out}

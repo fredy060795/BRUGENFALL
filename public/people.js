@@ -614,7 +614,7 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(new T.BoxGeometry(.38,o.female?.05:.085,.07),hairM,H,[s*.3,.43,.93]).rotation.z=-s*.16;
   mesh(ball,M.skin,H,[s*.88,0,-.02],[.1,.26,.17]).rotation.y=s*.3}
  mesh(new T.BoxGeometry(.28,.032,.045),new T.MeshStandardMaterial({color:0x4a1f1f}),H,[0,-.535,.93]);
- const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec'||hat==='plague',hidden=['helmet','galea','stahlhelm','pickel','shako','tricorne','hood','scarf','sallet','coifL','wimple','skullcap','gugel','gugelL'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
+ const hat=o.head,closed=hat==='bascinet'||hat==='visored'||hat==='exec'||hat==='plague',hidden=['helmet','galea','stahlhelm','pickel','shako','raupe','tricorne','hood','scarf','sallet','coifL','wimple','skullcap','gugel','gugelL'].includes(hat)||closed||(hat==='nasal'&&o.mailHood);
  if(!hidden&&o.hairStyle!=='bald'){const L=o.hairStyle==='long'||o.hairStyle==='braid';
   mesh(shell(geo,o.hairStyle==='tonsure'?(x,y,z)=>(y>.1&&y<.62&&z<.5)||(z<.1&&y>-.15&&y<.62):(x,y,z)=>y>.5||(z<.12&&y>(L?-.95:-.15)),.07,.05),hairM,H);
   if(L)mesh(new T.CylinderGeometry(.95,.8,2.4,20,1,true,Math.PI*.55,Math.PI*.9),new T.MeshStandardMaterial({color:o.hair,roughness:.85,side:T.DoubleSide}),H,[0,-1.25,-.12]);
@@ -658,6 +658,20 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(cg('shplate',()=>new T.CylinderGeometry(.34,.3,.05,6)),gm,H,[0,1.42,1.1]).rotation.x=Math.PI/2-.06;
   mesh(cg('shcock',()=>new T.CylinderGeometry(.16,.16,.05,14)),hatMat('cloth',o.fac||0xf0f0f0),H,[0,2.0,1.14]).rotation.x=Math.PI/2;
   mesh(cg('shpom',()=>new T.SphereGeometry(.2,10,8)),hatMat('cloth',o.fac||0xd02020),H,[0,2.36,1.0],[1,1.15,1])}
+ if(hat==='shako'&&o.cords){const gm=hatMat('gold');for(const[y,r]of[[1.05,1.07],[1.18,1.08]])mesh(cg('shcord'+y,()=>{const q=new T.TorusGeometry(r,.03,5,24,Math.PI*1.1);q.rotateX(Math.PI/2);q.rotateY(-Math.PI*.05);return q}),gm,H,[0,y,0]);   // Fangschnüre
+  mesh(cg('shcock2',()=>new T.CylinderGeometry(.1,.1,.06,12)),hatMat('cloth',0x141414),H,[0,2.0,1.17]).rotation.x=Math.PI/2}
+ if(hat==='bicorne'){    // Zweispitz (Offiziere): quer getragen, halbmondförmige Krempe mit Goldborte und Kokarde
+  const fm=hatMat('felt',o.hatCol||0x141414),gm=hatMat('gold');mesh(cg('bicr',()=>lat([[0,1.5],[.6,1.5],[.95,1.3],[1.04,1.0],[1.02,.86],[0,.86]],24)),fm,H);
+  const half=sh=>{sh.moveTo(-1.75,0);sh.quadraticCurveTo(-1.15,.5,-.62,1.08);sh.quadraticCurveTo(0,1.4,.62,1.08);sh.quadraticCurveTo(1.15,.5,1.75,0);sh.lineTo(-1.75,0);return sh};
+  mesh(cg('bicb',()=>{const q=new T.ExtrudeGeometry(half(new T.Shape()),{depth:.14,bevelEnabled:true,bevelThickness:.03,bevelSize:.03,bevelSegments:2});q.translate(0,.82,-.07);return q}),fm,H);
+  mesh(cg('bicg',()=>{const p=half(new T.Shape()).getPoints(24).filter(v=>v.y>.01);const q=new T.TubeGeometry(new T.CatmullRomCurve3(p.map(v=>new T.Vector3(v.x,v.y+.84,.12))),40,.035,5,false);return q}),gm,H);
+  mesh(cg('biccock',()=>new T.CylinderGeometry(.17,.17,.05,14)),hatMat('cloth',o.fac||0xd8b030),H,[.55,1.55,.13]).rotation.x=Math.PI/2}
+ if(hat==='raupe'){      // Raupenhelm (Kürassiere, Dragoner): schwarzes Leder, Messingkamm, Raupe aus Rosshaar, Stirnschild, Schirm
+  const lm=hatMat('felt',0x161412),gm=hatMat('gold');mesh(cg('rpsk',()=>lat([[0,1.95],[.5,1.9],[.9,1.62],[1.06,1.2],[1.08,.9],[0,.9]],24)),lm,H);
+  ring(H,gm,1.08,.95,.06,1.08);mesh(cg('shvis',()=>paramGeo((u,v)=>{const a=-1.2+2.4*u,r=1.02+v*.42;return[r*Math.sin(a),.9-v*.12,r*1.05*Math.cos(a)]},20,2)),hatMat('band',0x0e0e0e),H);
+  mesh(cg('rpcomb',()=>{const q=new T.TorusGeometry(1.0,.06,6,20,Math.PI);q.rotateY(Math.PI/2);q.translate(0,.96,0);return q}),gm,H);
+  mesh(cg('rpcr',()=>{const q=new T.TorusGeometry(1.06,.2,8,24,Math.PI*1.1);q.rotateY(Math.PI/2);q.scale(.55,1,1);q.translate(0,1.0,-.04);return q}),hatMat('cloth',0x101010),H);
+  mesh(cg('rpfp',()=>new T.CircleGeometry(.36,24)),gm,H,[0,1.38,1.08]).rotation.x=-.25}
  if(hat==='tricorne'){   // Dreispitz (Barock): niedrige Kalotte, an drei Seiten hochgeschlagene Krempe mit Borte, Kokarde
   const fm=hatMat('felt',o.hatCol||0x141414);mesh(cg('tricr',()=>lat([[0,1.6],[.6,1.6],[.95,1.4],[1.04,1.05],[1.02,.86],[0,.86]],24)),fm,H);
   const bri=(u,v,o2=0)=>{const a=u*2*Math.PI,k=Math.abs(Math.cos(1.5*a)),r=1.0+v*(.62+.5*k),up=v*v*(.78-.28*k);return[r*Math.sin(a),.84+up+o2,r*1.05*Math.cos(a)]};
@@ -691,6 +705,11 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
   mesh(garment(KEY('tb',[ex]),S),garMat('linen',tc),g);mesh(garment(KEY('tb2',[ex]),S2),garMat('linen',o.tabTrim||0xd8b040),g);addLayer(g,S)}
  if(['tunic','jerkin','vest','smock'].includes(o.outfit)){base=tunicS({...dz,hem:o.outfit==='smock'?.6:o.hem||.52});mesh(garment(KEY('tu',[bel,dirt,o.outfit==='smock',o.hem]),base),garMat(o.outfit==='smock'?'leather':'linen',o.cloth),g);addLayer(g,base)}
  if(o.outfit==='jerkin'){const S=jerkS(dz);mesh(garment(KEY('je',[bel,dirt]),S),garMat(o.uni?'linen':'leather',o.over),g);addLayer(g,S);const pts=[];for(let y=.78;y<1.46;y+=.045){const p=gPt(S,0,y);pts.push([0,y,p[2]+.004])}rivets(g,AR.brass,pts,.007,[1,1,.6])}
+ if(o.outfit==='jerkin'&&o.uniDet){const D=o.uniDet,S=jerkS(dz),wm=new T.MeshStandardMaterial({color:D.belt||0xf2efe6,roughness:.75}),fm=new T.MeshStandardMaterial({color:D.facing||0xb01e1e,roughness:.85});   // Uniform: Kreuzriemen, Brustplatte, Kragen/Aufschläge, Epauletten
+  if(D.belts)for(const s2 of[1,-1]){const P=[];for(let k=0;k<=10;k++){const t=k/10,a=s2*(.62-1.3*t),y=1.43-t*.62,p=gPt(S,a,y);P.push([p[0]*1.02,y,p[2]*1.02+.008])}tube(g,wm,P,.016)}
+  if(D.belts){const p=gPt(S,0,1.12);mesh(new T.BoxGeometry(.07,.06,.012),AR.brass,g,[0,1.12,p[2]+.03])}
+  for(const s2 of[1,-1]){const P=[];for(let k=0;k<=5;k++){const a=s2*(.12+k*.09),p=gPt(S,a,1.44);P.push([p[0],1.44,p[2]+.006])}tube(g,fm,P,.022)}
+  if(D.epaul)for(const s2 of[-1,1]){const pad=mesh(new T.SphereGeometry(1,12,6,0,6.283,0,1.4),D.epaul==='gold'?AR.brass:fm,g,[s2*.24,1.475,0],[.075,.03,.09]);pad.rotation.z=-s2*.3;if(D.epaul==='gold')mesh(new T.CylinderGeometry(.075,.085,.06,12,1,true),AR.brass,g,[s2*.3,1.43,0],[1,1,1.15]).rotation.z=-s2*.3}}
  if(o.lorica)loricaSeg(g,AR);
  if(o.outfit==='vest'){const S=vestS(dz);mesh(garment(KEY('ve',[bel,dirt]),S),garMat('leather',o.vestCol||o.over),g);addLayer(g,S);
   for(const y of[1.0,1.12,1.24]){const l=gPt(S,.3,y),r=gPt(S,-.3,y);tube(g,new T.MeshStandardMaterial({color:0x2a2018,roughness:1}),[l,[0,y,(l[2]+r[2])/2+.006],r],.003)}}

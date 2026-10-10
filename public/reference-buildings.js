@@ -7,8 +7,8 @@ import {eraBuild} from './eras.js';
 // Material tiles are copied into independent canvases: no atlas-neighbour bleeding.
 const atlasCache=new Map(),COLM=new Map(),FACTORY=['smithy','weaver','brewery','tannery','armorer','mint'];   // Neuzeit: nur diese Werkstätten werden Fabriken mit Schlot
 // Schilderhaus: schräg schwarz-weiß-rot gestreift
-function stripeMat(){if(COLM.has('stripes'))return COLM.get('stripes');const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),C=['#141414','#f0f0ea','#b8201c'];
- for(let i=-8;i<16;i++){x.fillStyle=C[(i%3+3)%3];x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16+16,0);x.lineTo(i*16+16-128,128);x.lineTo(i*16-128,128);x.fill()}const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set('stripes',m);return m}
+function stripeMat(){if(COLM.has('stripes'))return COLM.get('stripes');const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),C=['#141414','#e8c020'];
+ for(let i=-8;i<16;i++){x.fillStyle=C[(i%2+2)%2];x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16+16,0);x.lineTo(i*16+16-128,128);x.lineTo(i*16-128,128);x.fill()}const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set('stripes',m);return m}
 // Beschriftete Tafel (Kaserne, Depot) als Material, je Text einmal erzeugt
 function signMat(text,bg='#e8e2d0',fg='#1a1a1a'){const key='sign:'+text+bg;if(COLM.has(key))return COLM.get(key);const c=document.createElement('canvas');c.width=512;c.height=96;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,512,96);x.strokeStyle=fg;x.lineWidth=6;x.strokeRect(6,6,500,84);
  x.fillStyle=fg;x.font='bold 60px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,52);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const m=new T.MeshStandardMaterial({map:t,roughness:.8});COLM.set(key,m);return m}
@@ -833,7 +833,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
    const tri=new T.Shape();tri.moveTo(-1.65,0);tri.lineTo(1.65,0);tri.lineTo(0,.9);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.45,bevelEnabled:false});tg.translate(0,h+.25,F);staticMesh(tg,KC);
    const sg=new T.PlaneGeometry(2.6,.45);sg.translate(0,3.0,F+.46);staticMesh(sg,signMat('KASERNE'));
    for(const sz of[-1,1])box(w+.2,.18,.14,0,2.9,sz*(F+.05),KC);for(const sx of[-1,1])box(.14,.18,d+.2,sx*(w/2+.05),2.9,0,KC);
-   box(.09,5,.09,w/2-.5,h+2.5,-F+.5,H.iron);for(const[i2,c]of[[0,0x141414],[1,0xf0f0ea],[2,0xb8201c]])box(1.6,.35,.03,w/2+.35,h+4.6-i2*.35,-F+.5,cm('flagKR'+i2,c));
+   box(.09,5,.09,w/2-.5,h+2.5,-F+.5,H.iron);for(const[i2,c]of[[0,0x141414],[1,0xe8c020]])box(1.6,.5,.03,w/2+.35,h+4.5-i2*.5,-F+.5,cm('flagSG'+i2,c));   /* Schwarz-Gelb der Habsburger (k.u.k.) */
    for(const sx of[-1,1]){const x=sx*2.1,z=F+.75;box(.85,2.2,.85,x,1.1,z,stripeMat());const pr=new T.ConeGeometry(.7,.55,4);pr.rotateY(Math.PI/4);pr.translate(x,2.48,z);staticMesh(pr,H.slate)}}
   if(k==='keep'){const top=g._h||4.2,cm2=cm;
    if(X==='roman'){const ph=Math.min(top-.5,4.2);for(let i=0;i<6;i++){const cx=-w/2+.9+i*(w-1.8)/5;cylinder(.24,ph,cx,ph/2,F+1.3,H.plaster,14);box(.6,.18,.6,cx,.09,F+1.3,H.stone);box(.62,.2,.62,cx,ph-.1,F+1.3,H.stone)}
@@ -842,7 +842,7 @@ export function buildReference(k,lv,{H,PT,MT,quad,weapon,v=0,attach=0,paint=0,er
    if(X==='baroque'){box(3.4,top+1.6,.5,0,(top+1.6)/2,F+.2,H.plaster);const tri=new T.Shape();tri.moveTo(-1.9,0);tri.lineTo(1.9,0);tri.lineTo(0,1.1);tri.closePath();const tg=new T.ExtrudeGeometry(tri,{depth:.5,bevelEnabled:false});tg.translate(0,top+1.6,F-.05);staticMesh(tg,H.stone);
     const dome=new T.LatheGeometry([[1.1,0],[1.15,.4],[1.0,.9],[.6,1.4],[.15,1.75],[.06,2.1],[0,2.2]].map(q=>new T.Vector2(q[0],q[1])),16);dome.translate(0,top+1.0,-d/4);staticMesh(dome,H.slate);cylinder(1.15,1,0,top+.5,-d/4,H.plaster,16);
     window(0,top+.6,F+.47,0,.9,1.4)}
-   if(X==='cornice'&&era==='napoleon'){box(.12,8,.12,w/2-.6,top+4,-F+.6,H.wood);box(1.6,1.0,.03,w/2+.2,top+7.3,-F+.6,cm2('flagB',0x1f3a7a));box(.53,1.0,.035,w/2+.2-.53,top+7.3,-F+.6,cm2('flagB',0x1f3a7a));box(.53,1.0,.035,w/2+.2,top+7.3,-F+.6,cm2('flagW',0xeeeeee));box(.53,1.0,.035,w/2+.73,top+7.3,-F+.6,cm2('flagR',0xb01e1e))}
+   if(X==='cornice'&&era==='napoleon'){box(.12,8,.12,w/2-.6,top+4,-F+.6,H.wood);for(const[i2,c]of[[0,0xb01e1e],[1,0xeeeeee],[2,0xb01e1e]])box(1.6,.34,.03,w/2+.2,top+7.64-i2*.34,-F+.6,cm2('flagA'+i2,c))}   // Rot-Weiß-Rot (Kaisertum Österreich)
    if(X==='industry'){const tw=2.4,ty=top+1;box(tw,8,tw,0,ty+4-1,-d/4,H.plaster);box(tw+.3,.3,tw+.3,0,ty+7,-d/4,H.stone);for(const[a,b,ry]of[[0,tw/2+.02,0],[0,-tw/2-.02,Math.PI],[tw/2+.02,0,Math.PI/2],[-tw/2-.02,0,-Math.PI/2]]){const c=new T.CircleGeometry(.75,24);c.rotateY(ry);c.translate(a,ty+5.6,-d/4+b);staticMesh(c,cm2('clockface',0xf2ecd8));const hand=new T.BoxGeometry(.06,.6,.02);hand.translate(0,.25,0);hand.rotateY(ry);hand.translate(a*1.02,ty+5.6,-d/4+b*1.02);staticMesh(hand,H.dark)}
     const sp=new T.ConeGeometry(1.5,3.2,4);sp.rotateY(Math.PI/4);sp.translate(0,ty+8.75,-d/4);staticMesh(sp,H.slate)}}
   else if(X==='stone'){if(home){firepit(w/2-1.3,F+1.6);wattle(-w/2,-dw,F+.9)}else{hides(w/2-1,F+1.2)}for(let i=0;i<2;i++)pot(-w/2+.5+i*.5,F+.5,.8)}

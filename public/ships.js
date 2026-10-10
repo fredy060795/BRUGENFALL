@@ -71,8 +71,8 @@ export function createSteamer({seed=1}={}){const g=new T.Group();g.isShip=true;c
   for(let i=0;i<10;i++){const a=i/10*Math.PI*2,p=new T.Mesh(new T.BoxGeometry(.5,.08,.42),wood);p.position.set(0,Math.sin(a)*.8,Math.cos(a)*.8);p.rotation.x=-a;w.add(p)}
   mesh(w,new T.CylinderGeometry(.12,.12,.6,10),black).rotation.z=Math.PI/2;
   const hb=new T.Mesh(new T.CylinderGeometry(1.15,1.15,.62,20,1,false,0,Math.PI),white);hb.rotation.z=Math.PI/2;hb.position.set(s*(BS+.35),.8,-.3);hb.material=white.clone();hb.material.side=T.DoubleSide;g.add(hb)}
- // Flaggenstock am Heck (schwarz-weiß-rot), Ladung auf dem Vordeck
- const fz=-LS/2+.5;rod(g,[0,1.1,fz],[0,3.2,fz],.03,wood);for(const[i,c]of[[0,0x141414],[1,0xf0f0ea],[2,0xb8201c]])box(g,.02,.2,.8,M(c),0,3.05-i*.2,fz-.42);
+ // Flaggenstock am Heck (rot-weiß-rot wie die Donau-Dampfschiffe), Ladung auf dem Vordeck
+ const fz=-LS/2+.5;rod(g,[0,1.1,fz],[0,3.2,fz],.03,wood);for(const[i,c]of[[0,0xb01e1e],[1,0xf0f0ea],[2,0xb01e1e]])box(g,.02,.2,.8,M(c),0,3.05-i*.2,fz-.42);
  for(let i=0;i<4;i++)box(g,.6,.5,.6,wood,(i%2?.45:-.45),1.33,2.4+Math.floor(i/2)*.7);mesh(g,new T.CylinderGeometry(.28,.28,.55,10),wood,[0,1.36,3.8]);
  // Rauch aus dem Schornstein
  const N=40,pos=new Float32Array(N*3),P=[];for(let i=0;i<N;i++)P.push({ph:i/N,j:Math.random()});const sg=new T.BufferGeometry();sg.setAttribute('position',new T.BufferAttribute(pos,3));
