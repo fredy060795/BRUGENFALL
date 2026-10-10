@@ -1,11 +1,12 @@
 {
   "name": "zeitreise",
-  "version": "8.60.0",
+  "version": "8.61.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests/server-regression.cjs && node --experimental-vm-modules tests/client-regression.cjs && node tests/network-regression.cjs",
-    "test:eras": "node tests/eras-browser.cjs"
+    "test": "node tests/austria-sim.cjs",
+    "test:eras": "node tests/eras-browser.cjs",
+    "test:sim": "node tests/austria-sim.cjs"
   },
   "dependencies": {
     "ws": "^8.18.0",
