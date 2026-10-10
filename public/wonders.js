@@ -71,7 +71,7 @@ function finalize(g){g.updateMatrixWorld(true);const inv=new THREE.Matrix4().cop
   geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));if(!groups.has(o.material))groups.set(o.material,[]);groups.get(o.material).push(geo)});
  const out=new THREE.Group();out.colliders=g.colliders;out.walkAreas=g.walkAreas;
  for(const [m,list]of groups){const merged=mergeGeometries(list,false);if(!merged)continue;const mesh=new THREE.Mesh(merged,m);mesh.castShadow=!m.transparent;mesh.receiveShadow=true;out.add(mesh)}
- for(const o of keep){o.removeFromParent();o.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld));out.add(o)}
+ for(const o of keep){const m=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld);o.removeFromParent();m.decompose(o.position,o.quaternion,o.scale);out.add(o)}   // Lage relativ zum Wahrzeichen übernehmen (nicht doppelt verschieben)
  return out}
 
 // ================= Steinzeit: Großer Steinkreis (Stonehenge) =================
@@ -320,7 +320,7 @@ function schoenbrunn(g,M){const K=kit(g),yel=stucco('sbgelb2','#f3d683'),wh=stuc
  for(const x of[-6,-4.6,4.6,6]){K.box(.7,.8,.6,wh,x,8.75,Z+1.6,.03);K.box(.4,.5,.05,M.glass,x,8.75,Z+1.92,0);K.gable(.6,.7,.35,roof,x,9.15,Z+1.6,.06,PI/2)}
  for(const x of[-7.5,-3.8,3.8,7.5])K.box(.45,1.1,.45,wh,x,9.5,Z-.6,.03);
  // Habsburger Fahne (Schwarz-Gelb) auf dem Mittelrisalit
- K.cyl(.05,.05,3.4,M.ironD,0,11,Z-.4,8);for(const[i,c]of[[0,0x141414],[1,0xe8c020]])K.box(1.5,.42,.03,tint(null,c,'sbflag'+i,{side:THREE.DoubleSide}),.78,12.35-i*.42,Z-.4,0).userData.keep=1;
+ K.box(.8,.5,.8,wh,0,9.45,Z-.4,.03);K.cyl(.09,.11,4,wh,0,11.6,Z-.4,10);K.add(new THREE.SphereGeometry(.16,10,8),M.gold,0,13.7,Z-.4);for(const[i,c]of[[0,0x141414],[1,0xe8c020]])K.box(1.6,.45,.04,tint(null,c,'sbflag'+i,{side:THREE.DoubleSide}),.89,13.1-i*.45,Z-.4,0).userData.keep=1;   // Fahnenmast auf Sockel am First, Fahne direkt am Mast
  // Hufeisentreppe: zwei Rampen aus dem Hof hinauf zum Balkon, Wangenmauern mit Brüstung
  for(const sx of[-1,1]){const tri=new THREE.Shape();tri.moveTo(sx*2.8,0);tri.lineTo(sx*8.2,0);tri.lineTo(sx*2.8,3.6);tri.closePath();const tg=new THREE.ExtrudeGeometry(tri,{depth:1.4,bevelEnabled:false});tg.translate(0,0,-.7);K.add(tg,st,0,0,FM+1.2);
   const L=Math.hypot(5.4,3.6),a=Math.atan2(3.6,5.4),r1=K.box(L,.2,1.5,wh,sx*5.5,1.9,FM+1.2,.02);r1.rotation.z=-sx*a;const r2=K.box(L,.5,.14,wh,sx*5.5,2.25,FM+1.9,.02);r2.rotation.z=-sx*a}
