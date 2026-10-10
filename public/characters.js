@@ -50,8 +50,9 @@ export function weapon(type){const alt=(TOOLMAP[TERA]||{})[type];if(alt){const w
  if(type==='pike'||type==='halberd'){const L=type==='pike'?4.6:2.4;rod(g,oak,[0,-1.2,0],[0,L-1.2,0],.022,.018);   // Pike (sehr lang) / Hellebarde (Beil, Haken, Spitze)
   const sh=new T.Shape();sh.moveTo(-.03,0);sh.lineTo(.03,0);sh.lineTo(.008,.28);sh.lineTo(0,.32);sh.lineTo(-.008,.28);sh.closePath();mesh(new T.ExtrudeGeometry(sh,{depth:.01,bevelEnabled:false}),steel,g,[0,L-1.22,-.005]);
   if(type==='halberd'){const ax=new T.Shape();ax.moveTo(0,0);ax.lineTo(.2,-.04);ax.quadraticCurveTo(.25,.12,.2,.28);ax.lineTo(0,.22);ax.closePath();mesh(new T.ExtrudeGeometry(ax,{depth:.012,bevelEnabled:false}),steel,g,[0,L-1.5,-.006]);box(g,steel,[.16,.03,.012],[-.08,L-1.36,0])}return g}
- if(type==='saber'){rod(g,leather,[0,-.09,0],[0,.08,0],.021);const gd=mesh(new T.TorusGeometry(.07,.008,5,12,Math.PI),brass,g,[.04,0,0]);gd.rotation.z=-Math.PI/2;   // Säbel: gebogene Klinge, Bügelgefäß
-  const pts=[];for(let i=0;i<=10;i++){const t=i/10;pts.push(V(.03*Math.sin(t*1.4)+.06*t*t,.1+.82*t,0))}mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),12,.012,4,false),steel,g).scale.set(1,1,.35);return g}
+ if(type==='saber'){rod(g,leather,[0,-.09,0],[0,.08,0],.021);mesh(new T.SphereGeometry(.024,8,6),brass,g,[0,-.098,0]);mesh(new T.BoxGeometry(.13,.022,.045),brass,g,[.01,.088,0]);   // Säbel: Griff, Knauf, Parierstange
+  const gd=mesh(new T.TorusGeometry(.093,.008,5,14,Math.PI),brass,g,[0,-.005,0]);gd.rotation.z=-Math.PI/2;   // Bügel vom Knauf zur Parierstange
+  const pts=[];for(let i=0;i<=10;i++){const t=i/10;pts.push(V(.03*Math.sin(t*1.4)+.06*t*t,.08+.84*t,0))}mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),12,.012,4,false),steel,g).scale.set(1,1,.35);return g}
  if(type==='arquebus'||type==='musket'||type==='rifle'){const L={arquebus:1.2,musket:1.45,rifle:1.2}[type];   // Feuerwaffen: Kolben, Schaft, Lauf (Muskete mit Bajonett)
   box(g,walnut,[.05,.38,.09],[0,-.32,-.02]);rod(g,walnut,[0,-.14,0],[0,L-.5,0],.028,.022);rod(g,dark,[0,-.1,.02],[0,L-.35,.02],.011);box(g,dark,[.03,.08,.04],[0,-.05,.035]);
   if(type==='arquebus')rod(g,dark,[0,.0,-.04],[0,-.14,-.07],.005);if(type!=='arquebus')box(g,brass,[.04,.03,.06],[0,L-.55,.02]);if(type==='musket'){rod(g,steel,[0,L-.35,.025],[0,L+.05,.025],.006);mesh(new T.ConeGeometry(.012,.06,4),steel,g,[0,L+.08,.025])}return g}
