@@ -464,6 +464,7 @@ const GWP=[[-.05,.4,.86],[.1,.37,.85],[.35,.32,.83],[.6,.28,.81],[.8,.25,.78],[.
 const KEY=(n,o)=>n+JSON.stringify(o);
 function tunicS(o={}){const hem=o.hem??.52;return{P:TUP,y1:hem-.03,y2:1.5,chest:.03,dy:.009,cols:80,belly:o.belly||0,dirt:o.dirt||0,hem:a=>hem+.012*Math.sin(a*3+1),top:a=>1.475-.03*fr_(a)**3,disp:TUNIC.disp}}
 function jerkS(o={}){return{...JERK,belly:o.belly||0,dirt:o.dirt||0}}
+const NOFOLD=()=>[.012,.9];function suitS(o={}){return{...jerkS(o),disp:NOFOLD}}   // Anzugstoff: glatt gebügelt, ohne Kittelfalten
 function dressS(o={}){return{...DRESS,belly:o.belly||0,dirt:o.dirt||0}}
 function robeS(o={}){const gw=!!o.gown;return{P:gw?GWP:RBP,y1:.04,y2:gw?1.56:1.5,chest:.03,dy:.012,cols:gw?96:80,belly:o.belly||0,dirt:o.dirt||0,
  hem:a=>(gw?.09:.1)+.012*Math.sin(a*4+.5),top:a=>gw?1.555-.05*fr_(a)**2:1.47-.02*fr_(a)**2,
@@ -719,8 +720,8 @@ export function buildPerson(g,o,M){for(const c of[...g.children])if(c.isMesh&&!c
  if(o.tabard&&o.outfit==='gambeson'){const ex=(o.breast?.03:0)+(o.mailShirt?.012:0),tc=o.fac||o.over||0x2a4a8a,S=tabardS(ex,false),S2=tabardS(ex,true);   // Wappenrock: ärmellos, seitlich offen, gezaddelter Saum in Kontrastfarbe
   mesh(garment(KEY('tb',[ex]),S),garMat('linen',tc),g);mesh(garment(KEY('tb2',[ex]),S2),garMat('linen',o.tabTrim||0xd8b040),g);addLayer(g,S)}
  if(['tunic','jerkin','vest','smock'].includes(o.outfit)){base=tunicS({...dz,hem:o.outfit==='smock'?.6:o.hem||.52});mesh(garment(KEY('tu',[bel,dirt,o.outfit==='smock',o.hem]),base),garMat(o.outfit==='smock'?'leather':'linen',o.cloth),g);addLayer(g,base)}
- if(o.outfit==='jerkin'){const S=jerkS(dz);mesh(garment(KEY('je',[bel,dirt]),S),garMat(o.uni?'linen':'leather',o.over),g);addLayer(g,S);const pts=[];for(let y=.78;y<1.46;y+=.045){const p=gPt(S,0,y);pts.push([0,y,p[2]+.004])}rivets(g,AR.brass,pts,.007,[1,1,.6])}
- if(o.outfit==='jerkin'&&o.suit){const D=o.suit,S=jerkS(dz),M2=c=>new T.MeshStandardMaterial({color:c,roughness:.8});   // Anzug: Weste, Hemdkragen, Krawatte, Revers, Uhrkette
+ if(o.outfit==='jerkin'){const S=o.suit?suitS(dz):jerkS(dz);mesh(garment(KEY('je',[bel,dirt,!!o.suit]),S),garMat(o.suit?'wool':o.uni?'linen':'leather',o.over),g);addLayer(g,S);const pts=[];for(let y=.78;y<1.46;y+=.045){const p=gPt(S,0,y);pts.push([0,y,p[2]+.004])}rivets(g,AR.brass,pts,.007,[1,1,.6])}
+ if(o.outfit==='jerkin'&&o.suit){const D=o.suit,S=suitS(dz),M2=c=>new T.MeshStandardMaterial({color:c,roughness:.8});   // Anzug: Weste, Hemdkragen, Krawatte, Revers, Uhrkette
   const fz=y=>gPt(S,0,y)[2];mesh(new T.BoxGeometry(.24,.42,.02),M2(D.vest),g,[0,1.2,fz(1.2)+.006]);for(let y=1.06;y<1.38;y+=.07)mesh(new T.SphereGeometry(.009,6,4),M2(0x2a2420),g,[0,y,fz(y)+.02]);
   for(const s2 of[1,-1]){const P=[];for(let k=0;k<=4;k++){const a=s2*(.1+k*.06),y=1.46-k*.012,p=gPt(S,a,y);P.push([p[0],y,p[2]+.012])}tube(g,M2(0xf4f0e6),P,.02);
    const L=[];for(let k=0;k<=6;k++){const t=k/6,a=s2*(.2-.08*t),y=1.44-t*.32,p=gPt(S,a,y);L.push([p[0],y,p[2]+.014])}tube(g,M2(D.lapel),L,.022)}
