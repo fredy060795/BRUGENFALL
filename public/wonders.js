@@ -26,11 +26,14 @@ const reliefMat=(key,bg,fg)=>canvasMat(key,256,160,(x,W,H)=>{x.fillStyle=bg;x.fi
  for(let i=0;i<5;i++){const cx=28+i*50,b=H-18;x.beginPath();x.ellipse(cx,b-82,9,11,0,0,7);x.fill();x.beginPath();x.moveTo(cx-14,b-68);x.lineTo(cx+14,b-68);x.lineTo(cx+(i%2?18:10),b);x.lineTo(cx-(i%2?10:18),b);x.closePath();x.fill();
   x.fillRect(cx+(i%2?12:-22),b-66,10,4);if(i===2){x.beginPath();x.moveTo(cx,b-110);x.lineTo(cx+30,b-90);x.lineTo(cx,b-96);x.fill()}}},{roughness:.8,uvs:1});
 
+// Bodenflächen: feine Sprenkel-Textur ohne Fugen, damit Kies- und Rasenflächen an das Gelände anschließen
+function groundTex(key,hue,sat,lit,pebbles=false){return canvasMat(key,256,256,(x,W,H)=>{const r=()=>Math.random();x.fillStyle=`hsl(${(hue[0]+hue[1])/2},${(sat[0]+sat[1])/2}%,${(lit[0]+lit[1])/2}%)`;x.fillRect(0,0,W,H);
+ for(let i=0;i<(pebbles?3200:2600);i++){x.fillStyle=`hsl(${hue[0]+r()*(hue[1]-hue[0])},${sat[0]+r()*(sat[1]-sat[0])}%,${lit[0]+r()*(lit[1]-lit[0])}%)`;const s=pebbles?2+r()*4:3+r()*3;if(pebbles){x.beginPath();x.ellipse(r()*W,r()*H,s/2,s/2*(.6+r()*.4),r()*3,0,7);x.fill()}else x.fillRect(r()*W,r()*H,s,s)}},{roughness:1,uvs:4})}
 function mats(H){const S=H.stone,P=H.plaster;return{
  stone:tint(S,null,'stone'),stoneD:tint(S,0x8e8270,'stoneD'),trav:tint(P,0xfff8ea,'trav',{uvs:3.2}),travD:tint(P,0xeee2c8,'travD',{uvs:3.2}),
  marble:tint(P,0xf4efe4,'marble',{roughness:.5}),white:tint(P,0xfaf6ee,'white'),ochre:tint(P,0xf0cf86,'ochre'),plaster:tint(P,0xe8dcc4,'plaster'),
  slate:tint(H.slate,null,'slate'),copper:tint(H.slate,0x6fa58e,'copper',{roughness:.5,metalness:.2}),tiles:tint(H.redRoof,null,'tiles'),wood:tint(H.wood,null,'wood'),floor:tint(H.floor,null,'floor'),
- grass:tint(H.thatch,0x4f6a30,'grassmound'),gravel:tint(H.floor,0xd6c8a6,'gravel'),
+ grass:groundTex('gGrass',[85,115],[42,52],[26,40]),gravel:groundTex('gGravel',[30,45],[10,22],[48,70],true),   // Boden wie die Landschaft: Grasflecken bzw. Kies statt Dielen-/Strohmuster
  brick:brickTex('brick',[150,58,40],[60,30,20],true),brickPlain:brickTex('brickP',[140,62,44],[70,34,24],false),
  iron:tint(null,0x5e4b3c,'iron',{metalness:.6,roughness:.45}),ironD:tint(null,0x3a2e24,'ironD',{metalness:.6,roughness:.5}),
  gold:tint(null,0xd4a838,'gold',{metalness:.8,roughness:.28}),bronze:tint(null,0x4a7a62,'bronzeP',{metalness:.55,roughness:.45}),dark:tint(null,0x1c1814,'dk',{roughness:.9}),
@@ -133,7 +136,7 @@ function colosseum(g,M){const K=kit(g),tr=M.trav,trD=M.travD,mar=M.marble,A=9.3,
  for(const k of[3,7]){const w=new THREE.CylinderGeometry(1,1,.7,96,1,true);const r=.45+k*.048;w.scale(A*r,1,B*r);K.add(w,mar,0,1.6+k*.58+.35,0)}
  for(let i=0;i<16;i++){const a=(i+.5)/16*PI*2;for(const k of[2,6]){const r=.47+k*.048;const v=K.box(.7,.55,.3,M.dark,Math.sin(a)*A*r,1.6+k*.58+.3,Math.cos(a)*B*r,0);v.rotation.y=Math.atan2(Math.sin(a)/A,Math.cos(a)/B)}}
  const pod=new THREE.CylinderGeometry(1,1,1.6,96,1,true);pod.scale(A*.425,1,B*.425);K.add(pod,mar,0,.8,0);
- const ar=new THREE.CircleGeometry(1,64);ar.rotateX(-PI/2);ar.scale(A*.42,1,B*.42);K.add(ar,tint(M.floor,0xd8c090,'sand'),0,.06,0);
+ const ar=new THREE.CircleGeometry(1,64);ar.rotateX(-PI/2);ar.scale(A*.42,1,B*.42);K.add(ar,groundTex('gSand',[36,46],[30,45],[58,72],true),0,.06,0);
  for(const x of[-2,0,2])for(let k=0;k<4;k++)K.box(.06,.04,2,M.wood,x+(k-1.5)*.18,.08,0,0);
  // Haupteingang (+z) mit Marmorrahmen und Inschrift
  K.box(3.2,.5,.3,mar,0,LH+.55,B+.5,.04);K.box(3.0,.4,.06,textMat('colIns','IMP·CAESAR·VESPASIANVS','#e6dcc4','#5a4a30',512,64),0,LH+.55,B+.66,0);

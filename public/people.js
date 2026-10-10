@@ -731,7 +731,7 @@ export function gear(g,o,M){const R=o.role,AR=o.rust?rustMats(M):armMats(M),st=M
  else{const y=o.outfit==='dress'?.975:.945,bm=new T.MeshStandardMaterial({color:o.beltCol||o.over,roughness:1,side:T.DoubleSide});beltOn(g,y,o.outfit==='dress'?.018:.032,bm);const p=at(0,y,.012);ring(g,st,.016,y,.15).position.set(...p)}
  boots(R==='archer'||R==='hunter'&&o.shins!=='boots'||R==='sword');
  if(o.bag&&o.outfit!=='gambeson')bag();
- if(R==='sword'&&o.rank!=='militia'){const sh=mesh(new T.CylinderGeometry(.18,.24,.1,18,1,true),cl(o.fac||(o.rank==='guard'?0x7a2a2a:0x2f4a6a)),g,[-.37,1.03,.07],[1.05,1,.18]);sh.rotation.z=Math.PI/2;mesh(new T.TorusGeometry(.19,.018,5,18),st,g,[-.42,1.03,.07]).rotation.y=Math.PI/2}
+ if(R==='sword'&&o.rank!=='militia'&&!o.uni){const sh=mesh(new T.CylinderGeometry(.18,.24,.1,18,1,true),cl(o.fac||(o.rank==='guard'?0x7a2a2a:0x2f4a6a)),g,[-.37,1.03,.07],[1.05,1,.18]);sh.rotation.z=Math.PI/2;mesh(new T.TorusGeometry(.19,.018,5,18),st,g,[-.42,1.03,.07]).rotation.y=Math.PI/2}
  if(R==='archer'){if(eraShotOf(ERA,'archer')==='arrow')quiver();else hipBag(-1.25,0x2a2018);cy(g.left.elbow,lea,.068,.062,.13,[0,-.2,0]);dagger(-1.5);if(!o.mailHood)shoulders(lea,.1);if(o.rank==='marksman')hipBag(1.2,0x4d5a3a)}
  if(R==='bandit'){dagger(1.5,-.08);if(o.rank!=='brute')dagger(-1.45);hipBag(-1.2,0x3a2e24);if(o.rank==='poacher'){mesh(BTN_GEO,cl(0x6a5a46),g,at(Math.PI+.2,1.1,.13),[.15,.17,.11]);quiver()}
   if(o.rank==='leader')hipBag(1.15,0x5a2a24)}

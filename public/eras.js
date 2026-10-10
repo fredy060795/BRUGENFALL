@@ -114,7 +114,7 @@ function eraPriest(o,era){if(!ERA_PRIEST[era])return false;o.acc=(o.acc||[]).fil
 const SAC=['chapel','church','cathedral'];
 export function eraPiece(k,era,ctx){if(!SAC.includes(k))return null;let g=null;
  if(era==='roemer')g=temple(k,ctx);else if(era==='steinzeit'||era==='hallstatt')g=stoneCircle(k,ctx,era);else if(era==='fruehmittelalter')g=woodChurch(k,ctx);else if(['renaissance','barock','napoleon'].includes(era))g=baroqueChurch(k,ctx,era);
- if(g&&era!=='steinzeit'&&era!=='hallstatt')pews(g,k,{...ctx,y0:era==='roemer'?.3:0});return g}
+ if(g&&!['steinzeit','hallstatt','roemer'].includes(era))pews(g,k,ctx);return g}
 // Bänke und Altar nach dem Innenraum-Plan (Rules.interior), damit Gottesdienst-Sitzplätze wieder auf Bänken liegen
 function pews(g,k,{H,y0=0}){const I=globalThis.BFRules.interior(k),wood=H?H.wood:new T.MeshStandardMaterial({color:0x6a4a30}),b=(w,h,d,x,y,z,m)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y0+y,z);o.castShadow=o.receiveShadow=true;g.add(o)};
  for(const z of I.pews)for(const sx of[-1,1]){const cx=sx*I.bx;b(I.bw,.06,.42,cx,.45,z,wood);b(I.bw,.5,.06,cx,.72,z+.22,wood);for(const e of[-1,1])b(.06,.45,.4,cx+e*(I.bw/2-.05),.22,z,wood)}

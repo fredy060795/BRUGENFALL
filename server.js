@@ -561,16 +561,23 @@ function campTick(r,dt){if(!hasEnemy(r))return;const en=enemyTown(r);
  if(!alive&&r.campOn&&r.n.some(n=>n.m==='attack'&&Math.hypot(n.x-en.x,n.z-en.z)<18)){r.campOn=false;r.cq=600;r.gold+=300;r.fame+=5;r.inv.iron+=20;r.inv.copper+=10;r.inv.weapons+=3;
   say(r,'🏴 '+en.n+' wurde erobert! Beute: 300 Gold, Eisen, Golderz, Waffen. Überfälle ruhen 10 Minuten.');for(const n of r.n)if(n.m==='attack'){n.m='follow'}}
  else if(!alive&&r.campOn){r.campOn=false;r.cr=30}}
+// Karawanen-Route: kreuzt die direkte Linie den Fluss, führt der Weg über eine Brücke (Auffahrt – Mitte – Abfahrt); ohne Brücke kein Landweg
+function crossesRiver(r,a,b){const L=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(2,Math.ceil(L/2));for(let i=1;i<n;i++){const t=i/n;if(inRiver(r,a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t,1))return true}return false}
+function landRoute(r,a,b){if(!crossesRiver(r,a,b))return[];let best=null,bd=1e9;for(const br of r.b){if(br.t!=='bridge')continue;const[w,d]=dims('bridge',br.r),ax=w>d,h=Math.max(w,d)/2+2,e1={x:br.x-(ax?h:0),z:br.z-(ax?0:h)},e2={x:br.x+(ax?h:0),z:br.z+(ax?0:h)},[p,q]=dist(a,e1)<dist(a,e2)?[e1,e2]:[e2,e1];
+  if(crossesRiver(r,a,p)||crossesRiver(r,q,b))continue;const L=dist(a,p)+dist(q,b);if(L<bd){bd=L;best=[p,{x:br.x,z:br.z},q]}}return best}
+function cvMove(c,x,z,sp,dt){while(c.wp&&c.wp.length){const w=c.wp[0];if(mv(c,w.x,w.z,sp,dt)<1)c.wp.shift();else return 99}return mv(c,x,z,sp,dt)}
 function tradeTick(r,dt){for(const c of r.cv){c.t-=dt;
-  if(c.kind==='caravan'){const m=r.b.find(b=>b.t==='market');if(c.st==='go'){if(!m){c.st='leave'}else if(mv(c,m.x,m.z+BD.market.d/2+3.5,3.6,dt)<2){c.st='wait';c.t=75;say(r,'🛒 Handelskarawane aus '+c.from+' ist am Marktstand eingetroffen (75 s, bessere Preise)');ecoArrive(r,c.from)}}
-   else if(c.st==='wait'&&c.t<=0)c.st='leave';else if(c.st==='leave'){const T0=townsOf(r).find(t=>t.n===c.from)||friendTowns(r)[0];if(!T0||mv(c,T0.x,T0.z,3.6,dt)<4)c.gone=1}}
+  if(c.kind==='caravan'){const m=r.b.find(b=>b.t==='market');if(c.st==='go'){if(!m){c.st='leave'}else if(cvMove(c,m.x,m.z+BD.market.d/2+3.5,3.6,dt)<2){c.st='wait';c.t=75;say(r,'🛒 Handelskarawane aus '+c.from+' ist am Marktstand eingetroffen (75 s, bessere Preise)');ecoArrive(r,c.from)}}
+   else if(c.st==='wait'&&c.t<=0){c.st='leave';const T0=townsOf(r).find(t=>t.n===c.from)||friendTowns(r)[0];c.wp=T0?(landRoute(r,c,T0)||[]).slice():[]}else if(c.st==='leave'){const T0=townsOf(r).find(t=>t.n===c.from)||friendTowns(r)[0];if(!T0||cvMove(c,T0.x,T0.z,3.6,dt)<4)c.gone=1}}
   else{const h=r.b.find(b=>b.t==='harbor');if(c.st==='go'){if(!h){c.st='leave'}else{c.z-=6*dt;c.x=riverAt(r,c.z);c.ry=Math.atan2(riverAt(r,c.z-1)-riverAt(r,c.z),-1);if(c.z<=h.z){c.st='wait';c.t=80;{const rx=riverAt(r,h.z),side=Math.sign(h.x-rx)||1;c.x=rx+side*Math.min(4.2,Math.abs(h.x-rx));c.ry=Math.PI}say(r,'⚓ Ein Handelsschiff aus '+c.from+' hat im Hafen angelegt (80 s, beste Preise)');ecoArrive(r,c.from)}}}
   else if(c.st==='wait'&&c.t<=0)c.st='leave';else if(c.st==='leave'){c.z+=6*dt;c.x=riverAt(r,c.z);c.ry=Math.atan2(riverAt(r,c.z+1)-riverAt(r,c.z),1);if(c.z>WH(r))c.gone=1}}}
  r.cv=r.cv.filter(c=>!c.gone);r.tt-=dt;
  if(r.tt<=0){r.tt=rnd(170,260);spawnTrade(r)}}
 function spawnTrade(r,force){const fr=friendTowns(r);if(!fr.length)return;const f=fr[Math.random()*fr.length|0],h=r.b.find(b=>b.t==='harbor'),m=r.b.find(b=>b.t==='market');
  if(h&&shipRiver(r)&&(!m||Math.random()<.5||force==='ship')){r.cv.push({id:uid++,kind:'ship',x:riverAt(r,WH(r)-20),z:WH(r)-20,ry:0,st:'go',t:0,from:f.n});say(r,(r.era==='neuzeit'?'🚢':'⚓')+' '+({Einbaum:'Ein Einbaum',Salzboot:'Ein Salzboot',Flussgaleere:'Eine Flussgaleere',Langschiff:'Ein Langschiff','Plätte':'Eine Plätte',Raddampfer:'Ein Raddampfer'}[Rules.ship(r.era)]||'Ein Handelsschiff')+' aus '+f.n+' nähert sich dem Hafen')}
- else if(m){r.cv.push({id:uid++,kind:'caravan',x:f.x,z:f.z,ry:0,st:'go',t:0,from:f.n});say(r,'🛒 Eine Handelskarawane aus '+f.n+' ist unterwegs')}}
+ else if(m){const wp=landRoute(r,f,{x:m.x,z:m.z+BD.market.d/2+3.5});
+  if(!wp){if(!r.cvNo||r.dy-r.cvNo>=3){r.cvNo=r.dy;say(r,'🛒 Händler aus '+f.n+' kommen nicht über den Fluss – baue eine Brücke'+(h?'':' oder einen Hafen'))}return}
+  r.cv.push({id:uid++,kind:'caravan',x:f.x,z:f.z,ry:0,st:'go',t:0,from:f.n,wp:wp.slice()});say(r,'🛒 Eine Handelskarawane aus '+f.n+' ist unterwegs'+(wp.length?' (über die Brücke)':''))}}
 function demolish(r,b,ruin){const B=BD[b.t],rf=Object.fromEntries(Object.entries(B.c).map(([k,n])=>[k,Math.floor(n*(ruin?.25:.5))]));for(const k in rf)r.inv[k]=Math.min(stockCap(r),r.inv[k]+rf[k]);
  if(ruin)r.ru=r.ru.filter(o=>o!==b);else{r.b=r.b.filter(o=>o!==b);for(const n of r.n){if(n.wb===b.id&&n.hp>0){n.hp=0;n.conv=1;const q=mkNpc(r,'peasant',n.x,n.z,n.o);q.ry=n.ry}if(n.hid===b.id)n.hid=0}}
  r.dirty=true;const t=costStr(Object.fromEntries(Object.entries(rf).filter(([,n])=>n>0)));say(r,'🔨 '+nm(r,b.t)+(ruin?'-Ruine geräumt':' abgerissen')+(t?' – zurück: '+t:''))}
@@ -1054,7 +1061,7 @@ wss.on('connection',ws=>{let r,p;
   else if(m.t==='swing'){const T0=Date.now();if(T0-(p.sw||0)<250)return;p.sw=T0;if(!r.creative)p.food=Math.max(0,p.food-({axe:.35,pickaxe:.35,hoe:.3,hammer:.25,bow:.2}[m.k]||.22))}
   else if(m.t==='hit'){const T=Date.now();if(T-p.lt>550){p.lt=T;p.hm=m.hm==='demolish'?'demolish':'repair';const fx=Math.sin(p.ry),fz=Math.cos(p.ry);
    const f=(l,mx)=>{let b=null;for(const e of l){const dx=e.x-p.x,dz=e.z-p.z,d=Math.hypot(dx,dz);if(d<mx&&dx*fx+dz*fz>0){mx=d;b=e}}return b};
-   const nearB=(l,lim=3.2)=>{let b=null,bd=lim;for(const o of l){const e=dist(o,p)-Math.max(BD[o.t].w,BD[o.t].d)/2;if(e<bd){bd=e;b=o}}return b};let t;
+   const AK={b:r.b,u:r.ru,s:r.cs},nearB=(l,lim=3.2)=>{const A=m.aim;if(A&&AK[A.k]&&l!==r.fires){const o=AK[A.k].find(o=>o.id===A.id);return o&&l.includes(o)&&dist(o,p)-Math.max(BD[o.t].w,BD[o.t].d)/2<6?o:null}let b=null,bd=lim;for(const o of l){const e=dist(o,p)-Math.max(BD[o.t].w,BD[o.t].d)/2;if(e<bd){bd=e;b=o}}return b};let t;
    if(!['none','torch'].includes(p.tool)&&!p.tools[p.tool])return tell(p,'Du besitzt kein Werkzeug „'+(TOOLN[p.tool]||p.tool)+'“ – im Inventar (I) herstellen');
    const E=toolEff(p),gain=b=>Math.max(1,Math.round(b*E)),used=()=>wear(r,p);
    if(p.tool==='none'||p.tool==='torch'){const sn=f(r.n.filter(n=>n.sk&&n.hp>0),2.8);if(sn&&p.tool==='none'){useHerb(r,p,sn.id);return}pickUp(r,p);return}
