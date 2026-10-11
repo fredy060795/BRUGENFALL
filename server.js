@@ -501,13 +501,13 @@ const waterPts=r=>r.b.filter(b=>b.t==='well').concat(r.b.filter(b=>b.t==='plaza'
 const FLAM=b=>!['wall','battle','tower','gate','portcullis','keep','cathedral','garrison','dungeon','torture','well','bridge','moat','chapel','quarry','ironmine','coppermine','plaza','field','cemetery'].includes(b.t);
 // Brandverlauf: Stufe 1 Rauch (unbemerkt), Stufe 2 Flammen aus den Fenstern (Alarm, Löschhilfe rückt aus), Stufe 3 Dachstuhl brennt (Funkenflug)
 const FIRE_T=[0,18,45],fireStage=b=>b.fire>0?((b.ft||0)>=FIRE_T[2]?3:(b.ft||0)>=FIRE_T[1]?2:1):0;
-function ignite(r,b,why){if(b.fire>0||!FLAM(b))return false;b.fire=100;b.sp=0;b.ft=0;r.dirty=true;say(r,'💨 '+(why||'Brandgeruch!')+' Rauch steigt auf: '+nm(r,b.t)+' – noch ist kein Feuer zu sehen …',b);return true}
+function ignite(r,b,why){if(b.fire>0||!FLAM(b))return false;b.fire=80;b.sp=0;b.ft=0;b.fought=0;r.dirty=true;say(r,'💨 '+(why||'Brandgeruch!')+' Rauch steigt auf: '+nm(r,b.t)+' – noch ist kein Feuer zu sehen …',b);return true}
 // Feuerwehr (Barock, Napoleon, Neuzeit): Mannschaft zieht die Handdruckspritze vom Spritzenhaus/der Feuerwache zum Brand und pumpt
 const FW_ERA={roemer:'Die Vigiles',barock:'Die Spritzenmannschaft',napoleon:'Die Spritzenmannschaft',neuzeit:'Die Freiwillige Feuerwehr'};
 function fwTick(r,dt){const E=FW_ERA[r.era],st=E&&r.b.find(b=>b.t==='watchpost');if(!st){r.fw=null;return}const home={x:st.x+2.4,z:st.z+2.4};let F=r.fw;
  if(!F||F.s===3){if(!r.fires.length){r.fw={x:home.x,z:home.z,ry:0,s:3,tx:home.x,tz:home.z};return}F=r.fw={x:home.x,z:home.z,ry:0,s:0,tx:home.x,tz:home.z};say(r,'🚒 '+E+(r.era==='roemer'?' rücken mit der Siphon-Pumpe aus!':' rückt mit der Handdruckspritze aus!'),st)}
  if(r.fires.length){const fb=near(F,r.fires,1e9);F.tx=fb.x;F.tz=fb.z;if(dist(F,fb)>reach(fb)+2.5){F.s=0;mv(F,fb.x,fb.z,3,dt)}
-  else{F.s=1;F.ry=Math.atan2(fb.x-F.x,fb.z-F.z);if(r.wells>0){fb.fire-=(Rules.has(r.era,'aqueduct')?24:16)*dt;r.dirty=true}else if(!F.dry){F.dry=1;say(r,'🚒 Kein Wasser – ohne Brunnen kann auch die Spritze nicht löschen',fb)}}}
+  else{F.s=1;F.ry=Math.atan2(fb.x-F.x,fb.z-F.z);if(r.wells>0){fb.fire-=(Rules.has(r.era,'aqueduct')?3:2.5)*dt;fb.fought=r.tk;r.dirty=true}else if(!F.dry){F.dry=1;say(r,'🚒 Kein Wasser – ohne Brunnen kann auch die Spritze nicht löschen',fb)}}}
  else{F.s=2;F.dry=0;if(mv(F,home.x,home.z,2.6,dt)<.8){F.s=3;F.ry=0;say(r,'🚒 '+E+(r.era==='roemer'?' sind zurück':' ist zurück'),st)}}}
 function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.burning=r.b.filter(b=>b.fire>0);r.fires=r.burning.filter(b=>fireStage(b)>=2);   // gelöscht wird erst, wenn Flammen sichtbar sindif(!r.fires.length)r.alarmIds=null;fwTick(r,dt);r.qt=(r.qt||0)+dt;if(r.qt>3){r.qt=0;questTick(r)}
  if(r.omen>0){r.omen-=dt;const targets=omenTargets(r);for(const n of targets)n.omT=(n.omT||0)+dt;
@@ -516,12 +516,18 @@ function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.burning=r.b.filter(b=>
   else{r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}}
  for(const b of r.burning){const held=b.held&&r.tk-b.held<3,st0=fireStage(b);b.ft=(b.ft||0)+(held?dt*.3:dt);const st=fireStage(b);
   if(st!==st0){r.dirty=true;if(st===2)say(r,'🔥 Feuer! Flammen schlagen aus den Fenstern: '+nm(r,b.t)+' – Alarm, alle Mann zum Löschen!',b);else if(st===3)say(r,'🔥 Der Dachstuhl brennt: '+nm(r,b.t)+' – Funkenflug kann Nachbarhäuser anstecken!',b)}
-  b.hp-=[0,.6,3,6][st]*(held?.35:1)*dt;r.under=true;
+  const fought=b.fought&&r.tk-b.fought<20;   // in den letzten Sekunden wurde gelöscht
+  // Das Feuer wächst weiter: Stufe 2 und 3 nähren sich (bis 400 = Vollbrand); Löschen muss schneller sein als das Wachstum
+  if(st>=2)b.fire=Math.min(400,b.fire+(st===2?1.6:2.6)*(fought?.6:1)*dt);
+  b.hp-=mh(b)*[0,.0015,.008,.016][st]*(held?.35:1)*dt;   // Vollbrand zerstört ein Haus in gut einer Minuter.under=true;
   // Regen bremst nur leicht – löschen geht NUR mit Brunnen (Eimerkette / Hammer)
-  if(r.wx===1)b.fire-=(r.wells>0?4:0.4)*dt;
+  if(r.wx===1)b.fire-=(r.wells>0?1.2:0.3)*dt;
   b.sp=(b.sp||0)+dt;
   // Funkenflug nur bei brennendem Dachstuhl und solange nicht gelöscht wird: Nachbarn bis 12 m, nähere wahrscheinlicher
-  if(st===3&&b.sp>3&&!held){b.sp=0;for(const o of r.b){if(o===b||o.fire||!FLAM(o))continue;const d=dist(o,b)-Math.max(BD[o.t].w,BD[o.t].d)/2;if(d<12&&Math.random()<.3*(1-d/12))ignite(r,o,'Funkenflug!')}}
+  // Übergreifen: alle 4 s eine Chance je Nachbar – Funkenflug (Stufe 3, bis 12 m) oder Strahlungshitze bei dicht stehenden Häusern (Stufe 2, bis 2,5 m).
+  // Löschen senkt die Chance, verhindert sie aber nicht; Holz-/Strohbauten fangen eher Feuer, Regen dämpft.
+  if(st>=2&&b.sp>4&&!held){b.sp=0;const wet=r.wx===1?.5:1;for(const o of r.b){if(o===b||o.fire||!FLAM(o))continue;const d=Math.max(0,dist(o,b)-(Math.max(BD[o.t].w,BD[o.t].d)+Math.max(BD[b.t].w,BD[b.t].d))/2),R=st===3?12:2.5;   /* Abstand Wand zu Wand */if(d>=R)continue;
+    const wood=BD[o.t].c&&BD[o.t].c.wood>(BD[o.t].c.stone||0)?1.4:.8,pc=(st===3?.16:.07)*(1-d/R)*wood*(fought?.45:1)*wet;if(Math.random()<pc)ignite(r,o,st===3?'Funkenflug!':'Die Hitze greift über!')}}
   if(b.fire<=0){b.fire=0;r.dirty=true;say(r,'💧 Das Feuer am '+nm(r,b.t)+' ist gelöscht')}}
  const sk=r.n.filter(n=>n.sk);for(const a of sk)for(const o of r.n)if(!o.sk&&!((o.imm|0)>r.dy)&&!SICK_IMMUNE.has(o.k)&&dist(a,o)<4&&Math.random()<.015*dt*(r.bl===r.dy?.3:1)*(Rules.has(r.era,'vaccine')?.5:1)){o.sk=Math.min(2,Math.max(1,a.sk|0));o.sickStage=0;say(r,'🤒 Ein weiterer Bewohner ist erkrankt')}
  r.et-=dt;if(r.ev.on&&r.ev.every>0&&r.et<=0){r.et=r.ev.every*rnd(.7,1.3);const kinds=['fire','sick','omen','rats','thieves','ambush'].filter(k=>r.ev[k]);if(kinds.length)trigger(r,kinds[Math.random()*kinds.length|0])}
@@ -723,7 +729,7 @@ r.wt-=dt;if(r.wt<=0){
       // voll: zum Brand
       if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.2,dt);continue}
       n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);
-      if(n.cd<=0){n.cd=.55;fb.fire-=Rules.has(r.era,'aqueduct')?12:8;n.bucket=0;r.dirty=true} // gießen, dann neu holen
+      if(n.cd<=0){n.cd=.55;fb.fire-=Rules.has(r.era,'aqueduct')?2:1.5;fb.fought=r.tk;n.bucket=0;r.dirty=true} // gießen, dann neu holen
       continue;
     }
   }
@@ -954,7 +960,7 @@ function watchTick(r,n,dt){n.torch=1;n.inv=1;n.hp=Math.max(n.hp,500);   // unver
   const W=waterPts(r);
   if(!W.length){if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);n.cd=.4;fb.held=r.tk;return}
   if(!n.bucket){const w=near(n,W,1e9);if(dist(n,w)>1.6){mv(n,w.x,w.z,3.4,dt);return}n.bucket=1;n.cd=.5;return}
-  if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);if(n.cd<=0){n.cd=.5;fb.fire-=12;n.bucket=0;r.dirty=true}return}
+  if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);if(n.cd<=0){n.cd=.5;fb.fire-=1.5;fb.fought=r.tk;n.bucket=0;r.dirty=true}return}
  if(r.alarmIds){r.alarmIds=null;n.route=null}
  // Rundgang
  if(!n.route||!n.route.length||n.ri>=n.route.length){n.route=watchRoute(r,n);n.ri=0;if(!n.route.length)return}
@@ -1090,7 +1096,7 @@ wss.on('connection',ws=>{let r,p;
    else if(p.tool==='hammer'&&p.hm==='demolish'&&(t=nearB(r.cs,5))){for(const k in t.got)r.inv[k]=(r.inv[k]||0)+t.got[k];for(let q=0;q<t.i;q++)for(const k in t.S[q].need)r.inv[k]=(r.inv[k]||0)+Math.floor(t.S[q].need[k]*.5);r.cs=r.cs.filter(o=>o!==t);r.dcs=true;r.ca=(r.ca||[]).map(c=>c.to===t.id?{...c,st:'back'}:c);say(r,'🔨 Baustelle '+nm(r,t.t)+' aufgegeben – Material zurück ins Lager',t)}
    else if(p.tool==='hammer'&&p.hm==='demolish'){const ru=nearB(r.ru),bb=ru||nearB(r.b);if(!bb)tell(p,'Nichts zum Abreißen in der Nähe');else{bb.dm=(bb.dm||0)+1;used();if(bb.dm>=4)demolish(r,bb,!!ru);else tell(p,'Abriss '+bb.dm+'/4 …')}}
    else if(p.tool==='hammer'&&(t=nearB(r.cs,5))){siteFeed(r,t,p);if(siteHit(r,t,E,p))used()}
-   else if(p.tool==='hammer'&&r.wells>0&&nearB(r.fires)){const fb=nearB(r.fires);fb.fire-=30;r.dirty=true}
+   else if(p.tool==='hammer'&&r.wells>0&&nearB(r.fires)){const fb=nearB(r.fires);fb.fire-=3;fb.fought=r.tk;r.dirty=true}
    else if(p.tool==='hammer'){const ru=nearB(r.ru),bb=ru||nearB(r.b.filter(b=>b.hp<mh(b)));
     if(!bb)tell(p,'Nichts zu bauen oder zu reparieren in der Nähe (Hammer: Baustellen, Ruinen, beschädigte Gebäude)');
     else{const B=BD[bb.t],cost=frac(B.c,ru?.3:.06);if(!haveAll(r,p,cost))tell(p,'Material fehlt: '+costStr(cost));
