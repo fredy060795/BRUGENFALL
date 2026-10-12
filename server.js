@@ -477,9 +477,12 @@ function work(r,n,dt){if(n.k==='healer'&&r.hr>=6&&r.hr<22&&plagueVisit(r,n,dt))r
  if(!wb)return idle(r,n,dt);if(n.k==='hangman'&&!hasRoom(wb,'torture')){n.wb=0;return idle(r,n,dt);}
  if(n.k==='priest'&&r.omen>0&&omenPriestCycle(r,n,dt))return;
  const old=r.b.find(b=>b.id===n.insideId&&b.id!==wb.id);if(old&&!exitBuilding(n,old,dt))return;const B=BD[wb.t],F0=workPoint(r,wb,n),X=F0.x,Z=F0.z;
- if(n.k==='gravedigger'){const c=near(n,r.co,1e9);if(!c){if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,2.8,dt);return}
-  if(dist(n,c)>1.4){mv(n,c.x,c.z,3,dt);return}n.bt=(n.bt||0)+dt;if(n.bt%1.2<dt)n.cd=1;
-  if(n.bt>=3){n.bt=0;r.co=r.co.filter(o=>o!==c);r.gr++;say(r,'⚰ Ein Toter wurde beerdigt');const C=chapOf(r);if(C&&!r.ce&&r.hr>=7&&r.hr<19){r.ce={k:'fun',t:45,c:C.id,at:fp(C,-BD[C.t].w/2-3.2,-1+(r.gr%4)*1.4),m:pickAdults(r,5)};say(r,'🕯 Beerdigung: Der Priester spricht Gebete, die Trauernden stehen am Grab',C)}}return}
+ if(n.k==='gravedigger'){   // holt die Toten einzeln mit Karren und Holzsarg und bringt sie zum Friedhof
+  if(n.gd){if(dist(n,{x:X,z:Z})>1.5){n.cart=2;mv(n,X,Z,2.4,dt);return}n.cart=3;n.bt=(n.bt||0)+dt;if(n.bt%1.2<dt)n.cd=1;
+   if(n.bt>=4){n.bt=0;n.gd=0;r.gr++;say(r,'⚰ Ein Toter wurde beerdigt');const C=chapOf(r);if(C&&!r.ce&&r.hr>=7&&r.hr<19){r.ce={k:'fun',t:45,c:C.id,at:fp(C,-BD[C.t].w/2-3.2,-1+(r.gr%4)*1.4),m:pickAdults(r,5)};say(r,'🕯 Beerdigung: Der Priester spricht Gebete, die Trauernden stehen am Grab',C)}}return}
+  const c=near(n,r.co,1e9);if(!c){n.cart=0;n.bt=0;if(dist(n,{x:X,z:Z})>1.5)mv(n,X,Z,2.8,dt);return}n.cart=1;
+  if(dist(n,c)>1.6){n.bt=0;mv(n,c.x,c.z,2.8,dt);return}n.bt=(n.bt||0)+dt;
+  if(n.bt>=2.5){n.bt=0;r.co=r.co.filter(o=>o!==c);n.gd=1}return}
  if(!['farmer','wood','hunter','mason'].includes(n.k))return cycle(r,n,wb,B,dt,X,Z);
  if(n.k==='wood')return woodCycle(r,n,wb,B,dt,X,Z);
  let t,act;
@@ -503,19 +506,19 @@ const FLAM=b=>!['wall','battle','tower','gate','portcullis','keep','cathedral','
 const FIRE_T=[0,18,45],fireStage=b=>b.fire>0?((b.ft||0)>=FIRE_T[2]?3:(b.ft||0)>=FIRE_T[1]?2:1):0;
 function ignite(r,b,why){if(b.fire>0||!FLAM(b))return false;b.fire=80;b.sp=0;b.ft=0;b.fought=0;r.dirty=true;say(r,'💨 '+(why||'Brandgeruch!')+' Rauch steigt auf: '+nm(r,b.t)+' – noch ist kein Feuer zu sehen …',b);return true}
 // Feuerwehr (Barock, Napoleon, Neuzeit): Mannschaft zieht die Handdruckspritze vom Spritzenhaus/der Feuerwache zum Brand und pumpt
-const FW_ERA={roemer:'Die Vigiles',barock:'Die Spritzenmannschaft',napoleon:'Die Spritzenmannschaft',neuzeit:'Die Freiwillige Feuerwehr'};
+const FW_ERA={roemer:'Die Vigiles',hochmittelalter:'Die Feuerknechte',spaetmittelalter:'Die Feuerknechte',renaissance:'Die Feuerknechte',barock:'Die Spritzenmannschaft',napoleon:'Die Spritzenmannschaft',neuzeit:'Die Freiwillige Feuerwehr'};
 function fwTick(r,dt){const E=FW_ERA[r.era],st=E&&r.b.find(b=>b.t==='watchpost');if(!st){r.fw=null;return}const home={x:st.x+2.4,z:st.z+2.4};let F=r.fw;
- if(!F||F.s===3){if(!r.fires.length){r.fw={x:home.x,z:home.z,ry:0,s:3,tx:home.x,tz:home.z};return}F=r.fw={x:home.x,z:home.z,ry:0,s:0,tx:home.x,tz:home.z};say(r,'🚒 '+E+(r.era==='roemer'?' rücken mit der Siphon-Pumpe aus!':' rückt mit der Handdruckspritze aus!'),st)}
+ if(!F||F.s===3){if(!r.fires.length){r.fw={x:home.x,z:home.z,ry:0,s:3,tx:home.x,tz:home.z};return}F=r.fw={x:home.x,z:home.z,ry:0,s:0,tx:home.x,tz:home.z};say(r,'🚒 '+E+(r.era==='roemer'?' rücken mit der Siphon-Pumpe aus!':['hochmittelalter','spaetmittelalter','renaissance'].includes(r.era)?' rücken mit dem Wasserwagen aus!':' rückt mit der Handdruckspritze aus!'),st)}
  if(r.fires.length){const fb=near(F,r.fires,1e9);F.tx=fb.x;F.tz=fb.z;if(dist(F,fb)>reach(fb)+2.5){F.s=0;mv(F,fb.x,fb.z,3,dt)}
   else{F.s=1;F.ry=Math.atan2(fb.x-F.x,fb.z-F.z);if(r.wells>0){fb.fire-=(Rules.has(r.era,'aqueduct')?3:2.5)*dt;fb.fought=r.tk;r.dirty=true}else if(!F.dry){F.dry=1;say(r,'🚒 Kein Wasser – ohne Brunnen kann auch die Spritze nicht löschen',fb)}}}
- else{F.s=2;F.dry=0;if(mv(F,home.x,home.z,2.6,dt)<.8){F.s=3;F.ry=0;say(r,'🚒 '+E+(r.era==='roemer'?' sind zurück':' ist zurück'),st)}}}
-function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.burning=r.b.filter(b=>b.fire>0);r.fires=r.burning.filter(b=>fireStage(b)>=2);   // gelöscht wird erst, wenn Flammen sichtbar sindif(!r.fires.length)r.alarmIds=null;fwTick(r,dt);r.qt=(r.qt||0)+dt;if(r.qt>3){r.qt=0;questTick(r)}
+ else{F.s=2;F.dry=0;if(mv(F,home.x,home.z,2.6,dt)<.8){F.s=3;F.ry=0;say(r,'🚒 '+E+(['roemer','hochmittelalter','spaetmittelalter','renaissance'].includes(r.era)?' sind zurück':' ist zurück'),st)}}}
+function events(r,dt,bm,stf){r.wells=waterPts(r).length;r.burning=r.b.filter(b=>b.fire>0);r.fires=r.burning.filter(b=>fireStage(b)>=2);/* gelöscht wird erst, wenn Flammen sichtbar sind */if(!r.fires.length)r.alarmIds=null;fwTick(r,dt);r.qt=(r.qt||0)+dt;if(r.qt>3){r.qt=0;questTick(r)}
  if(r.omen>0){r.omen-=dt;const targets=omenTargets(r);for(const n of targets)n.omT=(n.omT||0)+dt;
   if(r.omen<=0){for(const n of r.n){n.om=0;n.omT=0}r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}
   else if(targets.length){r.omenRise=(r.omenRise||0)+dt*(r.holy?.45:1);if(r.omenRise>=30){r.omenRise=0;triggerOmenVictim(r)}}
   else{r.omen=0;r.omenRise=0;r.plazaEvent=0;r.plazaEventT=0;say(r,'🙏 Die Menschen beruhigen sich wieder')}}
  for(const b of r.burning){const held=b.held&&r.tk-b.held<3,st0=fireStage(b);b.ft=(b.ft||0)+(held?dt*.3:dt);const st=fireStage(b);
-  if(st!==st0){r.dirty=true;if(st===2)say(r,'🔥 Feuer! Flammen schlagen aus den Fenstern: '+nm(r,b.t)+' – Alarm, alle Mann zum Löschen!',b);else if(st===3)say(r,'🔥 Der Dachstuhl brennt: '+nm(r,b.t)+' – Funkenflug kann Nachbarhäuser anstecken!',b)}
+  if(st!==st0){r.dirty=true;if(st===2){say(r,'🔥 Feuer! Flammen schlagen aus den Fenstern: '+nm(r,b.t)+' – Alarm, alle Mann zum Löschen!',b);if(FW_ERA[r.era]&&!r.b.some(o=>o.t==='watchpost')&&!r.fwHint){r.fwHint=1;say(r,'💡 Tipp: Mit '+BA(r,'watchpost','dat')+' rücken '+FW_ERA[r.era].replace(/^Die /,'die ')+' bei jedem Brand aus')}if(!r.wells&&!r.wellHint){r.wellHint=1;say(r,'💡 Ohne Brunnen gibt es kein Löschwasser – die Bewohner können keine Eimer füllen')}}else if(st===3)say(r,'🔥 Der Dachstuhl brennt: '+nm(r,b.t)+' – Funkenflug kann Nachbarhäuser anstecken!',b)}
   const fought=b.fought&&r.tk-b.fought<20;   // in den letzten Sekunden wurde gelöscht
   // Das Feuer wächst weiter: Stufe 2 und 3 nähren sich (bis 400 = Vollbrand); Löschen muss schneller sein als das Wachstum
   if(st>=2)b.fire=Math.min(400,b.fire+(st===2?1.6:2.6)*(fought?.6:1)*dt);
@@ -721,7 +724,7 @@ r.wt-=dt;if(r.wt<=0){
   if((T.job||n.k==='peasant')&&r.fires.length&&r.wells>0&&!n.tr){
     // Eimerkette: zum Brunnen → Wasser holen → zum Brand → löschen → wiederholen
     const fb=near(n,r.fires,90),wells=waterPts(r);
-    if(fb&&wells.length){
+    if(fb&&wells.length){n.ffT=r.tk;
       if(!n.bucket){ // leer: zum nächsten Brunnen
         const w=near(n,wells,1e9);
         if(dist(n,w)>1.6){mv(n,w.x,w.z,3.2,dt);continue}
@@ -731,7 +734,7 @@ r.wt-=dt;if(r.wt<=0){
       // voll: zum Brand
       if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.2,dt);continue}
       n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);
-      if(n.cd<=0){n.cd=.55;fb.fire-=Rules.has(r.era,'aqueduct')?2:1.5;fb.fought=r.tk;n.bucket=0;r.dirty=true} // gießen, dann neu holen
+      if(n.cd<=0){n.cd=.55;fb.fire-=Rules.has(r.era,'aqueduct')?2:1.5;fb.fought=r.tk;n.bucket=0;n.pourT=r.tk;r.dirty=true} // gießen, dann neu holen
       continue;
     }
   }
@@ -792,7 +795,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  for(const n of r.n)if(n.insideId){const b=r.b.find(b=>b.id===n.insideId);if(b&&WORKSPOTS[b.t]||b&&['house','bighouse'].includes(b.t)){const [x,z]=Rules.local(b,n.x,n.z);n.el=Math.abs(x)<BD[b.t].w/2&&Math.abs(z)<BD[b.t].d/2?Math.max(0,Rules.base(b.t,b.x,b.z,b.r,CAT,r.map)+.1-Rules.height(n.x,n.z,r.map))+(n.fl||0):0;}else n.fl=0}
  const actors=[...r.pl.values(),...r.n.filter(n=>n.hp>0&&!n.ps&&!n.pr&&!n.slp),...r.e.filter(n=>n.hp>0),...r.dr,...r.w];const before=new Map([...r.pl.values()].map(p=>[p.id,[p.x,p.z]]));for(const actor of actors)actor.radius=actor.mt?.75:(r.dr.includes(actor)||r.w.includes(actor))?.6:.42;Rules.separate(actors);for(const p of r.pl.values()){const q=before.get(p.id);p.push=[r2(p.x-q[0]),r2(p.z-q[1])]}
  const m={t:'s',creative:!!r.creative,p:[...r.pl.values()].map(p=>[p.id,p.x,p.z,p.ry,p.name,Math.round(p.hp),Math.min(Date.now()-p.lt,Date.now()-(p.sw||0))<350?1:0,p.mt?1:0,Math.round(p.food),p.torch?1:0,p.sl?1:0,p.tool||'sword',p.ch,p.push,p.el||0,p.fc||0,p.tool==='sword'&&p.sh&&p.shields[p.sh]?p.sh:'',p.coa|0]),
-  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.id===bishopId(r,n.wb)?1:0,n.torch&&SOLDIER.includes(n.k)?1:0]),
+  n:r.n.map(n=>[n.id,n.k,r2(n.x),r2(n.z),r2(n.ry),n.m,n.o,n.cd>NT[n.k].cd-.4?1:0,r2(n.aim||0),r2(n.el||0),n.sk||0,n.work||0,n.cr||0,n.wb||0,n.pr?1:0,n.pd?1:0,n.ps||0,n.k==='priest'&&n.id===bishopId(r,n.wb)?1:0,n.torch&&SOLDIER.includes(n.k)?1:0,n.ffT&&r.tk-n.ffT<15?(n.pourT&&r.tk-n.pourT<6?3:n.bucket?2:1):0,n.k==='gravedigger'?n.cart|0:0]),
   e:r.e.map(e=>[e.id,r2(e.x),r2(e.z),r2(e.ry),e.cd>.6?1:0]),g:r.gold,i:r.inv,h:r.hr,tl:r.tl,ar:r.an,pp:[r.n.filter(n=>n.k!=='watch').length,popCap(r),r.n.filter(n=>n.k==='peasant'&&!n.tr&&!n.sk).length],se:season(r),dy:r.dy,wx:r.wx,
   w:r.w.map(w=>[w.id,r2(w.x),r2(w.z),r2(w.ry||0)]),d:r.dr.map(d=>[d.id,r2(d.x),r2(d.z),r2(d.ry||0),deerYoung(d)?r2(.55+.45*d.ag/DEER_GROW):1]),co:r.co.map(c=>[c.id,r2(c.x),r2(c.z)]),s:r.set,x:Math.round(r.next),ra:r.raidArmed?1:0,qd:r.qd||[],dip:townsOf(r).map(T=>T.k==='enemy'?[T.n,'enemy',(r.truce|0)>(r.dy|0)?(r.truce-r.dy):0]:[T.n,'friend',dipOf(r,T.n).rel,dipOf(r,T.n).tr,dipOf(r,T.n).al]),fw:r.fw?[r2(r.fw.x),r2(r.fw.z),r2(r.fw.ry),r.fw.s,r2(r.fw.tx),r2(r.fw.tz)]:0,eh:eraHist(r),dyn:r.dyn||{},dj:DYN_JUMP,ib:r.inbound?[Math.ceil(r.inbound.t),r.inbound.n,r.inbound.c,r.inbound.en.n]:0,
   evs:r.ev,cq:r.cq>0?1:0,omen:r.omen>0?1:0,sup:Math.round(r.sup||0),tp:r.cv.some(c=>c.st==='wait')?1:0,cv:r.cv.map(c=>[c.id,c.kind,r2(c.x),r2(c.z),r2(c.ry),c.st==='wait'?1:0,c.from,c.kind==='caravan'&&c.st!=='wait'?(c.wp||[]).map(w=>[Math.round(w.x),Math.round(w.z)]).concat([[Math.round(c.tx??c.x),Math.round(c.tz??c.z)]]):0]),det:Math.round((r.det||0)*100),pry:r.pray>0?1:0,pr:r.pr,fame:r.fame,tny:r.tny?{k:r.tny.k.map(q=>[q.n,q.c,q.od,q.pl?1:0,q.a]),ph:r.tny.ph,t:Math.round(r.tny.t),pr:r.tny.pairs[Math.min(r.tny.m,r.tny.pairs.length-1)],p:r.tny.pass,pt:+r.tny.pt.toFixed(2),o:r.tny.o,sc:r.tny.sc,ch:r.tny.ch,b:r.tny.bets}:0,fair:r.plazaEvent==='circus'?r.fairG|0:-1,sl:(r.ev&&r.ev.sl)||4,cyc:r.ev&&r.ev.cyc===0?0:1,bq:r.banq?1:0,hap:Math.round(r.hap),cap,gr:r.gr,tax:r.tax??1,ration:r.ration??1,imm:r.noImm?0:1,immLock:r.surv&&!r.creative?immLock(r):'',surv:r.surv?1:0,sickHouses:r.b.filter(b=>(b.t==='house'||b.t==='bighouse')&&r.n.some(n=>n.sk&&n.hp>0&&(n.hid===b.id||n.home===b||n.insideId===b.id))).map(b=>b.id),plazaEv:r.plazaEvent||0,plazaT:r.plazaEventT||0};
@@ -961,8 +964,8 @@ function watchTick(r,n,dt){n.torch=1;n.inv=1;n.hp=Math.max(n.hp,500);   // unver
  if(fb){if(!r.alarmIds){const wake=r.n.filter(o=>o.hp>0&&!o.sk&&!o.tr&&o.k!=='child'&&(NT[o.k].job||o.k==='peasant')).sort((a,b)=>dist(a,fb)-dist(b,fb)).slice(0,4);r.alarmIds=wake.map(o=>o.id);say(r,'🔔 Feuer! Der Nachtwächter läutet Alarm'+(wake.length?' und weckt '+wake.length+' Bewohner':''),fb)}
   const W=waterPts(r);
   if(!W.length){if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);n.cd=.4;fb.held=r.tk;return}
-  if(!n.bucket){const w=near(n,W,1e9);if(dist(n,w)>1.6){mv(n,w.x,w.z,3.4,dt);return}n.bucket=1;n.cd=.5;return}
-  if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);if(n.cd<=0){n.cd=.5;fb.fire-=1.5;fb.fought=r.tk;n.bucket=0;r.dirty=true}return}
+  n.ffT=r.tk;if(!n.bucket){const w=near(n,W,1e9);if(dist(n,w)>1.6){mv(n,w.x,w.z,3.4,dt);return}n.bucket=1;n.cd=.5;return}
+  if(dist(n,fb)>reach(fb)-.6){mv(n,fb.x,fb.z,3.4,dt);return}n.ry=Math.atan2(fb.x-n.x,fb.z-n.z);if(n.cd<=0){n.cd=.5;fb.fire-=1.5;fb.fought=r.tk;n.bucket=0;n.pourT=r.tk;r.dirty=true}return}
  if(r.alarmIds){r.alarmIds=null;n.route=null}
  // Rundgang
  if(!n.route||!n.route.length||n.ri>=n.route.length){n.route=watchRoute(r,n);n.ri=0;if(!n.route.length)return}
@@ -1076,7 +1079,7 @@ wss.on('connection',ws=>{let r,p;
   else if(m.t==='evset'){if(m.k==='on')r.ev.on=m.v?1:0;else if(m.k==='every')r.ev.every=Math.max(0,Math.min(1800,+m.v||0));else if(m.k==='cyc'){r.ev.cyc=m.v?1:0;if(!m.v)r.hr=12}else if(m.k==='hr'&&r.creative){r.hr=Math.max(0,Math.min(23.99,+m.v||0));r.dirty=true}else if(m.k==='sl')r.ev.sl=Math.max(1,Math.min(30,+m.v||4));else if(['fire','sick','omen','rats','thieves','ambush'].includes(m.k))r.ev[m.k]=m.v?1:0;r.et=Math.min(r.et,r.ev.every||1e9)}
   else if(m.t==='dip'){dipAct(r,p,String(m.town||''),String(m.a||''))}
   else if(m.t==='evnow'&&m.k==='fest'){if(!r.creative)return tell(p,'Feste per Knopfdruck nur im Frei-Bau');if(!['maypole','circus','tree'].includes(m.v))return;const pl=r.b.find(b=>b.t==='plaza');if(!pl)return tell(p,'Zuerst einen '+nm(r,'plaza')+' bauen');r.plazaEvent=m.v;r.plazaEventT=150;r.dirty=true;say(r,Rules.fest(r.era,m.v),pl)}
-  else if(m.t==='evnow'){if(m.k==='train'){if(r.b.some(b=>b.t==='station'))spawnTrade(r,'train');else tell(p,'Kein Bahnhof vorhanden')}else if(m.k==='burn'){if(!r.creative)return tell(p,'Nur im Frei-Bau');const L=r.b.filter(b=>FLAM(b)&&!b.fire).sort((a,b)=>dist(a,p)-dist(b,p));if(L[0])ignite(r,L[0],'Brandstiftung (Test)!');else tell(p,'Kein brennbares Gebäude')}else if(['caravan','visit','siege'].includes(m.k)){if(!r.creative)return tell(p,'Nur im Frei-Bau');if(m.k==='caravan')spawnTrade(r,'caravan');else if(m.k==='visit'){if(!histVisit(r))tell(p,'In dieser Epoche gibt es keinen Herrscherbesuch (oder kein Bergfried)')}else histSiege(r)}else if(m.k==='prisoner'){const dc=4*r.b.filter(b=>hasRoom(b,'dungeon')).length;if(!dc)tell(p,'Kein Kerker vorhanden');else r.pr=Math.min(dc,r.pr+1)}else if(m.k==='pray'){if(r.holy){r.pray=90;r.pd=r.dy;say(r,'🔔 Die Glocken läuten – alle Bewohner gehen zum Gebet')}else tell(p,'Kapelle/Kirche mit Priester nötig')}else if(['fire','sick','omen','rats','thieves','ambush'].includes(m.k))trigger(r,m.k);else if(m.k==='trade')spawnTrade(r,m.v)}
+  else if(m.t==='evnow'){if(m.k==='train'){if(r.b.some(b=>b.t==='station'))spawnTrade(r,'train');else tell(p,'Kein Bahnhof vorhanden')}else if(m.k==='burn'){if(!r.creative)return tell(p,'Nur im Frei-Bau');const at=Number.isFinite(+m.x)&&Number.isFinite(+m.z)?{x:+m.x,z:+m.z}:p,L=r.b.filter(b=>FLAM(b)&&!b.fire).sort((a,b)=>dist(a,at)-dist(b,at));if(L[0])ignite(r,L[0],'Brandstiftung (Test)!');else tell(p,'Kein brennbares Gebäude')}else if(['caravan','visit','siege'].includes(m.k)){if(!r.creative)return tell(p,'Nur im Frei-Bau');if(m.k==='caravan')spawnTrade(r,'caravan');else if(m.k==='visit'){if(!histVisit(r))tell(p,'In dieser Epoche gibt es keinen Herrscherbesuch (oder kein Bergfried)')}else histSiege(r)}else if(m.k==='corpse'){if(!r.creative)return tell(p,'Nur im Frei-Bau');const at=Number.isFinite(+m.x)&&Number.isFinite(+m.z)?{x:+m.x,z:+m.z}:p;r.co.push({id:uid++,x:r2(at.x+(Math.random()-.5)*3),z:r2(at.z+(Math.random()-.5)*3),t:0})}else if(m.k==='prisoner'){const dc=4*r.b.filter(b=>hasRoom(b,'dungeon')).length;if(!dc)tell(p,'Kein Kerker vorhanden');else r.pr=Math.min(dc,r.pr+1)}else if(m.k==='pray'){if(r.holy){r.pray=90;r.pd=r.dy;say(r,'🔔 Die Glocken läuten – alle Bewohner gehen zum Gebet')}else tell(p,'Kapelle/Kirche mit Priester nötig')}else if(['fire','sick','omen','rats','thieves','ambush'].includes(m.k))trigger(r,m.k);else if(m.k==='trade')spawnTrade(r,m.v)}
   else if(m.t==='expedition'){if(!hasEnemy(r))return tell(p,'Auf dieser Karte gibt es kein Banditenlager');const en=enemyTown(r);if(m.c==='attack'){if(r.cq>0)return tell(p,en.n+' ist erobert – es gibt dort nichts mehr zu tun');const S=r.n.filter(n=>n.o===p.id&&SOLDIER.includes(n.k)&&n.m!=='post'&&!n.tr);if(S.length<4)return tell(p,'Zu wenige Soldaten für einen Feldzug (mindestens 4)');for(const n of S){n.m='attack';n.el=0}say(r,'⚔ Feldzug gegen '+en.n+' beginnt ('+S.length+' Soldaten)')}else for(const n of r.n)if(n.o===p.id&&n.m==='attack')n.m='follow'}
   else if(m.t==='gate'){const g=r.b.filter(b=>(b.t==='gate'||b.t==='portcullis')&&dist(b,p)<12);if(!g.length)return tell(p,'Kein Torhaus in der Nähe (12 m)');for(const b of g)b.man=b.st?0:1;say(r,g[0].man?'🚪 Das Tor wurde verriegelt':'🚪 Das Tor wurde geöffnet')}
   else if(m.t==='interrogate'){if(!r.b.some(b=>hasRoom(b,'torture')))return tell(p,'Du brauchst eine Folterkammer');if(r.pr<1)return tell(p,'Keine Gefangenen');r.pr--;r.gold+=30;r.fame=Math.max(0,r.fame-1);const t=Math.round(r.next);say(r,'🗝 Der Gefangene verrät: Der nächste Überfall kommt in etwa '+t+' s (+30 Gold, Ansehen -1)')}
