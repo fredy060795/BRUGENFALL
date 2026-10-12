@@ -75,7 +75,7 @@ function props(era,ctx){const g=new THREE.Group(),W=ctx.wood,S=ctx.stone,box=(w,
   if(era==='barock'){box(1.4,.5,1.4,S,-10.5,.25,0);box(1.0,1.0,1.0,S,-10.5,1.0,0);cyl(.22,3.4,mat('marbleB',0xe2dccc,{roughness:.55}),-10.5,3.2,0,16);for(let i=0;i<5;i++)put(g,new THREE.Mesh(new THREE.SphereGeometry(.38-i*.04,10,8),mat('cloud',0xeeeae0)),-10.5+Math.sin(i*2.4)*.4,1.8+i*.65,Math.cos(i*2.4)*.4);   // Pestsäule mit Wolken und goldener Madonna
    statue(g,-10.5,4.9,0,mat('gilt',0xd4a838,{metalness:.8,roughness:.3}),{arm:0});for(const [x,z]of[[10.6,-5],[10.9,-4.2]])cyl(.32,.75,mat('barrel',0x6a4a2c),x,.38,z,12)}
   if(era==='napoleon'){box(1.4,.6,1.4,S,-10.5,.3,0);const ob=put(g,new THREE.Mesh(new THREE.CylinderGeometry(.18,.42,4.4,4),S),-10.5,2.8,0);ob.rotation.y=Math.PI/4;put(g,new THREE.Mesh(new THREE.ConeGeometry(.2,.4,4),mat('gilt',0xd4a838,{metalness:.8,roughness:.3})),-10.5,5.2,0).rotation.y=Math.PI/4;   // Obelisk
-   cyl(.06,7,LM,10.8,3.5,-4.8,8);for(const[i,c]of[[0,0x1f3a7a],[1,0xeeeeee],[2,0xb01e1e]])box(.5,1.0,.03,mat('flagT'+i,c),11.1+i*.5,6.4,-4.8)}   // Fahnenmast mit Trikolore
+   cyl(.06,7,LM,10.8,3.5,-4.8,8);for(const[i,c]of[[0,0xb01e1e],[1,0xeeeeee],[2,0xb01e1e]])box(1.5,.34,.03,mat('flagA'+i,c),11.6,6.74-i*.34,-4.8)}   // Fahnenmast mit Rot-Weiß-Rot (Österreich)
   if(iron){box(1.6,1.6,1.6,S,-10.5,.8,0);box(1.9,.2,1.9,S,-10.5,1.7,0);statue(g,-10.5,1.8,0,mat('patina',0x4a7a64,{metalness:.5,roughness:.5}),{arm:1});   // Denkmal mit Patina-Bronze
    cyl(.55,2.6,mat('litfass',0xd8cfb8),10.4,1.3,-4.6,18);put(g,new THREE.Mesh(new THREE.ConeGeometry(.62,.5,18),LM),10.4,2.85,-4.6);for(let i=0;i<5;i++){const a=i/5*6.283;box(.5,.7,.02,mat('poster'+i%3,[0xb8402a,0x2a5a8a,0xd8b040][i%3]),10.4+Math.sin(a)*.56,1.5,-4.6+Math.cos(a)*.56).rotation.y=a}}}   // Litfaßsäule
  return g}
@@ -86,12 +86,25 @@ export function eraPlaza(era,ctx){if(!era||era==='hochmittelalter'||era==='spaet
  return{ground,center:centerpiece(era,ctx),props:props(era,ctx),edge:era==='roemer'?mat('marble',0xe8e2d4,{roughness:.5}):['steinzeit','hallstatt','fruehmittelalter'].includes(era)?mat('edgeWood',0x5a4430):null}}
 
 // ---------- Fest-Aufbauten je Epoche: liefert {group, anim, replace} oder null (dann gilt der mittelalterliche Aufbau) ----------
-function bonfire(g,x,z,s=1){const logs=mat('firelog',0x4a3420),fl=[0xff8a2a,0xffb84a,0xff6a1a].map(c=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.85}));
- for(let i=0;i<10;i++){const a=i/10*Math.PI*2,l=put(g,new THREE.Mesh(new THREE.CylinderGeometry(.09*s,.12*s,2.4*s,6),logs),x+Math.cos(a)*.5*s,1.0*s,z+Math.sin(a)*.5*s);l.rotation.set(Math.sin(a)*.42,0,-Math.cos(a)*.42)}
- for(let i=0;i<12;i++){const a=i/12*Math.PI*2,b=new THREE.Mesh(new THREE.DodecahedronGeometry(.18*s,0),mat('boulder',0x8a8478,{flatShading:true}));put(g,b,x+Math.cos(a)*1.3*s,.1,z+Math.sin(a)*1.3*s)}
- const F=[0,1,2,3,4].map(i=>{const f=new THREE.Mesh(new THREE.ConeGeometry((.55-.08*i)*s,(1.6+.3*i)*s,7),fl[i%3]);f.position.set(x+(i%2-.5)*.2*s,(.9+.15*i)*s,z+((i>>1)%2-.5)*.2*s);g.add(f);return f});
- const L=new THREE.PointLight(0xff9a4a,30,16,2);L.position.set(x,2*s,z);g.add(L);
- return t=>{F.forEach((f,i)=>{const k=1+.18*Math.sin(t*.012+i*1.7)+.08*Math.sin(t*.031+i);f.scale.set(1,k,1);f.rotation.y=t*.001*(i%2?1:-1)});L.intensity=26+6*Math.sin(t*.02)}}
+// Lagerfeuer: Stämme als Spitzzelt (oben zusammengelehnt), Glut, flackernde Flammen aus weichen Leuchtsprites, Funken und Rauch
+let FLAME_TEX=null;function flameTex(){if(FLAME_TEX)return FLAME_TEX;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,40,2,32,36,30);
+ gr.addColorStop(0,'rgba(255,250,220,1)');gr.addColorStop(.25,'rgba(255,200,90,.95)');gr.addColorStop(.55,'rgba(255,110,30,.6)');gr.addColorStop(1,'rgba(160,30,0,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);
+ FLAME_TEX=new THREE.CanvasTexture(c);FLAME_TEX.colorSpace=THREE.SRGBColorSpace;return FLAME_TEX}
+let SMOKE_TEX=null;function smokeTex(){if(SMOKE_TEX)return SMOKE_TEX;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,2,32,32,30);gr.addColorStop(0,'rgba(255,255,255,.8)');gr.addColorStop(.6,'rgba(255,255,255,.3)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);SMOKE_TEX=new THREE.CanvasTexture(c);return SMOKE_TEX}
+function bonfire(g,x,z,s=1){const logs=mat('firelog',0x4a3420),char=mat('firechar',0x1e1612,{roughness:1}),ember=new THREE.MeshBasicMaterial({color:0xff5a1a});
+ for(let i=0;i<9;i++){const a=i/9*Math.PI*2,r=.62*s,l=put(g,new THREE.Mesh(new THREE.CylinderGeometry(.07*s,.11*s,1.9*s,7),i%3?logs:char),x+Math.cos(a)*r*.55,.82*s,z+Math.sin(a)*r*.55);
+  l.rotation.set(-Math.sin(a)*.5,0,Math.cos(a)*.5)}                                                                       // Spitzen zeigen nach innen-oben
+ for(let i=0;i<12;i++){const a=i/12*Math.PI*2,b=new THREE.Mesh(new THREE.DodecahedronGeometry(.18*s,0),mat('boulder',0x8a8478,{flatShading:true}));put(g,b,x+Math.cos(a)*1.25*s,.1,z+Math.sin(a)*1.25*s)}
+ const bed=new THREE.Mesh(new THREE.CircleGeometry(.8*s,16),ember);bed.rotation.x=-Math.PI/2;bed.position.set(x,.04,z);g.add(bed);
+ const tex=flameTex(),N=16,F=[];for(let i=0;i<N;i++){const m=new THREE.SpriteMaterial({map:tex,color:0xffffff,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});const sp=new THREE.Sprite(m);g.add(sp);F.push({sp,ph:i/N,ox:(Math.random()-.5)*.5*s,oz:(Math.random()-.5)*.5*s})}
+ const E=[];for(let i=0;i<14;i++){const e=new THREE.Mesh(new THREE.SphereGeometry(.025*s,4,3),ember);g.add(e);E.push({e,ph:Math.random(),dx:(Math.random()-.5)*.8,dz:(Math.random()-.5)*.8})}
+ const SM=[];for(let i=0;i<8;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex(),color:0x8a8480,transparent:true,depthWrite:false,opacity:.3}));g.add(m);SM.push({m,ph:i/8})}
+ const L=new THREE.PointLight(0xff9a4a,30,16,2);L.position.set(x,1.4*s,z);g.add(L);
+ return t=>{const T=t*.001;
+  for(const f of F){const u=(T*1.6+f.ph)%1,w=Math.sin(u*Math.PI);f.sp.position.set(x+f.ox*(1-u)+Math.sin(T*3+f.ph*9)*.08*s,(.25+u*1.9)*s,z+f.oz*(1-u));f.sp.scale.set((.9-.55*u)*s,(1.2-.4*u)*s,1);f.sp.material.opacity=w*.9;f.sp.material.color.setHSL(.09-.06*u,1,.55-.15*u)}
+  for(const e of E){const u=(T*.5+e.ph)%1;e.e.position.set(x+e.dx*u*s+Math.sin(T*4+e.ph*20)*.1,(.4+u*4)*s,z+e.dz*u*s);e.e.visible=u<.85}
+  for(const k of SM){const u=(T*.18+k.ph)%1;k.m.position.set(x+Math.sin(T*.5+k.ph*6)*.4*u,(2.2+u*4.5)*s,z+u*.8);k.m.scale.setScalar((.8+u*2.6)*s);k.m.material.opacity=.32*Math.sin(u*Math.PI)}
+  L.intensity=24+7*Math.sin(t*.021)+4*Math.sin(t*.057)}}
 function saturnalia(g){const W=mat('tablewood',0x6a4a2c),cloth=mat('tcloth',0xe8e0cc),gold=mat('gilt',0xd4a838,{metalness:.8,roughness:.3}),fire=new THREE.MeshBasicMaterial({color:0xffc860});
  put(g,new THREE.Mesh(new THREE.BoxGeometry(5.6,.1,1.4),W),0,.82,0);put(g,new THREE.Mesh(new THREE.BoxGeometry(5.7,.02,1.5),cloth),0,.88,0);for(const x of[-2.6,0,2.6])for(const z of[-.55,.55])put(g,new THREE.Mesh(new THREE.BoxGeometry(.12,.8,.12),W),x,.4,z);
  for(const z of[-1.3,1.3])put(g,new THREE.Mesh(new THREE.BoxGeometry(5.2,.45,.8),mat('kline',0x8a2a22)),0,.25,z);                                     // Liegen (Klinen)
@@ -113,8 +126,39 @@ function carousel(g,x,z){const c=new THREE.Group();c.position.set(x,0,z);g.add(c
   const hm=mat('horse'+i%3,[0xf0ead8,0x6a4a2c,0x2a2420][i%3]);put(h,new THREE.Mesh(new THREE.BoxGeometry(.3,.35,.9),hm),0,0,0);put(h,new THREE.Mesh(new THREE.BoxGeometry(.2,.45,.22),hm),0,.3,.45).rotation.x=-.4;for(const lx of[-.1,.1])for(const lz of[-.3,.3])put(h,new THREE.Mesh(new THREE.BoxGeometry(.06,.4,.06),hm),lx,-.3,lz);
   put(h,new THREE.Mesh(new THREE.BoxGeometry(.32,.06,.35),mat('saddle',CL[(i+2)%4])),0,.2,0);horses.push(h)}
  return t=>{rot.rotation.y=t*.0006;horses.forEach((h,i)=>h.position.y=1+.18*Math.sin(t*.004+i*1.1))}}
-export function eraFest(era,ev){if(!era||['hochmittelalter','spaetmittelalter'].includes(era))return null;const g=new THREE.Group();let anim=null,replace=true,x=0;
- if(ev==='tree'){if(['steinzeit','hallstatt'].includes(era))anim=bonfire(g,0,0,1.2);else if(era==='roemer')saturnalia(g);else if(era==='fruehmittelalter'){anim=bonfire(g,2.6,0,.8)}else return null;
+// Perchten: zottiges Fellgewand, geschnitzte Holzmaske mit Hörnern, Kuhglocke – sie ziehen im Kreis ums Feuer
+function perchten(g,n,R){const L=[];for(let i=0;i<n;i++){const p=new THREE.Group(),fur=mat('perchtfur'+i%3,[0x3a2a1e,0x5a4430,0x2a2420][i%3],{roughness:1,flatShading:true});
+  put(p,new THREE.Mesh(new THREE.ConeGeometry(.5,1.6,9),fur),0,.8,0);put(p,new THREE.Mesh(new THREE.DodecahedronGeometry(.42,0),fur),0,1.55,0);
+  put(p,new THREE.Mesh(new THREE.BoxGeometry(.34,.42,.12),mat('perchtmask',0x8a5a3a)),0,1.75,.32);for(const sx of[-1,1]){put(p,new THREE.Mesh(new THREE.BoxGeometry(.07,.05,.03),mat('perchteye',0xe8e0c8)),sx*.08,1.82,.39);const h=put(p,new THREE.Mesh(new THREE.ConeGeometry(.06,.6,6),mat('perchthorn',0xd8ccb0)),sx*.2,2.15,.2);h.rotation.z=-sx*.5}
+  put(p,new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,.22,8),mat('bell',0xb89a40,{metalness:.6,roughness:.4})),.3,.9,.2);g.add(p);L.push(p)}
+ return t=>L.forEach((p,i)=>{const a=t*.0005+i/n*6.283;p.position.set(Math.cos(a)*R,Math.abs(Math.sin(t*.008+i))*.15,Math.sin(a)*R);p.rotation.y=-a})}
+// Christkindlmarkt: Holzstandl mit Satteldach, Lichterketten, Lebkuchenherzen
+function christkindl(g){const wood=mat('ckwood',0x7a5232),dark=mat('ckdark',0x4a3020),roof=mat('ckroof',0x5a3a26),snow=mat('cksnow',0xf4f6f8,{roughness:.9}),fir=mat('ckfir',0x2a5a2e,{roughness:1}),
+  glow=mat('cklight',0xfff0b0,{emissive:0xffc860,emissiveIntensity:1}),heart=mat('ckheart',0xa0482a),red=mat('ckred',0xa01e1e),gold=mat('gilt',0xd4a838,{metalness:.8,roughness:.3}),sign=mat('cksign',0xe8dcc0);
+ const W=2.4,D=1.4,H=2,ov=.3,RH=.75;   // Bude: Breite, Tiefe, Wandhöhe, Dachüberstand, Dachhöhe
+ const roofGeo=(()=>{const sh=new THREE.Shape();sh.moveTo(-D/2-ov,0);sh.lineTo(D/2+ov,0);sh.lineTo(0,RH);sh.closePath();const q=new THREE.ExtrudeGeometry(sh,{depth:W+2*ov,bevelEnabled:false});q.translate(0,0,-(W+2*ov)/2);q.rotateY(Math.PI/2);return q})();
+ const slope=Math.atan2(RH,D/2+ov),sl=Math.hypot(RH,D/2+ov);
+ for(const[x,z,ry]of[[3.2,-4.2,0],[6.4,-4.2,0],[3.2,4.2,Math.PI],[6.4,4.2,Math.PI],[9.4,0,-Math.PI/2]]){const s=new THREE.Group();s.position.set(x,0,z);s.rotation.y=ry;g.add(s);
+  // Holzwände aus Brettern, Eckpfosten, offene Front mit Klappladen und Theke
+  put(s,new THREE.Mesh(new THREE.BoxGeometry(W,H,.08),wood),0,H/2,-D/2+.04);for(const sx of[-1,1])put(s,new THREE.Mesh(new THREE.BoxGeometry(.08,H,D),wood),sx*(W/2-.04),H/2,0);
+  for(let k=-W/2+.2;k<W/2;k+=.2)put(s,new THREE.Mesh(new THREE.BoxGeometry(.015,H,.01),dark),k,H/2,-D/2+.085);
+  for(const sx of[-1,1])put(s,new THREE.Mesh(new THREE.BoxGeometry(.12,H,.12),dark),sx*(W/2-.06),H/2,D/2-.06);
+  put(s,new THREE.Mesh(new THREE.BoxGeometry(W-.1,.9,.08),wood),0,.45,D/2-.04);put(s,new THREE.Mesh(new THREE.BoxGeometry(W+.1,.08,.55),dark),0,.94,D/2+.1);   // Theke
+  const lad=put(s,new THREE.Mesh(new THREE.BoxGeometry(W-.1,.06,.7),wood),0,H-.05,D/2+.3);lad.rotation.x=-.35;   // hochgeklappter Laden als Vordach
+  put(s,new THREE.Mesh(new THREE.BoxGeometry(W-.2,H-.1,.04),mat('ckinside',0x2a1a10)),0,H/2,-D/2+.1);
+  // Satteldach sitzt bündig auf den Wänden, Schnee auf den Dachflächen, Tannengirlande an der Traufe, Stern am Giebel
+  put(s,new THREE.Mesh(roofGeo,roof),0,H,0);for(const sd of[-1,1]){const d=sl*.28,sn=put(s,new THREE.Mesh(new THREE.BoxGeometry(W+2*ov-.15,.05,sl*.5),snow),0,H+RH-Math.sin(slope)*d+.045,sd*Math.cos(slope)*d);sn.rotation.x=sd*slope}   // Schnee nur am First, Schindeln an der Traufe sichtbar
+  const gir=put(s,new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,W+2*ov,8),fir),0,H+.02,D/2+ov-.05);gir.rotation.z=Math.PI/2;
+  for(let i=0;i<10;i++){put(s,new THREE.Mesh(new THREE.SphereGeometry(.045,6,4),i%3?glow:red),-W/2-ov+.2+i*(W+2*ov-.4)/9,H-.06+Math.sin(i*1.3)*.03,D/2+ov+.02)}
+  for(const sx of[-1,1]){const st=put(s,new THREE.Mesh(new THREE.OctahedronGeometry(.13,0),gold),sx*(W/2+ov+.02),H+RH*.6,0);st.scale.set(.3,1,1)}
+  put(s,new THREE.Mesh(new THREE.BoxGeometry(1.2,.28,.04),sign),0,H-.32,D/2+.02);put(s,new THREE.Mesh(new THREE.BoxGeometry(1.26,.34,.03),red),0,H-.32,D/2);
+  // Waren: Lebkuchenherzen, Kerzen, Becher mit Glühwein, Christbaumkugeln
+  for(let i=0;i<4;i++)put(s,new THREE.Mesh(new THREE.CircleGeometry(.12,10),heart),-.8+i*.53,1.45,D/2-.02);
+  for(let i=0;i<6;i++){const c=i%3,m=c===0?mat('ckmug',0x8a2a20):c===1?mat('ckcandle',0xf0e6c8):mat('ckball'+(i%2),[0xc02a2a,0xd4a838][i%2],{metalness:.4,roughness:.3});
+   put(s,new THREE.Mesh(c===2?new THREE.SphereGeometry(.07,10,8):new THREE.CylinderGeometry(.05,.05,c?.2:.12,8),m),-.95+i*.38,1.03+(c===1?.1:c===2?.07:.06),D/2+.15)}}
+ const L=new THREE.PointLight(0xffc870,10,14,2);L.position.set(5,3,0);g.add(L)}
+export function eraFest(era,ev){if(!era||(['hochmittelalter','spaetmittelalter'].includes(era)&&ev!=='tree'))return null;const g=new THREE.Group();let anim=null,replace=true,x=0;
+ if(ev==='tree'){if(era==='steinzeit')anim=bonfire(g,0,0,1.2);else if(era==='hallstatt'){const b=bonfire(g,0,0,1.2),p=perchten(g,6,2.6);anim=t=>{b(t);p(t)}}else if(era==='roemer')saturnalia(g);else if(era==='fruehmittelalter'){const b=bonfire(g,2.6,0,.8),p=perchten(g,5,4.4);anim=t=>{b(t);p(t)}}else{christkindl(g);replace=false}
   if(era==='fruehmittelalter')replace=false;}
  else if(ev==='circus'){if(['steinzeit','hallstatt'].includes(era)){tradeCamp(g,era);anim=bonfire(g,-5.5,0,.6)}else if(era==='neuzeit'){anim=carousel(g,-7.5,0);replace=false}else return null}
  else return null;

@@ -88,27 +88,27 @@
   {name:'Flussschleife',rpath:[{x:-60,z:150},{x:-82,z:60},{x:-78,z:-30},{x:-45,z:-85},{x:10,z:-100},{x:62,z:-70},{x:84,z:0},{x:78,z:80},{x:58,z:150}],
    grounds:[G('lush',0,0,62),G('lush',-110,20,40),G('lush',115,20,40),G('sand',-150,-145,75),G('sand',150,-150,70),G('sand',155,135,80),G('sand',-160,150,60),G('dry',-130,-60,55),G('dry',135,-60,50),G('dry',0,-165,60),G('dry',0,165,55),G('rock',160,70,30),G('rock',-155,-100,28)],
    forests:[F(-120,125,24,32),F(-140,-20,20,26),F(115,-120,22,30),F(95,150,20,26),F(30,40,12,12),F(-150,60,18,22)],rocks:[Rk(158,68,11,12),Rk(-152,-104,10,11),Rk(-30,-150)],
-   towns:[Tn('Wiesengrund',-130,-150),Tn('Furthof',140,-10),Tn('Raubnest',145,150,'enemy')],ores:[O('iron',150,80),O('iron',-145,-95),O('iron',-20,-150),O('copper',120,-150),O('copper',-150,95),O('copper',40,150)]},
+   towns:[Tn('Pöchlarn',-130,-150),Tn('Ybbs',140,-10),Tn('Raubnest',145,150,'enemy')],ores:[O('iron',150,80),O('iron',-145,-95),O('iron',-20,-150),O('copper',120,-150),O('copper',-150,95),O('copper',40,150)]},
   {name:'Seenkette',rpath:[{x:-110,z:-200},{x:-96,z:-130},{x:-62,z:-62},{x:-22,z:8},{x:8,z:78},{x:40,z:140},{x:46,z:200}],lakes:[{x:-96,z:-122,r:30},{x:42,z:142,r:32},{x:-24,z:6,r:14}],
    grounds:[G('dry',-110,70,105),G('dry',115,-60,105),G('dry',120,110,80),G('dry',-140,-40,60),G('lush',-60,-55,42),G('lush',0,45,44),G('lush',-120,-150,40),G('rock',72,168,32),G('rock',10,175,26),G('sand',-160,-10,32),G('sand',150,-165,38),G('sand',-40,160,30)],
    forests:[F(-40,-150,22,30),F(60,20,22,30),F(-130,30,18,22),F(110,-130,20,26),F(140,60,18,22),F(-70,100,16,18)],rocks:[Rk(75,170,11,12),Rk(-150,-60),Rk(130,-20)],
-   towns:[Tn('Seehaupten',-140,-90),Tn('Kieselbrück',110,40),Tn('Schwarzmoor',-120,140,'enemy')],ores:[O('iron',80,160),O('iron',-150,-50),O('iron',135,-30),O('copper',-60,130),O('copper',150,-120),O('copper',30,-140)]},
+   towns:[Tn('Enns',-140,-90),Tn('Melk',110,40),Tn('Schwarzmoor',-120,140,'enemy')],ores:[O('iron',80,160),O('iron',-150,-50),O('iron',135,-30),O('copper',-60,130),O('copper',150,-120),O('copper',30,-140)]},
   {name:'Flussgabel',rpath:[{x:40,z:-200},{x:30,z:-110},{x:46,z:-20},{x:20,z:70},{x:36,z:200}],lakes:[{x:-80,z:30,r:16},{x:-45,z:52,r:10},{x:-120,z:-20,r:12}],
    grounds:[G('sand',-120,-115,75),G('sand',-115,125,70),G('sand',150,-150,50),G('sand',160,140,58),G('dry',-60,-20,70),G('dry',120,10,80),G('lush',30,-60,40),G('lush',30,90,40),G('lush',-80,35,38),G('rock',150,-60,28),G('rock',-160,10,24)],
    forests:[F(-70,-80,18,24),F(90,-110,20,26),F(100,120,22,30),F(-20,140,16,18),F(-150,60,16,20)],rocks:[Rk(150,-62,11,12),Rk(-158,12),Rk(-90,150)],
-   towns:[Tn('Gabelhof',-60,-140),Tn('Sandbrück',120,70),Tn('Dornenlager',-140,150,'enemy')],ores:[O('iron',148,-50),O('iron',-150,0),O('iron',-90,140),O('copper',110,-150),O('copper',-130,-60),O('copper',100,150)]},
+   towns:[Tn('Grein',-60,-140),Tn('Krems',120,70),Tn('Dornenlager',-140,150,'enemy')],ores:[O('iron',148,-50),O('iron',-150,0),O('iron',-90,140),O('copper',110,-150),O('copper',-130,-60),O('copper',100,150)]},
   {name:'Grünes Tal',rpath:[{x:-200,z:-30},{x:-120,z:-62},{x:-40,z:-20},{x:40,z:-72},{x:120,z:-30},{x:200,z:-60}],
    grounds:[G('lush',-40,60,90),G('lush',80,60,70),G('lush',-110,-100,40),G('sand',-140,-150,72),G('dry',60,-150,85),G('dry',-170,40,40),G('rock',130,130,45),G('rock',160,70,25),G('sand',170,-150,40)],
    forests:[F(70,110,26,40),F(110,40,22,32),F(-60,130,22,32),F(-140,90,20,26),F(10,-140,18,22),F(-100,-150,16,18),F(30,20,14,14)],rocks:[Rk(130,135,13,16),Rk(160,70,10,12),Rk(-150,-140)],
-   towns:[Tn('Talhausen',-110,30),Tn('Eichengrund',60,-140),Tn('Felsennest',150,150,'enemy')],ores:[O('iron',125,145),O('iron',165,85),O('iron',-160,-130),O('copper',-30,-150),O('copper',-150,120),O('copper',20,130)]},
+   towns:[Tn('Steyr',-110,30),Tn('Mautern',60,-140),Tn('Felsennest',150,150,'enemy')],ores:[O('iron',125,145),O('iron',165,85),O('iron',-160,-130),O('copper',-30,-150),O('copper',-150,120),O('copper',20,130)]},
   {name:'Wüstenrand',noRiver:true,lakes:[{x:-30,z:-20,r:20},{x:110,z:90,r:14},{x:-120,z:110,r:12}],
    grounds:[G('sand',0,0,190),G('sand',-140,-140,90),G('sand',140,-140,90),G('dry',-20,40,85),G('dry',95,55,55),G('dry',-130,60,50),G('lush',-30,-20,46),G('lush',110,90,32),G('lush',-120,110,28),G('rock',140,-120,40),G('rock',-150,-60,32),G('rock',40,-150,30)],
    forests:[F(-60,-50,16,18),F(10,10,14,14),F(130,100,12,12),F(-140,125,12,12)],rocks:[Rk(140,-125,13,16),Rk(-150,-60,11,12),Rk(40,-152,10,12)],
-   towns:[Tn('Oase Nord',-60,-110),Tn('Brunnenhof',100,20),Tn('Wüstenräuber',150,-150,'enemy')],ores:[O('iron',140,-110),O('iron',-155,-50),O('iron',50,-150),O('copper',-150,-150),O('copper',150,150),O('copper',-90,160)]},
+   towns:[Tn('Oase Nord',-60,-110),Tn('Eferding',100,20),Tn('Wüstenräuber',150,-150,'enemy')],ores:[O('iron',140,-110),O('iron',-155,-50),O('iron',50,-150),O('copper',-150,-150),O('copper',150,150),O('copper',-90,160)]},
   {name:'Seenland',noRiver:true,lakes:[{x:-80,z:-70,r:30},{x:70,z:-50,r:22},{x:20,z:90,r:34},{x:-120,z:80,r:16},{x:140,z:120,r:14}],
    grounds:[G('lush',0,0,120),G('lush',-120,-140,50),G('dry',140,-130,60),G('dry',-150,150,55),G('rock',150,10,30),G('sand',-80,-70,40),G('sand',20,90,44),G('sand',160,-160,35)],
    forests:[F(-140,-10,24,34),F(120,-10,20,26),F(-40,10,18,22),F(-60,150,22,30),F(90,150,20,26),F(10,-140,22,30),F(150,-150,16,18)],rocks:[Rk(150,12,11,12),Rk(-160,-150),Rk(100,60)],
-   towns:[Tn('Uferdorf',-10,-120),Tn('Schilfheim',-140,40),Tn('Nebelbande',140,150,'enemy')],ores:[O('iron',150,25),O('iron',-155,-140),O('iron',95,70),O('copper',-30,150),O('copper',150,-100),O('copper',-150,140)]}
+   towns:[Tn('Mauthausen',-10,-120),Tn('Tulln',-140,40),Tn('Nebelbande',140,150,'enemy')],ores:[O('iron',150,25),O('iron',-155,-140),O('iron',95,70),O('copper',-30,150),O('copper',150,-100),O('copper',-150,140)]}
 
 ];
 
@@ -129,10 +129,14 @@
    names:{keep:'Stadtpalast',church:'Stadtkirche',cathedral:'Dom',plaza:'Piazza',garrison:'Zeughaus',storage:'Handelshaus',mint:'Bank'}},
   {id:'barock',units:{sword:'Musketier',spear:'Pikenier',archer:'Grenadier',crossbow:'Kanonier',knight:'Dragoner'},n:'Frühe Neuzeit (Barock)',y:'ca. 1600–1790',d:'Sternfestung, Schloss, Manufakturen, stehendes Heer',
    names:{keep:'Schloss',watchpost:'Spritzenhaus',chapel:'Barockkapelle',church:'Barockkirche',cathedral:'Stiftskirche',plaza:'Residenzplatz',garrison:'Kaserne',weaver:'Tuchmanufaktur',storage:'Magazin'}},
-  {id:'napoleon',units:{sword:'Grenadier',spear:'Füsilier',archer:'Jäger (Plänkler)',crossbow:'Voltigeur',knight:'Husar'},n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
+  {id:'napoleon',units:{sword:'Grenadier',spear:'Füsilier',archer:'Jäger',crossbow:'Grenzer',knight:'Kürassier'},n:'Napoleonische Zeit',y:'ca. 1792–1815',d:'Garnisonsstadt, Linieninfanterie, Feldartillerie',
    names:{keep:'Kommandantur',watchpost:'Spritzenhaus',church:'Stadtkirche',plaza:'Paradeplatz',garrison:'Kaserne',armory:'Depot',apothecary:'Lazarett',storage:'Magazin'}},
-  {id:'neuzeit',units:{sword:'Gendarm',spear:'Infanterist',archer:'Scharfschütze',crossbow:'Schütze',knight:'Dragoner'},n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
+  {id:'neuzeit',units:{sword:'Gendarm',spear:'Infanterist',archer:'Kaiserjäger',crossbow:'Feldjäger',knight:'Dragoner'},n:'Neuzeit (Industrialisierung)',y:'ca. 1815–1900',d:'Industriestadt mit Rathaus, Fabriken und Feuerwehr',
    names:{keep:'Rathaus',church:'Stadtkirche',cathedral:'Münster',plaza:'Marktplatz',garrison:'Kaserne',armory:'Bunker & Munitionsdepot',watchpost:'Feuerwache',weaver:'Textilfabrik',smithy:'Eisenwerk',tavern:'Wirtshaus',storage:'Lagerhalle',mint:'Sparkasse'}}];
+ // Österreichische Landesgeschichte je Epoche: Herrschaft/Dynastie (Babenberger, dann Habsburger)
+ const LAND={steinzeit:'Jungsteinzeitliche Bauern im Alpenvorland',hallstatt:'Salzherren von Hallstatt',roemer:'Provinz Noricum am Donaulimes',fruehmittelalter:'Bairisches Ostland, Karolingische Mark',
+  hochmittelalter:'Herzogtum Österreich der Babenberger',spaetmittelalter:'Herzogtum Österreich der Habsburger',renaissance:'Habsburgermonarchie (Kaiser Maximilian I.)',
+  barock:'Habsburgermonarchie (Maria Theresia)',napoleon:'Kaisertum Österreich (Kaiser Franz I.)',neuzeit:'k.u.k. Monarchie (Kaiser Franz Joseph I.)'};for(const e of ERAS)e.land=LAND[e.id];
  const ERA_DEFAULT='hochmittelalter',eraOf=id=>ERAS.find(e=>e.id===id)||ERAS.find(e=>e.id===ERA_DEFAULT);
  function presetMaps(){return HAND.map(m=>sanitizeMap({river:BASE_MAP.river,...m}))}
  // Sonderkarten (z. B. Linz mit vorgebauter Altstadt): keine Standardkarten, sondern als bearbeitbare eigene Karten angeboten
@@ -238,15 +242,18 @@
  function bart(era,k,cas='nom',cap=false){const n=bname(era,k),g=bgen(n);if(PRON[cas])return PRON[cas][g];const t=ART[cas][g]+' '+n;return cap?t[0].toUpperCase()+t.slice(1):t}
  // Feste und Wettkämpfe je Epoche (Name + Meldung); null = gibt es in dieser Epoche nicht
  const FEST={tourney:{hochmittelalter:'Ritterturnier',spaetmittelalter:'Ritterturnier',steinzeit:null,hallstatt:'Reiterwettkampf',roemer:'Reiterspiele (Hippika Gymnasia)',fruehmittelalter:'Reiterspiele',renaissance:'Ringstechen',barock:'Reiterkarussell',napoleon:'Kavallerie-Wettstreit',neuzeit:'Reitturnier'},
-  fair:{steinzeit:'Tauschfest',hallstatt:'Salzmarkt',roemer:'Nundinae-Markt',neuzeit:'Volksfest',_:'Jahrmarkt'},
+  fair:{steinzeit:'Tauschfest',hallstatt:'Salzmarkt',roemer:'Nundinae-Markt',fruehmittelalter:'Jahrmarkt',neuzeit:'Volksfest',_:'Kirtag'},
   maypole:{steinzeit:'🌿 Frühlingsfest: Die Sippe tanzt um den geschmückten Baum',hallstatt:'🌿 Beltane-Fest: Tanz um den geschmückten Baum',roemer:'🌸 Floralia! Blumenfest auf dem Forum – die Bewohner tanzen',_:'🌳 Maibaum auf dem Marktplatz – die Dorfbewohner tanzen!'},
-  circus:{steinzeit:'🪶 Tauschfest! Nachbarsippen tauschen Felle, Feuerstein und Schmuck',hallstatt:'🧂 Salzmarkt! Händler aus fernen Ländern bringen Bernstein, Bronze und Wein',roemer:'🏺 Nundinae! Markttag mit Händlern und Gauklern auf dem Forum',neuzeit:'🎡 Volksfest! Schausteller, Buden und Blasmusik auf dem Marktplatz',_:'🎪 Jahrmarkt! Gaukler und Zirkus besuchen den Marktplatz (einmal im Jahr)'},
-  tree:{steinzeit:'🔥 Wintersonnenwende – die Sippe feiert die Rückkehr des Lichts',hallstatt:'🔥 Julfest zur Wintersonnenwende',roemer:'🎁 Saturnalien! Geschenke, Festmahl und Kerzen auf dem Forum',fruehmittelalter:'🌲 Julfest mit geschmücktem Baum',_:'🎄 Weihnachtsbaum auf dem Marktplatz'},
+  circus:{steinzeit:'🪶 Tauschfest! Nachbarsippen tauschen Felle, Feuerstein und Schmuck',hallstatt:'🧂 Salzmarkt! Händler aus fernen Ländern bringen Bernstein, Bronze und Wein',roemer:'🏺 Nundinae! Markttag mit Händlern und Gauklern auf dem Forum',neuzeit:'🎡 Volksfest! Schausteller, Buden und Blasmusik auf dem Marktplatz',fruehmittelalter:'🎪 Jahrmarkt! Gaukler und Zirkus besuchen den Marktplatz (einmal im Jahr)',_:'🎪 Kirtag! Standl, Gaukler, Musikanten und Ringelspiel am Marktplatz (einmal im Jahr)'},
+  tree:{steinzeit:'🔥 Wintersonnenwende – die Sippe feiert die Rückkehr des Lichts',hallstatt:'👹 Perchtenlauf zur Wintersonnenwende – Perchten in Fellen und Holzmasken vertreiben die Wintergeister',roemer:'🎁 Saturnalien! Geschenke, Festmahl und Kerzen auf dem Forum',fruehmittelalter:'👹 Perchtenlauf und Julfeuer – Perchten mit Glocken ziehen ums Feuer',_:'🎄 Christkindlmarkt am Marktplatz: Standl mit Lebkuchen, Maroni und Glühwein um den Christbaum'},
   rider:{hochmittelalter:'Ritter',spaetmittelalter:'Ritter',hallstatt:'Krieger',roemer:'Eques',fruehmittelalter:'Reiter',renaissance:'Kürassier',barock:'Dragoner',napoleon:'Husar',neuzeit:'Reiter'}};
- const SHIP={steinzeit:'Einbaum',hallstatt:'Salzboot',roemer:'Flussgaleere',fruehmittelalter:'Langschiff',barock:'Plätte',napoleon:'Plätte',neuzeit:'Raddampfer'},ship=era=>SHIP[eraOf(era).id]||'Kogge';
+ const SHIP={steinzeit:'Einbaum',hallstatt:'Salzboot',roemer:'Flussgaleere',fruehmittelalter:'Langschiff',hochmittelalter:'Zille',spaetmittelalter:'Zille',renaissance:'Zille',barock:'Plätte',napoleon:'Plätte',neuzeit:'Raddampfer'},ship=era=>SHIP[eraOf(era).id]||'Zille';
+ // Schiffsnamen auf der Donau je Epoche (Handelsschiffe)
+ const SHIPN={roemer:['Danubius','Fortuna','Classis Pannonica','Victoria'],fruehmittelalter:['Seewolf','Rabe','Wellenross'],hochmittelalter:['Sankt Nikolaus','Salzzille','Babenbergerin'],spaetmittelalter:['Sankt Nikolaus','Hohenauer','Stadt Linz'],
+  renaissance:['Kaiser Maximilian','Bianca Maria','Fortuna'],barock:['Ulmer Schachtel','Maria Theresia','Sankt Florian'],napoleon:['Erzherzog Karl','Stadt Wien','Kaiser Franz'],neuzeit:['Maria Anna','Franz I.','Sophie','Hildegard','Stadt Passau']},shipName=era=>{const L=SHIPN[eraOf(era).id];return L?L[Math.random()*L.length|0]:''};
  const ERA_BONUS={steinzeit:'Jäger arbeiten 50 % schneller',hallstatt:'Bergleute und Steinmetze +30 % (Salzbergbau)',roemer:'Alle Arbeiten +10 %, Lager +25 % (Horreum)',fruehmittelalter:'Soldaten in 7 statt 10 s ausgebildet',hochmittelalter:'Ritterturniere bringen Ansehen',spaetmittelalter:'Feuerwaffen (Büchsen) im Kampf',renaissance:'Heiler, Priester und Weber +30 %',barock:'Zufriedenheit +5 (Lebensfreude)',napoleon:'Soldaten in 6 s ausgebildet',neuzeit:'Fabriken: Produktion +30 %'},bonus=era=>ERA_BONUS[eraOf(era).id];
  // Bauten, die es in einer Epoche nicht gibt (keine Hinrichtungsstätten in Vorzeit und Neuzeit)
- const NOBUILD={steinzeit:['pyre','gallows'],hallstatt:['pyre','gallows'],napoleon:['pyre','gallows'],neuzeit:['pyre','gallows']},allowed=(era,k)=>!(NOBUILD[eraOf(era).id]||[]).includes(k);
+ const NOBUILD={steinzeit:['pyre','gallows'],hallstatt:['pyre','gallows'],napoleon:['pyre','gallows'],neuzeit:['pyre','gallows']},allowed=(era,k)=>k==='station'?eraOf(era).id==='neuzeit':!(NOBUILD[eraOf(era).id]||[]).includes(k);   // Bahnhof erst in der Neuzeit
  // Erfindungen: gelten ab ihrer Epoche dauerhaft (auch in allen späteren) – anders als die Epochen-Boni
  const INVENT=[{id:'fire',era:'steinzeit',n:'Feuerstein & Funken',d:'Lagerfeuer und Kochen'},{id:'bronze',era:'hallstatt',n:'Eisenverhüttung',d:'Schmied +20 %'},
   {id:'aqueduct',era:'roemer',n:'Aquädukt & Wasserleitung',d:'Löschen mit Wasser +50 %'},{id:'mill',era:'fruehmittelalter',n:'Wassermühle',d:'Müller und Bäcker +40 %'},
@@ -262,18 +269,20 @@
   hochmittelalter:[{id:'m1',t:'f',k:'tnyH',d:'Ein Ritterturnier ausrichten'},{id:'m2',t:'b',k:'cathedral',n:1,d:'Einen Dom bauen'},{id:'m3',t:'st',n:2,d:'Den Steinbergfried errichten'}],
   spaetmittelalter:[{id:'p1',t:'w',n:10,d:'Eine Stadtmauer aus 10 Mauerstücken'},{id:'p2',t:'b',k:'apothecary',n:1,d:'Eine Apotheke gegen die Pest'},{id:'p3',t:'pop',n:30,d:'30 Bürger in der Stadt'}],
   renaissance:[{id:'n1',t:'b',k:'mint',n:1,d:'Eine Münzprägerei (Bankwesen)'},{id:'n2',t:'f',k:'fairH',d:'Einen Jahrmarkt veranstalten'},{id:'n3',t:'b',k:'weaver',n:2,d:'Zwei Webereien (Tuchhandel)'}],
-  barock:[{id:'b1',t:'st',n:3,d:'Das Schloss vollständig ausbauen'},{id:'b2',t:'b',k:'church',n:1,d:'Eine Barockkirche bauen'},{id:'b3',t:'b',k:'watchpost',n:1,d:'Ein Spritzenhaus einrichten'}],
+  barock:[{id:'b1',t:'st',n:3,d:'Das Schloss vollständig ausbauen'},{id:'b2',t:'b',k:'church',n:1,d:'Eine Barockkirche bauen'},{id:'b3',t:'b',k:'watchpost',n:1,d:'Ein Spritzenhaus einrichten'},{id:'b4',t:'b',k:'chapel',n:2,d:'Schulpflicht 1774: zwei Pfarrschulen (Kapellen) einrichten'}],
   napoleon:[{id:'o1',t:'sol',n:10,d:'Ein Regiment von 10 Soldaten'},{id:'o2',t:'b',k:'garrison',n:1,d:'Eine Kaserne bauen'},{id:'o3',t:'b',k:'apothecary',n:1,d:'Ein Lazarett einrichten'}],
   neuzeit:[{id:'z1',t:'b',k:'watchpost',n:1,d:'Eine Feuerwache gründen'},{id:'z2',t:'pop',n:50,d:'50 Einwohner – eine Industriestadt'},{id:'z3',t:'b',k:'smithy',n:2,d:'Zwei Eisenwerke betreiben'}]};
  const quests=era=>QUESTS[eraOf(era).id]||[];
  // Wahrzeichen je Epoche (Gebäude 'wonder', einmal pro Welt)
  const WONDER={steinzeit:{n:'Großer Steinkreis (Stonehenge)',d:'Trilithen aus riesigen Sandsteinblöcken, Ausrichtung zur Sonnenwende'},hallstatt:{n:'Fürstengrabhügel',d:'Grabhügel mit Steinkranz, Prozessionsweg und Kriegerstatue'},
   roemer:{n:'Kolosseum',d:'Amphitheater mit drei Bogenreihen und Arena'},fruehmittelalter:{n:'Pfalzkapelle',d:'Achteckiger Kuppelbau nach Aachener Vorbild'},
-  hochmittelalter:{n:'Kaiserpfalz',d:'Große Königshalle mit Arkadenfenstern und Bergfried'},spaetmittelalter:{n:'Stadttor mit Doppeltürmen',d:'Backsteintor mit zwei Rundtürmen wie das Holstentor'},
-  renaissance:{n:'Kuppeldom',d:'Achteckige Kuppel auf Tambour mit Laterne wie in Florenz'},barock:{n:'Lustschloss mit Fontäne',d:'Orangerie, Parterre und große Fontäne'},
-  napoleon:{n:'Triumphbogen',d:'Mächtiger Siegesbogen mit Attika und Reliefs'},neuzeit:{n:'Eiserner Aussichtsturm',d:'Genieteter Stahlturm mit Aussichtsplattform'}},
+  hochmittelalter:{n:'Babenberger Pfalz',d:'Herzogspfalz der Babenberger mit Arkadenfenstern, Bergfried und Bindenschild-Bannern'},spaetmittelalter:{n:'Stephansdom',d:'Gotischer Dom mit buntem Zickzack-Ziegeldach, Südturm „Steffl“, Riesentor und Heidentürmen'},
+  renaissance:{n:'Arkadenhof',d:'Renaissance-Schloss mit zweigeschossigen Arkaden, Sgraffito und Planetenbrunnen wie Landhaus Linz und Schallaburg'},barock:{n:'Stift Melk',d:'Barockes Benediktinerstift auf dem Felsen über der Donau mit Doppeltürmen, Kuppel und Altane'},
+  napoleon:{n:'Triumphbogen',d:'Mächtiger Siegesbogen mit Attika und Reliefs'},neuzeit:{n:'Schloss Schönbrunn',d:'Kaiserliche Sommerresidenz in Schönbrunner Gelb mit Hufeisentreppe, Neptunbrunnen und Gloriette'}},
   wonder=era=>WONDER[eraOf(era).id];
+ // Werkzeugnamen in der Werkzeugleiste je Epoche
+ const TOOLN={spaetmittelalter:{bow:'Langbogen'},renaissance:{bow:'Arkebuse'},steinzeit:{sword:'Steinkeule',axe:'Steinbeil',pickaxe:'Geweihhacke',hoe:'Grabstock',hammer:'Schlägel'},hallstatt:{axe:'Bronzebeil',pickaxe:'Bronzepickel',hammer:'Bronzehammer'},roemer:{sword:'Gladius',axe:'Dolabra',pickaxe:'Dolabra'},barock:{sword:'Säbel',bow:'Muskete'},napoleon:{sword:'Säbel',bow:'Gewehr'},neuzeit:{bow:'Gewehr',sword:'Säbel',axe:'Stahlaxt',pickaxe:'Kreuzhacke',hoe:'Spaten',hammer:'Vorschlaghammer'}},toolNames=era=>TOOLN[eraOf(era).id]||{};
  const fest=(era,k)=>{const T=FEST[k];if(!T)return null;const e=eraOf(era).id;return e in T?T[e]:T._}
- const api={wonder,quests,INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
+ const api={shipName,toolNames,wonder,quests,INVENT,inventions,has,allowed,bonus,ship,fest,bname,bart,interior,bedPath,lakeR,lakeDist,groundAt,GROUNDS,FARMS,roofKind,dims,isRight,spawnPoint,WORLD_HALF,half,scaleMap,RIVER_Z,modular,passOverlap,height,riverX,riverDist,riverSamples,riverPath,riverNS,local,world,base,snapPlacement,drawbridge,separate,defaultMap,emptyMap,presetMaps,exampleMaps,ERAS,ERA_DEFAULT,eraOf,generatePreset,sanitizeMap,cloneMap,setWorldConfig,getWorldConfig};
  if(typeof module!=='undefined')module.exports=api;else root.BFRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -71,8 +71,8 @@ export function createSteamer({seed=1}={}){const g=new T.Group();g.isShip=true;c
   for(let i=0;i<10;i++){const a=i/10*Math.PI*2,p=new T.Mesh(new T.BoxGeometry(.5,.08,.42),wood);p.position.set(0,Math.sin(a)*.8,Math.cos(a)*.8);p.rotation.x=-a;w.add(p)}
   mesh(w,new T.CylinderGeometry(.12,.12,.6,10),black).rotation.z=Math.PI/2;
   const hb=new T.Mesh(new T.CylinderGeometry(1.15,1.15,.62,20,1,false,0,Math.PI),white);hb.rotation.z=Math.PI/2;hb.position.set(s*(BS+.35),.8,-.3);hb.material=white.clone();hb.material.side=T.DoubleSide;g.add(hb)}
- // Flaggenstock am Heck (schwarz-weiß-rot), Ladung auf dem Vordeck
- const fz=-LS/2+.5;rod(g,[0,1.1,fz],[0,3.2,fz],.03,wood);for(const[i,c]of[[0,0x141414],[1,0xf0f0ea],[2,0xb8201c]])box(g,.02,.2,.8,M(c),0,3.05-i*.2,fz-.42);
+ // Flaggenstock am Heck (rot-weiß-rot wie die Donau-Dampfschiffe), Ladung auf dem Vordeck
+ const fz=-LS/2+.5;rod(g,[0,1.1,fz],[0,3.2,fz],.03,wood);for(const[i,c]of[[0,0xb01e1e],[1,0xf0f0ea],[2,0xb01e1e]])box(g,.02,.2,.8,M(c),0,3.05-i*.2,fz-.42);
  for(let i=0;i<4;i++)box(g,.6,.5,.6,wood,(i%2?.45:-.45),1.33,2.4+Math.floor(i/2)*.7);mesh(g,new T.CylinderGeometry(.28,.28,.55,10),wood,[0,1.36,3.8]);
  // Rauch aus dem Schornstein
  const N=40,pos=new Float32Array(N*3),P=[];for(let i=0;i<N;i++)P.push({ph:i/N,j:Math.random()});const sg=new T.BufferGeometry();sg.setAttribute('position',new T.BufferAttribute(pos,3));
@@ -141,4 +141,16 @@ export function createBarge(){const g=new T.Group();g.isShip=true;const L=10,W=3
  box(g,2.2,1.4,2.8,wood,0,1.5,-2.6);const r1=box(g,1.4,.08,3.1,roof,-.58,2.45,-2.6);r1.rotation.z=.6;const r2=box(g,1.4,.08,3.1,roof,.58,2.45,-2.6);r2.rotation.z=-.6;   // Hütte
  rod(g,[0,1.0,-L/2],[0,1.6,-L/2-2.2],.06,wood);box(g,.08,.9,1.2,wood,0,1.2,-L/2-2.0);                                                                     // langes Heckruder
  for(let i=0;i<6;i++){const m=mesh(g,new T.CylinderGeometry(.3,.3,.65,10),MS(0x6a4a2c),[(i%3-1)*.75,1.1,.4+Math.floor(i/3)*.8]);m.rotation.z=Math.PI/2}for(let i=0;i<3;i++)box(g,.6,.5,.6,MS(0x8a6a44),(i-1)*.7,1.05,2.4);
+ return g}
+// Donauzille: lang, schmal und flach, hochgezogener spitzer Bug (Gransl), Stehruder am Heck, kleines Rahsegel, Salzkufen als Ladung
+export function createZille(){const g=new T.Group();g.isShip=true;const L=11,W=2.1,wood=MS(0x8a6a44),dark=MS(0x5a4028),sail=MS(0xe0d4b0);
+ const plan=new T.Shape();plan.moveTo(-W/2,-L/2+.6);plan.quadraticCurveTo(-W/2,-L/2,0,-L/2-.1);plan.quadraticCurveTo(W/2,-L/2,W/2,-L/2+.6);plan.lineTo(W/2,L/2-3);plan.quadraticCurveTo(W*.3,L/2-.4,0,L/2);plan.quadraticCurveTo(-W*.3,L/2-.4,-W/2,L/2-3);plan.closePath();
+ const bow=q=>{const p=q.attributes.position,z0=L/2-3.2;for(let i=0;i<p.count;i++){const z=p.getZ(i);if(z>z0)p.setY(i,p.getY(i)+((z-z0)/3.2)**2*1.3)}q.computeVertexNormals();return q};   // Gransl: Rumpf zum Bug hin hochgebogen
+ const geo=new T.ExtrudeGeometry(plan,{depth:.7,bevelEnabled:false,steps:1,curveSegments:10});geo.rotateX(Math.PI/2);geo.translate(0,.75,0);mesh(g,bow(geo),dark);
+ {const d=new T.ShapeGeometry(plan,10);d.rotateX(Math.PI/2);d.scale(.92,1,.96);d.translate(0,.62,0);const m=mesh(g,bow(d),wood);m.material=wood.clone();m.material.side=T.DoubleSide}
+ 
+ for(let z=-L/2+1.2;z<L/2-2;z+=1.1)box(g,W*.9,.05,.08,dark,0,.8,z);                                                                                         // Spanten
+ rod(g,[0,.8,-L/2+.3],[0,2.4,-L/2-1.4],.05,wood);box(g,.06,.6,1.0,wood,0,1.95,-L/2-1.6);                                                                      // Stehruder
+ rod(g,[0,.7,.6],[0,5.2,.6],.07,wood);rod(g,[-1.4,4.9,.6],[1.4,4.9,.6],.04,wood);box(g,2.6,2.6,.03,sail,0,3.55,.62);                                          // Mast, Rah, Segel
+ for(let i=0;i<6;i++){const m=mesh(g,new T.CylinderGeometry(.26,.3,.6,10),MS(0x9a7a4a),[(i%2-.5)*.62,1.05,-2.6+Math.floor(i/2)*.75])}for(let i=0;i<6;i++)mesh(g,new T.TorusGeometry(.27,.02,4,12),MS(0x3a2a1a),[(i%2-.5)*.62,1.12,-2.6+Math.floor(i/2)*.75]).rotation.x=Math.PI/2;   // Salzkufen mit Reifen
  return g}

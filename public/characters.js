@@ -14,9 +14,12 @@ function box(parent,mat,s,p){return mesh(new T.BoxGeometry(...s),mat,parent,p)}
 function lathe(parent,mat,points,s,p){const o=mesh(new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),16),mat,parent,p);o.scale.set(...s);return o}
 // Werkzeuge je Epoche: gleicher Werkzeugtyp (Animation, Logik), aber epochentypisches Aussehen
 let TERA='hochmittelalter';export const setToolEra=e=>{TERA=e||'hochmittelalter'};
-const TOOLMAP={steinzeit:{axe:'stoneaxe',pickaxe:'antlerpick',hoe:'diggingstick',hammer:'stonemaul',sword:'club'},roemer:{sword:'gladius'},napoleon:{sword:'saber'},neuzeit:{sword:'saber'}};
+// Spielerwerkzeuge je Epoche: Steinzeit Stein/Geweih, Hallstatt Bronze-Tüllenbeil, Römer Dolabra/Gladius, ab Barock Säbel, Neuzeit Stahlwerkzeug
+const TOOLMAP={steinzeit:{axe:'stoneaxe',pickaxe:'antlerpick',hoe:'diggingstick',hammer:'stonemaul',sword:'club'},hallstatt:{axe:'bronzeaxe',pickaxe:'bronzepick',hammer:'bronzehammer'},
+ roemer:{sword:'gladius',pickaxe:'dolabra',axe:'dolabra'},barock:{sword:'saber'},napoleon:{sword:'saber'},neuzeit:{sword:'saber',axe:'steelaxe',pickaxe:'steelpick',hoe:'spade',hammer:'sledge'}};
 export function weapon(type){const alt=(TOOLMAP[TERA]||{})[type];if(alt){const w=weapon(alt);w.name=type;return w}
  if(['stoneaxe','antlerpick','diggingstick','stonemaul'].includes(type))return stoneTool(type);
+ if(['bronzeaxe','bronzepick','bronzehammer','dolabra','steelaxe','steelpick','spade','sledge'].includes(type))return metalTool(type);
  const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);
  if(type==='none')return g;
  if(type==='spear'||type==='lance'){const L=type==='lance'?3.1:2.3;rod(g,oak,[0,-.9,0],[0,L-.9,0],.026,.02);
@@ -47,8 +50,9 @@ export function weapon(type){const alt=(TOOLMAP[TERA]||{})[type];if(alt){const w
  if(type==='pike'||type==='halberd'){const L=type==='pike'?4.6:2.4;rod(g,oak,[0,-1.2,0],[0,L-1.2,0],.022,.018);   // Pike (sehr lang) / Hellebarde (Beil, Haken, Spitze)
   const sh=new T.Shape();sh.moveTo(-.03,0);sh.lineTo(.03,0);sh.lineTo(.008,.28);sh.lineTo(0,.32);sh.lineTo(-.008,.28);sh.closePath();mesh(new T.ExtrudeGeometry(sh,{depth:.01,bevelEnabled:false}),steel,g,[0,L-1.22,-.005]);
   if(type==='halberd'){const ax=new T.Shape();ax.moveTo(0,0);ax.lineTo(.2,-.04);ax.quadraticCurveTo(.25,.12,.2,.28);ax.lineTo(0,.22);ax.closePath();mesh(new T.ExtrudeGeometry(ax,{depth:.012,bevelEnabled:false}),steel,g,[0,L-1.5,-.006]);box(g,steel,[.16,.03,.012],[-.08,L-1.36,0])}return g}
- if(type==='saber'){rod(g,leather,[0,-.09,0],[0,.08,0],.021);const gd=mesh(new T.TorusGeometry(.07,.008,5,12,Math.PI),brass,g,[.04,0,0]);gd.rotation.z=-Math.PI/2;   // Säbel: gebogene Klinge, Bügelgefäß
-  const pts=[];for(let i=0;i<=10;i++){const t=i/10;pts.push(V(.03*Math.sin(t*1.4)+.06*t*t,.1+.82*t,0))}mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),12,.012,4,false),steel,g).scale.set(1,1,.35);return g}
+ if(type==='saber'){rod(g,leather,[0,-.09,0],[0,.08,0],.021);mesh(new T.SphereGeometry(.024,8,6),brass,g,[0,-.098,0]);mesh(new T.BoxGeometry(.13,.022,.045),brass,g,[.01,.088,0]);   // Säbel: Griff, Knauf, Parierstange
+  const gd=mesh(new T.TorusGeometry(.093,.008,5,14,Math.PI),brass,g,[0,-.005,0]);gd.rotation.z=-Math.PI/2;   // Bügel vom Knauf zur Parierstange
+  const pts=[];for(let i=0;i<=10;i++){const t=i/10;pts.push(V(.03*Math.sin(t*1.4)+.06*t*t,.08+.84*t,0))}mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),12,.012,4,false),steel,g).scale.set(1,1,.35);return g}
  if(type==='arquebus'||type==='musket'||type==='rifle'){const L={arquebus:1.2,musket:1.45,rifle:1.2}[type];   // Feuerwaffen: Kolben, Schaft, Lauf (Muskete mit Bajonett)
   box(g,walnut,[.05,.38,.09],[0,-.32,-.02]);rod(g,walnut,[0,-.14,0],[0,L-.5,0],.028,.022);rod(g,dark,[0,-.1,.02],[0,L-.35,.02],.011);box(g,dark,[.03,.08,.04],[0,-.05,.035]);
   if(type==='arquebus')rod(g,dark,[0,.0,-.04],[0,-.14,-.07],.005);if(type!=='arquebus')box(g,brass,[.04,.03,.06],[0,L-.55,.02]);if(type==='musket'){rod(g,steel,[0,L-.35,.025],[0,L+.05,.025],.006);mesh(new T.ConeGeometry(.012,.06,4),steel,g,[0,L+.08,.025])}return g}
@@ -145,13 +149,26 @@ export function createCharacter(color=0x756952,kind='sword',opts={}){
  setTool(g,P&&P.tool?P.tool:(kind==='archer'?'bow':'sword'));return g;
 }
 // Steinzeit-Werkzeuge: Feuersteinbeil mit Schäftung, Geweihhacke, Grabstock, Steinschlägel
+// Metallwerkzeuge späterer Epochen: Bronze (Hallstatt), römische Dolabra (Axt + Hacke), Stahlwerkzeug der Neuzeit
+function metalTool(type){const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);const wood=new T.MeshStandardMaterial({color:type.startsWith('steel')||type==='spade'||type==='sledge'?0x9a7a4e:0x6a4a2c,roughness:.8}),
+ bronze=new T.MeshStandardMaterial({color:0xb08a3c,metalness:.75,roughness:.35}),steel=new T.MeshStandardMaterial({color:0x8a9096,metalness:.8,roughness:.3}),iron=new T.MeshStandardMaterial({color:0x4a4c4e,metalness:.7,roughness:.45}),
+ M=type.startsWith('bronze')?bronze:type==='dolabra'?iron:steel,stick=(y0,y1,r=.026)=>{const m=new T.Mesh(new T.CylinderGeometry(r,r*1.1,y1-y0,8),wood);m.position.y=(y0+y1)/2;g.add(m)},add=(geo,x,y,z,rz=0,m=M)=>{const o=new T.Mesh(geo,m);o.position.set(x,y,z);o.rotation.z=rz;g.add(o);return o};
+ if(type==='bronzeaxe'){stick(-.42,.55);add(new T.CylinderGeometry(.045,.04,.1,10),0,.48,0);const b=new T.Shape();b.moveTo(0,-.04);b.lineTo(.2,-.07);b.quadraticCurveTo(.25,0,.2,.07);b.lineTo(0,.04);b.closePath();const gg=new T.ExtrudeGeometry(b,{depth:.03,bevelEnabled:false});gg.translate(0,0,-.015);add(gg,.03,.48,0)}
+ else if(type==='bronzepick'){stick(-.42,.5);add(new T.ConeGeometry(.035,.32,8),.18,.47,0,-Math.PI/2);add(new T.CylinderGeometry(.04,.04,.09,8),0,.47,0)}
+ else if(type==='bronzehammer'){stick(-.2,.46);add(new T.CylinderGeometry(.06,.06,.2,10),0,.5,0,Math.PI/2)}
+ else if(type==='dolabra'){stick(-.42,.53);add(new T.BoxGeometry(.05,.07,.06),0,.5,0);const b=new T.Shape();b.moveTo(0,-.035);b.lineTo(.2,-.06);b.lineTo(.21,.06);b.lineTo(0,.035);b.closePath();const gg=new T.ExtrudeGeometry(b,{depth:.025,bevelEnabled:false});gg.translate(0,0,-.012);add(gg,.02,.5,0);add(new T.ConeGeometry(.03,.26,6),-.16,.48,0,Math.PI/2+.25)}   // Axtblatt + Hackenspitze
+ else if(type==='steelaxe'){stick(-.42,.55,.024);const b=new T.Shape();b.moveTo(-.03,-.05);b.lineTo(.18,-.1);b.quadraticCurveTo(.23,0,.18,.1);b.lineTo(-.03,.05);b.closePath();const gg=new T.ExtrudeGeometry(b,{depth:.035,bevelEnabled:true,bevelSize:.006,bevelThickness:.006,bevelSegments:1});gg.translate(0,0,-.017);add(gg,0,.48,0);add(new T.BoxGeometry(.06,.07,.05),-.04,.48,0,0,iron)}
+ else if(type==='steelpick'){stick(-.42,.5,.024);add(new T.CylinderGeometry(.03,.012,.36,8),.17,.46,0,-Math.PI/2-.1);add(new T.CylinderGeometry(.03,.012,.36,8),-.17,.46,0,Math.PI/2+.1);add(new T.BoxGeometry(.07,.07,.07),0,.47,0,0,iron)}
+ else if(type==='spade'){stick(-.42,.85,.022);add(new T.BoxGeometry(.18,.02,.04),0,-.42,0,0,wood);const bl=add(new T.BoxGeometry(.2,.26,.02),0,1.0,0);bl.position.y=.98}   // Spaten
+ else if(type==='sledge'){stick(-.2,.5,.024);add(new T.BoxGeometry(.24,.09,.09),0,.52,0,0,iron)}
+ return g}
 function stoneTool(type){const g=new T.Group();g.name=type;g.userData.secondary=V(0,-.23,0);const wood=new T.MeshStandardMaterial({color:0x6a4a2c,roughness:.95}),flint=new T.MeshStandardMaterial({color:0x5a5a62,roughness:.6,flatShading:true}),antler=new T.MeshStandardMaterial({color:0xd8ccb0,roughness:.8}),lash=new T.MeshStandardMaterial({color:0x7a5a3a,roughness:1});
  const stick=(y0,y1,r=.025)=>{const m=new T.Mesh(new T.CylinderGeometry(r,r*1.1,y1-y0,7),wood);m.position.y=(y0+y1)/2;g.add(m)};
  if(type==='stoneaxe'||type==='stonemaul'){stick(-.42,.55);const h=new T.Mesh(new T.DodecahedronGeometry(type==='stonemaul'?.09:.075,0),flint);h.position.set(.09,.47,0);h.scale.set(type==='stonemaul'?1.4:1.9,1,.55);g.add(h);for(const y of[.43,.5]){const l=new T.Mesh(new T.TorusGeometry(.032,.01,5,10),lash);l.position.y=y;l.rotation.x=Math.PI/2;g.add(l)}}
  else if(type==='antlerpick'){stick(-.42,.5);const a=new T.Mesh(new T.CylinderGeometry(.012,.035,.42,7),antler);a.position.set(.15,.43,0);a.rotation.z=-1.2;g.add(a)}
  else{stick(-.42,1.0,.022);const t=new T.Mesh(new T.ConeGeometry(.03,.14,6),antler);t.position.y=1.06;g.add(t)}
  return g}
-export function setTool(g,type){if(!g.isCharacter||g.toolType===type)return;g.tool&&g.right.wrist.remove(g.tool);g.toolType=type;g.tool=g.equipmentCache[type]||(g.equipmentCache[type]=weapon(type));g.right.wrist.add(g.tool);for(const [k,v]of Object.entries(g.stowed))v.visible=k!==type&&g.kind!=='archer'&&!g.noStow&&type!=='none';g.sheath.visible=!g.noSheath&&type!=='none'}
+export function setTool(g,type){if(!g.isCharacter||(g.toolType===type&&g.toolEra===TERA))return;g.toolEra=TERA;g.tool&&g.right.wrist.remove(g.tool);g.toolType=type;g.tool=g.equipmentCache[TERA+':'+type]||(g.equipmentCache[TERA+':'+type]=weapon(type));g.right.wrist.add(g.tool);for(const [k,v]of Object.entries(g.stowed))v.visible=k!==type&&g.kind!=='archer'&&!g.noStow&&type!=='none';g.sheath.visible=!g.noSheath&&type!=='none'}
 const ease=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
 const Eu=(x,y,z)=>new T.Quaternion().setFromEuler(new T.Euler(x,y,z));
 const L1=.39,L2=.385;
@@ -190,11 +207,11 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  if(g._vp===undefined){g._vp=null;g.traverse(c=>{if(c.userData&&c.userData.visorPivot)g._vp=c})}
  if(g._vp){g._va=attacking?2.5:Math.max(0,(g._va||0)-dt);const open=g.visorUp!=null?g.visorUp:g._va<=0&&!fx.closeVisor,tg=open?-1.3:0;g._vp.rotation.x+=(tg-g._vp.rotation.x)*Math.min(1,dt*6)}
  g.t+=dt;g.sp+=(speed-g.sp)*(1-Math.exp(-dt*9));
- const sp=mounted?0:g.sp,k=Math.min(1,sp/3.2),run=Math.max(0,Math.min(1,(sp-4)/3)),type=g.toolType,bow=type==='bow',two=type==='axe'||type==='pickaxe'||type==='hoe',kind=kindOf(type);
+ const sp=mounted?0:g.sp,k=Math.min(1,sp/3.2),run=Math.max(0,Math.min(1,(sp-4)/3)),type=g.toolType,bow=type==='bow',gun=type==='arquebus'||type==='musket'||type==='rifle',two=type==='axe'||type==='pickaxe'||type==='hoe',kind=kindOf(type);
  if(sp>.2)g.phase+=dt*sp*1.75;
  if(attacking&&g.sw<0)g.sw=0;
  if(g.sw>=0){g.sw+=dt/(bow?.8:(SWING[type]||.75));if(g.sw>=1)g.sw=attacking?0:-1}
- const u=g.sw,A=Math.min(.5,sp*.095),lift=.14*k,busy=!!(fx.carry||fx.work===1||fx.work===3||fx.pray),SW=(u>=0&&!bow&&!busy)?swingPose(kind,u):null,pz=SW?SW.pz:0;
+ const u=g.sw,A=Math.min(.5,sp*.095),lift=.14*k,busy=!!(fx.carry||fx.work===1||fx.work===3||fx.pray),SW=(u>=0&&!bow&&!gun&&!busy)?swingPose(kind,u):null,pz=SW?SW.pz:0;
  const foot=i=>{const w=(((g.phase/6.2832+(i?.5:0))%1)+1)%1;if(w<.6)return[A*(1-2*w/.6),0];const s=(w-.6)/.4;return[-A+2*A*(1-Math.cos(Math.PI*s))/2,lift*Math.sin(Math.PI*s)]};
  const f0=foot(0),f1=foot(1),dy=(mounted?0:-.05*k+.035*k*Math.cos(2*(g.phase-.6*Math.PI)))+(SW?SW.pd:0);
  if(mounted){g.legs.forEach(({hip,knee},i)=>{hip.rotation.set(-1.05,0,i?-.22:.22);knee.rotation.x=.85});pel.position.set(0,0,0)}
@@ -236,6 +253,8 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
  else if(fx.carry){R=V(.2,1.05,.4);Lh=V(-.2,1.05,.4);q=Eu(0,0,0)}
  else if(fx.pray){R=V(.1,1,.38);Lh=V(-.1,1,.38);q=Eu(0,0,0);ux+=.3}
  else if(fx.work===1||fx.work===3){const pose=workPose(g.role,g.t*(fx.work===3?.65:1),type),k2=Math.sin(g.t*(fx.work===3?3:7));if(pose){R=pose.R;Lh=pose.Lh;q=pose.q;ux+=pose.ux||0;uy+=pose.uy||0;py+=pose.py||0}else{R=V(.16,1,.42+.07*k2);Lh=V(-.16,1,.42-.07*k2);q=Eu(0,0,0);ux+=.18}}
+ else if(gun&&(fx.firstPerson||u>=0||fx.aim>0)){const rc=u>=0?Math.max(0,1-u*4):0;   // Feuerwaffe im Anschlag: Kolben an der Schulter, Lauf nach vorn, Rückstoß beim Schuss
+  R=V(.13,1.36,.36-.07*rc);q=Eu(Math.PI/2-.06-.25*rc,0,0);Lh=V(.02,1.33,.78-.07*rc);ux-=.05*rc}
  else if(bow){let draw;const a=fx.aim;
   if(a!==undefined){g.dr=(g.dr||0)+(a-(g.dr||0))*(1-Math.exp(-dt*12));draw=g.dr;if(attacking&&!g.wa)g.rl=.28;g.wa=attacking;if(g.rl>0){g.rl-=dt;draw=0;g.dr=0}}
   else draw=u>=0?(u<.62?ease(u/.58):0):0;
@@ -247,8 +266,8 @@ export function animateCharacter(g,dt,speed,attacking,mounted=false,fx={}){
   if(SW){h=SW.h;d=SW.d;const a=swingPose(kind,Math.max(0,u-.03)),b=swingPose(kind,Math.min(1,u+.03));tan=b.h.clone().sub(a.h);if(tan.lengthSq()<1e-6)tan=FW.clone();ux+=SW.lean;uy+=SW.tw;py-=SW.tw*.5}
   else{const K0=SWK[kind][0];h=V(K0[1],K0[2],K0[3]);d=V(K0[4],K0[5],K0[6]).normalize();tan=FW.clone()}
   R=h.clone();q=toolQ(d,tan);Lh=two?R.clone().addScaledVector(d,-.25):V(-.3,1,.25)}
- if(fx.firstPerson&&!SW&&!bow&&!busy){R.y=Math.max(R.y,1.2);R.z=Math.max(R.z,.45);Lh.y=Math.max(Lh.y,1.15);Lh.z=Math.max(Lh.z,.4)}
- if(fx.shield&&!two&&!bow&&!busy){Lh=fx.firstPerson?V(-.32,1.28,.5+(SW?.08:0)):V(-.24,1.12,.36+(SW?.08:0));qL=Eu(0,fx.firstPerson?.5:.25,0)}
+ if(fx.firstPerson&&!SW&&!bow&&!gun&&!busy){R.y=Math.max(R.y,1.2);R.z=Math.max(R.z,.45);Lh.y=Math.max(Lh.y,1.15);Lh.z=Math.max(Lh.z,.4)}
+ if(fx.shield&&!two&&!bow&&!gun&&!busy){Lh=fx.firstPerson?V(-.32,1.28,.5+(SW?.08:0)):V(-.24,1.12,.36+(SW?.08:0));qL=Eu(0,fx.firstPerson?.5:.25,0)}
  else if(fx.torch&&!two&&!bow&&!busy){Lh=V(-.3,1.15,.38);qL=Eu(.35,0,.15)}
  up.rotation.set(ux,uy-yawA,uz);pel.rotation.y=py-yawA*.45;up.scale.y=1+br*.004;
  if(yawA)q=Eu(0,yawA,0).multiply(q);

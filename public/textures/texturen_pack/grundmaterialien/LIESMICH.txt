@@ -1,0 +1,4 @@
+Die Grundmaterialien (Atlanten, BaseColor-, HD-, Normal- und Rauheits-Texturen) liegen nur noch einmal im Spiel:
+  public/textures/            (medieval-atlas.png, detail-atlas*.jpg/png, *_BaseColor.png)
+  public/textures/stronghold/ (Stein/Fachwerk/Putz/Stroh und Dächer/Böden, jeweils -hd, -normal, -rough)
+Dort direkt bearbeiten – die doppelten Kopien in diesem Ordner wurden in 8.57 entfernt (rund 35 MB kleiner).

@@ -19,18 +19,19 @@ const rnd=(s=>()=>(s=(s*16807)%2147483647)/2147483647)(12345);
 const brickTex=(key,base,dark,glaze)=>canvasMat(key,256,256,(x,W,H)=>{x.fillStyle='#5a4a40';x.fillRect(0,0,W,H);const bh=16,bw=48;
  for(let r=0;r<H/bh;r++)for(let c=-1;c<W/bw+1;c++){const o=(r%2)*bw/2,v=.82+rnd()*.3,hdr=glaze&&r%6===0;const [R,G,B]=hdr?[30,28,30]:base;x.fillStyle=`rgb(${R*v|0},${G*v|0},${B*v|0})`;x.fillRect(c*bw+o+1.5,r*bh+1.5,bw-3,bh-3);
   if(!hdr&&rnd()<.15){x.fillStyle=`rgba(${dark[0]},${dark[1]},${dark[2]},.5)`;x.fillRect(c*bw+o+1.5,r*bh+1.5,bw-3,bh-3)}}},{roughness:.9,uvs:1.6});
-const marbleInlay=()=>canvasMat('inlay',256,256,(x,W,H)=>{x.fillStyle='#efeadf';x.fillRect(0,0,W,H);for(let i=0;i<300;i++){x.strokeStyle=`rgba(150,140,125,${rnd()*.15})`;x.beginPath();x.moveTo(rnd()*W,rnd()*H);x.lineTo(rnd()*W,rnd()*H);x.stroke()}
- x.strokeStyle='#3e5e46';x.lineWidth=10;x.strokeRect(14,14,W-28,H-28);x.lineWidth=5;x.strokeRect(46,46,W-92,H-92);x.fillStyle='#c98f86';x.fillRect(56,56,W-112,H-112);x.fillStyle='#3e5e46';x.beginPath();x.arc(W/2,H/2,26,0,7);x.fill()},{roughness:.4,uvs:3});
 const textMat=(key,txt,bg,fg,w=1024,h=96)=>canvasMat(key,w,h,(x,W,H)=>{x.fillStyle=bg;x.fillRect(0,0,W,H);x.fillStyle=fg;x.font=`bold ${H*.62}px serif`;x.textAlign='center';x.textBaseline='middle';x.fillText(txt,W/2,H/2+2)},{roughness:.6,uvs:1});
 const reliefMat=(key,bg,fg)=>canvasMat(key,256,160,(x,W,H)=>{x.fillStyle=bg;x.fillRect(0,0,W,H);x.strokeStyle='rgba(0,0,0,.35)';x.lineWidth=6;x.strokeRect(4,4,W-8,H-8);x.fillStyle=fg;
  for(let i=0;i<5;i++){const cx=28+i*50,b=H-18;x.beginPath();x.ellipse(cx,b-82,9,11,0,0,7);x.fill();x.beginPath();x.moveTo(cx-14,b-68);x.lineTo(cx+14,b-68);x.lineTo(cx+(i%2?18:10),b);x.lineTo(cx-(i%2?10:18),b);x.closePath();x.fill();
   x.fillRect(cx+(i%2?12:-22),b-66,10,4);if(i===2){x.beginPath();x.moveTo(cx,b-110);x.lineTo(cx+30,b-90);x.lineTo(cx,b-96);x.fill()}}},{roughness:.8,uvs:1});
 
+// Bodenflächen: feine Sprenkel-Textur ohne Fugen, damit Kies- und Rasenflächen an das Gelände anschließen
+function groundTex(key,hue,sat,lit,pebbles=false){return canvasMat(key,256,256,(x,W,H)=>{const r=()=>Math.random();x.fillStyle=`hsl(${(hue[0]+hue[1])/2},${(sat[0]+sat[1])/2}%,${(lit[0]+lit[1])/2}%)`;x.fillRect(0,0,W,H);
+ for(let i=0;i<(pebbles?3200:2600);i++){x.fillStyle=`hsl(${hue[0]+r()*(hue[1]-hue[0])},${sat[0]+r()*(sat[1]-sat[0])}%,${lit[0]+r()*(lit[1]-lit[0])}%)`;const s=pebbles?2+r()*4:3+r()*3;if(pebbles){x.beginPath();x.ellipse(r()*W,r()*H,s/2,s/2*(.6+r()*.4),r()*3,0,7);x.fill()}else x.fillRect(r()*W,r()*H,s,s)}},{roughness:1,uvs:4})}
 function mats(H){const S=H.stone,P=H.plaster;return{
  stone:tint(S,null,'stone'),stoneD:tint(S,0x8e8270,'stoneD'),trav:tint(P,0xfff8ea,'trav',{uvs:3.2}),travD:tint(P,0xeee2c8,'travD',{uvs:3.2}),
  marble:tint(P,0xf4efe4,'marble',{roughness:.5}),white:tint(P,0xfaf6ee,'white'),ochre:tint(P,0xf0cf86,'ochre'),plaster:tint(P,0xe8dcc4,'plaster'),
  slate:tint(H.slate,null,'slate'),copper:tint(H.slate,0x6fa58e,'copper',{roughness:.5,metalness:.2}),tiles:tint(H.redRoof,null,'tiles'),wood:tint(H.wood,null,'wood'),floor:tint(H.floor,null,'floor'),
- grass:tint(H.thatch,0x4f6a30,'grassmound'),gravel:tint(H.floor,0xd6c8a6,'gravel'),
+ grass:groundTex('gGrass',[85,115],[42,52],[26,40]),gravel:groundTex('gGravel',[30,45],[10,22],[48,70],true),   // Boden wie die Landschaft: Grasflecken bzw. Kies statt Dielen-/Strohmuster
  brick:brickTex('brick',[150,58,40],[60,30,20],true),brickPlain:brickTex('brickP',[140,62,44],[70,34,24],false),
  iron:tint(null,0x5e4b3c,'iron',{metalness:.6,roughness:.45}),ironD:tint(null,0x3a2e24,'ironD',{metalness:.6,roughness:.5}),
  gold:tint(null,0xd4a838,'gold',{metalness:.8,roughness:.28}),bronze:tint(null,0x4a7a62,'bronzeP',{metalness:.55,roughness:.45}),dark:tint(null,0x1c1814,'dk',{roughness:.9}),
@@ -70,7 +71,7 @@ function finalize(g){g.updateMatrixWorld(true);const inv=new THREE.Matrix4().cop
   geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));if(!groups.has(o.material))groups.set(o.material,[]);groups.get(o.material).push(geo)});
  const out=new THREE.Group();out.colliders=g.colliders;out.walkAreas=g.walkAreas;
  for(const [m,list]of groups){const merged=mergeGeometries(list,false);if(!merged)continue;const mesh=new THREE.Mesh(merged,m);mesh.castShadow=!m.transparent;mesh.receiveShadow=true;out.add(mesh)}
- for(const o of keep){o.removeFromParent();o.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld));out.add(o)}
+ for(const o of keep){const m=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld);o.removeFromParent();m.decompose(o.position,o.quaternion,o.scale);out.add(o)}   // Lage relativ zum Wahrzeichen übernehmen (nicht doppelt verschieben)
  return out}
 
 // ================= Steinzeit: Großer Steinkreis (Stonehenge) =================
@@ -133,7 +134,7 @@ function colosseum(g,M){const K=kit(g),tr=M.trav,trD=M.travD,mar=M.marble,A=9.3,
  for(const k of[3,7]){const w=new THREE.CylinderGeometry(1,1,.7,96,1,true);const r=.45+k*.048;w.scale(A*r,1,B*r);K.add(w,mar,0,1.6+k*.58+.35,0)}
  for(let i=0;i<16;i++){const a=(i+.5)/16*PI*2;for(const k of[2,6]){const r=.47+k*.048;const v=K.box(.7,.55,.3,M.dark,Math.sin(a)*A*r,1.6+k*.58+.3,Math.cos(a)*B*r,0);v.rotation.y=Math.atan2(Math.sin(a)/A,Math.cos(a)/B)}}
  const pod=new THREE.CylinderGeometry(1,1,1.6,96,1,true);pod.scale(A*.425,1,B*.425);K.add(pod,mar,0,.8,0);
- const ar=new THREE.CircleGeometry(1,64);ar.rotateX(-PI/2);ar.scale(A*.42,1,B*.42);K.add(ar,tint(M.floor,0xd8c090,'sand'),0,.06,0);
+ const ar=new THREE.CircleGeometry(1,64);ar.rotateX(-PI/2);ar.scale(A*.42,1,B*.42);K.add(ar,groundTex('gSand',[36,46],[30,45],[58,72],true),0,.06,0);
  for(const x of[-2,0,2])for(let k=0;k<4;k++)K.box(.06,.04,2,M.wood,x+(k-1.5)*.18,.08,0,0);
  // Haupteingang (+z) mit Marmorrahmen und Inschrift
  K.box(3.2,.5,.3,mar,0,LH+.55,B+.5,.04);K.box(3.0,.4,.06,textMat('colIns','IMP·CAESAR·VESPASIANVS','#e6dcc4','#5a4a30',512,64),0,LH+.55,B+.66,0);
@@ -176,9 +177,9 @@ function imperialPalace(g,M){const K=kit(g),st=M.stone,stD=M.stoneD,roof=M.slate
  for(let i=0;i<6;i++){const x=-6.25+i*2.5;K.arched(2.3,2.6,.4,[[-.45,.68,1.85],[.45,.68,1.85]],st,x,4.3,.66);K.box(1.9,2.2,.08,M.glass,x,5.35,.42,0);
   K.cyl(.09,.1,1.75,stD,x,5.18,.66,10);K.box(.32,.2,.32,stD,x,6.12,.66,.03);K.archi(1.05,.08,stD,x,6.15,.86,0,.12);K.box(2.3,.16,.32,stD,x,4.35,.86,.03)}
  for(let i=0;i<6;i++){const x=-6.25+i*2.5;K.arched(.9,1.4,.15,[[0,.45,.9,.1]],stD,x,1.5,.58);K.box(.45,1.1,.06,M.glass,x,2.05,.5,0)}
- // Banner mit Reichsadler
- const eagle=canvasMat('eagle',128,256,(x,W,H)=>{x.fillStyle='#d8b030';x.fillRect(0,0,W,H);x.fillStyle='#1a1a1a';x.beginPath();x.ellipse(64,110,18,34,0,0,7);x.fill();x.beginPath();x.moveTo(64,90);x.lineTo(8,70);x.lineTo(20,120);x.lineTo(64,115);x.lineTo(108,120);x.lineTo(120,70);x.closePath();x.fill();x.beginPath();x.arc(64,66,12,0,7);x.fill();x.fillRect(48,140,10,40);x.fillRect(70,140,10,40);
-  for(let i=0;i<6;i++){x.beginPath();x.moveTo(i*21,H);x.lineTo(i*21+10,H-24);x.lineTo(i*21+21,H);x.fillStyle='#b01e1e';x.fill()}},{roughness:.95,side:THREE.DoubleSide,uvs:1});
+ // Banner der Babenberger: Bindenschild Rot-Weiß-Rot mit Zaddeln
+ const eagle=canvasMat('binden',128,256,(x,W,H)=>{x.fillStyle='#b01e1e';x.fillRect(0,0,W,H);x.fillStyle='#f2eee4';x.fillRect(0,H*.36,W,H*.26);x.strokeStyle='#d8b030';x.lineWidth=6;x.strokeRect(3,3,W-6,H-30);
+  for(let i=0;i<6;i++){x.beginPath();x.moveTo(i*21,H-24);x.lineTo(i*21+10,H);x.lineTo(i*21+21,H-24);x.fillStyle='#8a1616';x.fill()}},{roughness:.95,side:THREE.DoubleSide,uvs:1});
  for(const x of[-3.75,3.75]){const b=K.box(1,2.2,.03,eagle,x,5.5,.75,0);b.userData.keep=1}
  // Freitreppe mit Wangenmauern, Stufenportal mit drei Archivolten
  for(let i=0;i<9;i++)K.box(3.6,.45,.7,stD,0,.22+i*.45,4.7-i*.6,.04);for(const sx of[-1,1]){const s=new THREE.Shape();s.moveTo(0,0);s.lineTo(4.8,0);s.lineTo(4.8,4.75);s.lineTo(0,.5);s.closePath();const sg=new THREE.ExtrudeGeometry(s,{depth:.35,bevelEnabled:true,bevelSize:.03,bevelThickness:.03,bevelSegments:1});sg.rotateY(PI/2);sg.translate(sx>0?1.8:-2.15,0,5.4);K.add(sg,st);K.box(.45,.18,.45,stD,sx*1.97,.6,5.3,.03)}   // Treppenwangen
@@ -195,75 +196,86 @@ function imperialPalace(g,M){const K=kit(g),st=M.stone,stD=M.stoneD,roof=M.slate
  for(let y=4;y<19;y+=3.5){K.box(.18,1.1,.1,dark,-6,y,8.04,0);K.box(.18,1.1,.1,dark,-3.46,y,5.5,0)}
  K.cyl(.06,.06,4.5,M.wood,-6,23.6,5.5,6);const fb=K.box(1.8,1.1,.03,eagle,-5.05,25,5.5,0);fb.userData.keep=1}
 
-// ================= Spätmittelalter: Stadttor mit Doppeltürmen (Holstentor) =================
-function cityGate(g,M){const K=kit(g),br=M.brick,brP=M.brickPlain,roof=M.slate,terra=tint(M.redRoof||M.tiles,0xb0603a,'terra'),glaze=tint(null,0x141414,'glaze',{roughness:.25,metalness:.1});
- const ins=textMat('holsten','CONCORDIA DOMI FORIS PAX','#1a1a1a','#d8b040',1024,80);
- K.arched(7.2,10,6,[[0,3.6,3.3]],br,0,0,0,0,.05);K.col(-2.9,0,.7,3,10);K.col(2.9,0,.7,3,10);K.col(0,0,3.6,3,10,5.2);
- for(const sz of[-1,1]){const zz=sz*3.08;for(const r of[2.0,2.2,2.4])K.archi(r,.1,glaze,0,3.3,zz,0,.1);K.box(4.6,.6,.08,ins,0,9.1,zz,0);
-  for(let i=0;i<3;i++){const x=-2+i*2;K.arched(1.1,1.8,.14,[[0,.55,1.25,.2]],brP,x,5.7,zz);K.box(.55,1.4,.06,M.glass,x,6.55,zz-sz*.04,0);K.box(1.2,.35,.1,terra,x,7.8,zz+sz*.02,.02)}
-  for(let y=1.4;y<10;y+=1.6)K.box(7.25,.16,.05,glaze,0,y,sz*3.04,0)}
- K.box(3.4,.08,6.2,M.gravel,0,.04,0,0);for(let i=0;i<9;i++)K.box(.1,.5,.1,M.ironD,-1.6+i*.4,6.05,0,0);                                           // Fallgitter-Zähne in der Durchfahrt
- K.gable(7.2,6,4.4,roof,0,10,0,.35,PI/2,M.ironD);
- for(const sz of[-1,1]){const s=new THREE.Shape();s.moveTo(-3.6,0);s.lineTo(3.6,0);for(let k=0;k<4;k++){s.lineTo(3.6-k*.9,1+k*.85);s.lineTo(3.6-(k+1)*.9,1+k*.85)}s.lineTo(0,4.8);s.lineTo(-3.6,0);
-  const gg=new THREE.ExtrudeGeometry(s,{depth:.45,bevelEnabled:true,bevelSize:.03,bevelThickness:.03,bevelSegments:1});gg.translate(0,0,sz>0?2.95:-3.4);K.add(gg,br,0,10,0);for(let k=0;k<4;k++)for(const sx of[-1,1])K.box(.3,.8,.3,brP,sx*(3.6-k*.9-.45),10+1+k*.85+.3,sz*3.2,.03)}
- for(const sx of[-1,1]){const tx=sx*5.3;K.cyl(3.05,3.25,14,br,tx,7,0,32);K.col(tx,0,2.9,2.9,14);K.cyl(3.35,3.35,.4,brP,tx,14.1,0,32);K.cyl(3.25,3.25,.3,glaze,tx,10,0,32);K.cyl(3.25,3.25,.3,glaze,tx,4.8,0,32);
-  const cone=K.add(new THREE.ConeGeometry(3.5,6.8,32),roof,tx,17.6,0);K.add(new THREE.SphereGeometry(.22,12,10),M.gold,tx,21.1,0);K.cyl(.05,.05,.8,M.ironD,tx,21.5,0,6);
-  for(const a of[-.9,-.3,.3,.9])for(let y=2.6;y<13;y+=2.6){const w=K.arched(.7,1.2,.2,[[0,.36,.75,.15]],brP,tx+Math.sin(a)*3.12,y,Math.cos(a)*3.12,a);K.box(.36,.85,.05,M.dark,tx+Math.sin(a)*3.06,y+.55,Math.cos(a)*3.06,0).rotation.y=a}
-  for(const a of[-.5,.5]){const dm=K.box(.8,.9,.9,roof,tx+Math.sin(a)*2.6,15.3,Math.cos(a)*2.6,.04);dm.rotation.y=a;K.box(.4,.5,.05,M.dark,tx+Math.sin(a)*3.06,15.3,Math.cos(a)*3.06,0).rotation.y=a}}
- for(let i=0;i<10;i++)K.box(4,.06,.9,M.gravel,0,.03,4+i*.9,0)}
+// ================= Spätmittelalter: Stephansdom – Zickzack-Ziegeldach, Südturm mit Spitzhelm, Nordturm mit Renaissance-Haube, Riesentor, Heidentürme =================
+function stephansdom(g,M){const K=kit(g),st=tint(M.stone,0xd6cbb0,'sdst'),stD=tint(M.stone,0xb4a78c,'sdstD'),gl=M.glass,dk=M.dark;
+ const roofM=canvasMat('sdroof',256,256,(x,W,H)=>{const C=['#2e6a4a','#d8b030','#ece4cc','#1c1c1c','#8a3a24'],s=16;x.fillStyle='#3a2a20';x.fillRect(0,0,W,H);
+  for(let r=0;r<H/s;r++)for(let c=0;c<W/s;c++){const band=Math.floor((r+Math.abs((c%8)-4))/2);x.fillStyle=C[band%5];x.fillRect(c*s+1,r*s+1,s-2,s-2)}},{roughness:.45,uvs:6});
+ K.box(23.6,.05,27.6,M.gravel,0,.03,0,0);
+ // Langhaus (Hallenkirche) mit Strebepfeilern, Fialen und Maßwerkfenstern
+ const z0=-8.5,z1=6.5,L=z1-z0,zc=(z0+z1)/2;K.box(10,11,L,st,0,5.5,zc,.05);K.col(0,zc,5,L/2,11);K.box(10.4,.5,L+.4,stD,0,.25,zc,.04);
+ for(let z=z0+1.3;z<z1-.5;z+=2.5)for(const sx of[-1,1]){if(sx>0&&Math.abs(z+1)<3.2||sx<0&&Math.abs(z+1)<3.2)continue;K.box(.08,5.2,1.1,gl,sx*5.03,5.6,z+1.25,0);K.add(new THREE.CircleGeometry(.55,12,0,PI),gl,sx*5.04,8.2,z+1.25).rotation.y=sx*PI/2;
+  K.box(.9,9.5,.9,stD,sx*5.45,4.75,z,.04);K.add(new THREE.ConeGeometry(.38,1.8,4).rotateY(PI/4),stD,sx*5.45,10.4,z)}
+ K.gable(L,10,11,roofM,0,11,zc,.45,PI/2,stD);
+ // Chor mit polygonalem Abschluss
+ K.add(new THREE.CylinderGeometry(4.6,4.6,10,8,1,false,PI/2,PI),st,0,5,z0);K.add(new THREE.ConeGeometry(5.0,7,8,1,false,PI/2,PI),roofM,0,13.5,z0);K.col(0,z0-2.3,4.6,2.3,10);
+ for(let i=0;i<4;i++){const a=PI/2+PI/8+i*PI/4,x=Math.sin(a)*4.62,z=z0+Math.cos(a)*4.62;K.box(.9,4.6,.08,gl,x,5.4,z,0).rotation.y=a}
+ // Westfassade: Riesentor mit Archivolten, Wimperg, Heidentürme
+ K.box(10.6,12,1.2,st,0,6,z1+.4,.05);K.arched(4.6,6.2,1.4,[[0,2.6,3.6]],stD,0,0,z1+1.2);K.box(2.4,3.4,.1,M.door,0,1.7,z1+.6,0);for(const r of[1.6,1.9,2.2])K.archi(r,.1,st,0,3.6,z1+1.9,0,.15);
+ const wg=new THREE.Shape();wg.moveTo(-2.4,0);wg.lineTo(2.4,0);wg.lineTo(0,2.6);wg.closePath();const wgg=new THREE.ExtrudeGeometry(wg,{depth:.3,bevelEnabled:false});wgg.translate(0,6.1,z1+1.75);K.add(wgg,stD);
+ K.add(new THREE.CircleGeometry(1.3,24),gl,0,9.2,z1+1.02);K.add(new THREE.TorusGeometry(1.35,.14,6,24),stD,0,9.2,z1+1.05);
+ for(const sx of[-1,1]){K.cyl(1.05,1.15,15,st,sx*4.4,7.5,z1+.9,8);K.add(new THREE.ConeGeometry(1.15,3.4,8),stD,sx*4.4,16.7,z1+.9);K.add(new THREE.SphereGeometry(.18,8,6),M.gold,sx*4.4,18.5,z1+.9);for(let y=3;y<14;y+=3)K.box(.25,1.1,.1,dk,sx*4.4,y,z1+2.0,0)}
+ // Südturm „Steffl“: quadratischer Unterbau, verjüngte Geschosse mit Fialen, achteckiger Helm mit Krabbenringen
+ const tx=8.3,tz=-1;K.box(5.2,14,5.2,st,tx,7,tz,.05);K.col(tx,tz,2.6,2.6,40);K.box(4.4,8,4.4,st,tx,18,tz,.05);K.box(5.4,.4,5.4,stD,tx,14.1,tz,.04);
+ for(const[dx,dz]of[[-1,-1],[1,-1],[-1,1],[1,1]]){K.add(new THREE.ConeGeometry(.35,2.4,4).rotateY(PI/4),stD,tx+dx*2.4,15.4,tz+dz*2.4);K.add(new THREE.ConeGeometry(.3,2.2,4).rotateY(PI/4),stD,tx+dx*2.05,23.1,tz+dz*2.05)}
+ for(const[dx,dz,ry]of[[0,2.63,0],[2.63,0,PI/2],[0,-2.63,PI],[-2.63,0,-PI/2]])for(const y of[4,9]){K.box(.9,3,.06,dk,tx+dx,y,tz+dz,0).rotation.y=ry}
+ for(const[dx,dz,ry]of[[0,2.23,0],[2.23,0,PI/2],[0,-2.23,PI],[-2.23,0,-PI/2]]){K.box(1.1,4.6,.06,dk,tx+dx,18.4,tz+dz,0).rotation.y=ry}
+ K.cyl(1.75,2.15,5,st,tx,24.5,tz,8);K.add(new THREE.ConeGeometry(1.8,14,8),st,tx,34,tz);for(let k=1;k<5;k++)K.cyl(1.8*(1-k/5)+.06,1.8*(1-k/5)+.06,.18,stD,tx,27+k*2.8,tz,8);
+ K.add(new THREE.SphereGeometry(.32,12,10),M.gold,tx,41.2,tz);K.box(.08,1,.08,M.gold,tx,41.9,tz,0);K.box(.7,.08,.08,M.gold,tx,42.0,tz,0);
+ // Nordturm: unvollendet, mit Renaissance-Haube (Kupfer)
+ const nx=-8.3;K.box(5.2,14,5.2,st,nx,7,tz,.05);K.col(nx,tz,2.6,2.6,20);K.box(4.6,4,4.6,st,nx,16,tz,.05);K.box(5,.35,5,stD,nx,18.1,tz,.03);
+ K.lathe([[2.2,0],[2.1,.7],[1.5,1.5],[.7,2.2],[.55,2.8],[.75,3.3],[.4,3.9],[.2,4.4],[0,4.6]],M.copper,nx,18.2,tz,8);K.add(new THREE.SphereGeometry(.22,10,8),M.gold,nx,22.9,tz);
+ for(const[dx,dz,ry]of[[0,2.63,0],[2.63,0,PI/2],[0,-2.63,PI],[-2.63,0,-PI/2]])K.box(.9,3,.06,dk,nx+dx,8,tz+dz,0).rotation.y=ry}
 
-// ================= Renaissance: Kuppeldom (Florenz) mit Campanile =================
-function domeCathedral(g,M){const K=kit(g),inlay=marbleInlay(),mar=M.marble,green=tint(null,0x3e5e46,'verde',{roughness:.4}),red=M.tiles,rib=M.white,dk=M.dark;
- // Langhaus mit Inkrustation, Pilastern, Rundfenstern, Satteldach
- K.box(8,9,9,inlay,0,4.5,4.5,.06);K.box(8.3,.5,9.3,green,0,.25,4.5,.04);K.box(8.4,.4,9.4,mar,0,9.1,4.5,.04);K.col(0,4.5,4,4.5,9);K.gable(9,8,2.6,red,0,9.3,4.5,.35,PI/2,mar);
- for(const sx of[-1,1])for(let i=0;i<5;i++){const z=.6+i*2;K.box(.35,9,.4,mar,sx*4.05,4.5,z,.04);if(i<4){K.add(new THREE.CircleGeometry(.5,20),dk,sx*4.07,6.6,z+1).rotation.y=sx*PI/2;K.add(new THREE.TorusGeometry(.56,.08,6,20),mar,sx*4.1,6.6,z+1).rotation.y=PI/2}}
- // Fassade: drei Portale mit Giebeln, Rosette, Statuennischen, Dreiecksgiebel
- K.box(8.6,9.6,.5,inlay,0,4.8,9.2,.05);const s=new THREE.Shape();s.moveTo(-4.3,0);s.lineTo(4.3,0);s.lineTo(0,2.9);s.closePath();const fg=new THREE.ExtrudeGeometry(s,{depth:.5,bevelEnabled:true,bevelSize:.04,bevelThickness:.04,bevelSegments:1});fg.translate(0,9.6,8.95);K.add(fg,mar);
- K.add(new THREE.CircleGeometry(1.2,32),M.glass,0,6.8,9.47);K.add(new THREE.TorusGeometry(1.25,.16,8,32),mar,0,6.8,9.47);for(let i=0;i<8;i++){const a=i/8*PI*2;K.rod([Math.sin(a)*.2,6.8+Math.cos(a)*.2,9.48],[Math.sin(a)*1.15,6.8+Math.cos(a)*1.15,9.48],.04,mar)}
- for(const [x,w]of[[0,1.8],[-2.9,1.1],[2.9,1.1]]){K.arched(w+.9,w*1.9+.5,.3,[[0,w,w*1.25]],mar,x,0,9.55);K.box(w,w*1.7,.08,M.door,x,w*.85,9.42,0);const t=new THREE.Shape();t.moveTo(-w/2-.5,0);t.lineTo(w/2+.5,0);t.lineTo(0,.8);t.closePath();const tg=new THREE.ExtrudeGeometry(t,{depth:.3,bevelEnabled:false});tg.translate(x,w*1.9+.5,9.45);K.add(tg,mar)}
- for(const x of[-1.7,1.7]){K.arched(.8,1.6,.2,[[0,.5,.95,.15]],mar,x,4.3,9.55);K.statue(rib,x,4.45,9.4,.6)}
- // Vierung: Oktogon mit Exedren, Tambour mit Ochsenaugen, Doppelschalenkuppel mit Rippen, Laterne
- K.add(new THREE.CylinderGeometry(6,6,8.5,8),inlay,0,4.25,-4);K.col(0,-4,5.6,5.6,8.5);K.cyl(6.35,6.35,.45,green,0,8.6,-4,8);
- for(let i=0;i<4;i++){const a=PI/4+i*PI/2,x=Math.sin(a)*6.3,z=-4+Math.cos(a)*6.3;if(Math.cos(a)>.5)continue;K.cyl(2,2,4.5,inlay,x,2.25,z,16);K.add(new THREE.SphereGeometry(2.05,16,8,0,PI*2,0,PI/2),red,x,4.5,z);K.statue(rib,x,6.6,z,.7)}
- K.add(new THREE.CylinderGeometry(4.65,4.65,3.4,8),inlay,0,10.5,-4);K.cyl(4.9,4.9,.35,mar,0,12.3,-4,8);
- for(let i=0;i<8;i++){const a=i/8*PI*2+PI/8,x=Math.sin(a)*4.35,z=-4+Math.cos(a)*4.35;K.add(new THREE.CircleGeometry(.6,20),dk,x,10.5,z).rotation.y=a;const r=K.add(new THREE.TorusGeometry(.66,.12,8,20),mar,x,10.5,z);r.rotation.y=a}
- const prof=[[4.6,0],[4.5,1.8],[4,3.6],[3,5.2],[1.6,6.4],[.75,6.85],[0,6.9]];const d=new THREE.LatheGeometry(prof.map(p=>new THREE.Vector2(p[0],p[1])),8);d.rotateY(PI/8);d.translate(0,12.45,-4);K.add(d,red);
- for(let i=0;i<8;i++){const a=i/8*PI*2,c=Math.cos(PI/8);K.tube(prof.slice(0,6).map(([r,y])=>[Math.sin(a)*r*c*1.01,12.45+y,-4+Math.cos(a)*r*c*1.01]),.15,rib)}
- for(let k=1;k<3;k++){const y=12.45+k*1.8,r=prof[k][0]*Math.cos(PI/8)*1.005;K.add(new THREE.TorusGeometry(r,.05,4,8),rib,0,y,-4).rotation.x=PI/2}
- K.cyl(.85,.95,.3,mar,0,19.4,-4,8);for(let i=0;i<8;i++){const a=i/8*PI*2;K.cyl(.07,.07,1.3,mar,Math.sin(a)*.7,20.2,-4+Math.cos(a)*.7,8)}K.cyl(.85,.85,.25,mar,0,20.95,-4,8);K.add(new THREE.ConeGeometry(.85,1.5,8),mar,0,21.8,-4);K.add(new THREE.SphereGeometry(.32,14,10),M.gold,0,22.8,-4);K.box(.06,.9,.06,M.gold,0,23.5,-4,0);
- // Campanile
- const cx=6.3,cz=7.5;K.box(3.2,22,3.2,inlay,cx,11,cz,.05);K.col(cx,cz,1.6,1.6,22);for(let y=5;y<22;y+=5.4)K.box(3.4,.3,3.4,mar,cx,y,cz,.04);
- for(let y=6.5;y<21;y+=5.4)for(const [dx,dz,ry]of[[0,1.62,0],[1.62,0,PI/2],[0,-1.62,PI],[-1.62,0,-PI/2]]){K.arched(2.2,3.2,.15,[[-.4,.55,2],[.4,.55,2]],mar,cx+dx,y,cz+dz,ry);K.box(1.6,2.8,.05,dk,cx+dx*.97,y+1.4,cz+dz*.97,0).rotation.y=ry}
- K.box(3.6,.5,3.6,mar,cx,22.25,cz,.05)}
+// ================= Renaissance: Arkadenhof (Landhaus Linz / Schallaburg) – zweigeschossige Loggien, Sgraffito-Diamantquader, Turm mit Zwiebelhelm, Planetenbrunnen =================
+function arkadenhof(g,M){const K=kit(g),pl=stucco('rnplaster','#efe2c4'),terr=tint(null,0xb8673a,'terracotta',{roughness:.7}),roof=M.tiles,col=tint(null,0xe6dcc8,'rncol',{roughness:.6});
+ const sgr=canvasMat('sgraffito',128,128,(x,W,H)=>{x.fillStyle='#e9dcc0';x.fillRect(0,0,W,H);x.strokeStyle='#8a8070';x.lineWidth=3;for(let r=0;r<4;r++)for(let c=0;c<2;c++){const ox=c*64+(r%2)*32,oy=r*32;x.beginPath();x.moveTo(ox,oy+16);x.lineTo(ox+32,oy);x.lineTo(ox+64,oy+16);x.lineTo(ox+32,oy+32);x.closePath();x.stroke();x.fillStyle='rgba(120,110,95,.25)';x.beginPath();x.moveTo(ox+32,oy);x.lineTo(ox+64,oy+16);x.lineTo(ox+32,oy+16);x.closePath();x.fill()}},{roughness:.85,uvs:2});
+ K.box(23.6,.05,27.6,M.gravel,0,.03,0,0);
+ const ZB=-10,ZF=7,XW=9.5,T=3.6,H1=4,H2=8;
+ // Flügel: hinten und seitlich geschlossen (Sgraffito außen), Satteldächer
+ K.box(2*XW,H2,T,sgr,0,H2/2,ZB+T/2,.05);K.col(0,ZB+T/2,XW,T/2,H2);K.gable(2*XW,T,2.4,roof,0,H2,ZB+T/2,.35,0);
+ for(const sx of[-1,1]){const L=ZF-ZB-T,zc=(ZF+ZB+T)/2;K.box(T,H2,L,sgr,sx*(XW-T/2),H2/2,zc,.05);K.col(sx*(XW-T/2),zc,T/2,L/2,H2);K.gable(L,T,2.4,roof,sx*(XW-T/2),H2,zc,.35,PI/2)}
+  // Fenster außen mit Terrakotta-Gewänden
+ const win=(x,y,z,ry)=>{const w=K.box(.9,1.4,.08,M.glass,x,y,z,0);w.rotation.y=ry;const f=K.box(1.15,1.65,.06,terr,x-Math.sin(ry)*.02,y,z-Math.cos(ry)*.02,0);f.rotation.y=ry};
+ for(let x=-8;x<=8.01;x+=2)for(const y of[2,6])win(x,y,ZB-.06,PI);for(const sx of[-1,1])for(let z=ZB+T+1;z<ZF-.5;z+=2.2)for(const y of[2,6])win(sx*(XW+.06),y,z,sx*PI/2);
+ // Innenhof: Arkaden an allen Seiten, zwei Geschosse (Säulen, Bögen, Brüstung)
+ const IW=XW-T,arc=(len,n,x,z,ry)=>{for(const y0 of[0,H1]){const holes=[];for(let i=0;i<n;i++)holes.push([-len/2+len/n*(i+.5),len/n*.66,y0?2.3:2.4,y0?.9:0]);K.arched(len,H1,.4,holes,pl,x,y0,z,ry);
+   for(let i=1;i<n;i++){const t=-len/2+len/n*i,cx=x+Math.cos(ry)*t,cz=z-Math.sin(ry)*t;K.cyl(.16,.18,y0?2.8:2.9,col,cx+Math.sin(ry)*.3,y0+(y0?2.3:1.45),cz+Math.cos(ry)*.3,10)}
+   if(y0){const b=K.box(len,.12,.2,terr,x+Math.sin(ry)*.3,y0+.95,z+Math.cos(ry)*.3,0);b.rotation.y=ry}}};
+ arc(2*IW,6,0,ZB+T+.2,0);for(const sx of[-1,1])arc(ZF-ZB-T,6,sx*(IW-.2),(ZF+ZB+T)/2,sx*PI/2);
+ // Vorderer Flügel: offene Loggia zur Stadt (zeigt die Arkaden), darüber Altane, Mittelportal mit Wappen
+ arc(2*IW,6,0,ZF-.3,PI);K.box(2*IW,.3,2.2,pl,0,H1+.15,ZF-1.2,.03);K.box(2*IW,.3,2.2,pl,0,H2+.15,ZF-1.2,.03);K.gable(2*IW,2.4,1.4,roof,0,H2+.3,ZF-1.2,.3,0);
+ K.box(1.2,1.2,.2,terr,0,H2-.9,ZF+.05,.03);K.add(new THREE.CircleGeometry(.4,16),M.gold,0,H2-.9,ZF+.17);
+ // Turm mit Zwiebelhelm in der hinteren Ecke
+ const tx=-XW+1.6,tz=ZB+1.6;K.box(3.6,14,3.6,sgr,tx,7,tz,.05);K.col(tx,tz,1.8,1.8,14);K.box(3.9,.3,3.9,terr,tx,14.1,tz,.03);for(const[dx,dz,ry]of[[0,1.83,0],[1.83,0,PI/2],[0,-1.83,PI],[-1.83,0,-PI/2]])K.box(.7,1.2,.05,M.dark,tx+dx,12,tz+dz,0).rotation.y=ry;
+ K.lathe([[1.8,0],[1.9,.4],[1.5,1.1],[.6,1.7],[.45,2.1],[.7,2.6],[.35,3.2],[.12,3.8],[0,4.2]],M.copper,tx,14.25,tz,12);K.add(new THREE.SphereGeometry(.2,10,8),M.gold,tx,18.6,tz);
+ // Planetenbrunnen im Hof
+ const fz=(ZF+ZB+T)/2-.5;K.lathe([[0,0],[1.6,0],[1.75,.15],[1.75,.55],[1.6,.6],[1.5,.2],[0,.2]],col,0,0,fz,24);K.col(0,fz,1.7,1.7,.6);K.add(new THREE.CircleGeometry(1.5,24).rotateX(-PI/2),M.water,0,.5,fz);
+ K.cyl(.14,.18,2.2,col,0,1.3,fz,10);K.lathe([[.1,0],[.7,.15],[.75,.3],[0,.25]],col,0,2.3,fz,16);K.add(new THREE.SphereGeometry(.22,12,10),M.gold,0,2.8,fz)}
 
-// ================= Barock: Lustschloss mit Orangerie, Kuppelpavillon, Broderie-Parterre und Fontänen =================
-function pleasurePalace(g,M){const K=kit(g),oc=M.ochre,wh=M.white,roof=M.slate,cop=M.copper,hedge=M.hedge,grav=M.gravel,stat=tint(M.stone,0xe8e2d4,'statue');
- // Flügel: Sockel, Putz, Pilaster mit Kapitellen, Rundbogenfenster mit Faschen und Schlusssteinen, Gesims, Balustrade mit Vasen, Mansarddach mit Gauben
- K.box(18.4,.7,4.6,M.stone,0,.35,-6.5,.05);K.box(18,5.4,4.2,oc,0,3.4,-6.5,.06);K.col(0,-6.5,9,2.2,6);
- for(let i=0;i<10;i++){const x=-8.6+i*1.91;if(Math.abs(x)<2.4)continue;K.box(.4,5.2,.25,wh,x,3.3,-4.35,.03);K.box(.55,.25,.35,wh,x,5.95,-4.35,.03)}
- for(const x of[-7.6,-5.7,-3.8,3.8,5.7,7.6]){K.arched(1.5,3.6,.18,[[0,1.05,2.6,.3]],wh,x,.9,-4.37);K.box(1.05,3.2,.06,M.glass,x,2.65,-4.42,0);K.box(.22,.38,.25,wh,x,4.55,-4.3,.03);for(let k=0;k<4;k++)K.box(1.05,.04,.04,wh,x,1.6+k*.8,-4.37,0)}
- K.box(18.4,.45,4.6,wh,0,6.3,-6.5,.05);for(let i=0;i<46;i++){const x=-8.9+i*.395;if(Math.abs(x)<2.4)continue;K.lathe([[.09,0],[.13,.18],[.07,.36],[.11,.5],[0,.5]],wh,x,6.52,-4.3,8)}K.box(18.2,.14,.3,wh,0,7.08,-4.3,.03);
- for(const x of[-8,-5,5,8]){K.lathe([[0,0],[.25,.1],[.3,.4],[.12,.55],[.18,.7],[0,.75]],wh,x,7.15,-4.3,12)}
- const ms=new THREE.Shape();ms.moveTo(-2.2,0);ms.lineTo(2.2,0);ms.lineTo(1.6,1.6);ms.lineTo(.9,2.5);ms.lineTo(-.9,2.5);ms.lineTo(-1.6,1.6);ms.closePath();const mg=new THREE.ExtrudeGeometry(ms,{depth:18,bevelEnabled:true,bevelSize:.04,bevelThickness:.04,bevelSegments:1});mg.translate(0,0,-9);mg.rotateY(PI/2);K.add(mg,roof,0,6.5,-6.5);
- for(const x of[-7.6,-5.7,-3.8,3.8,5.7,7.6]){K.box(.8,1,.9,wh,x,7.5,-4.7,.04);K.box(.45,.6,.05,M.glass,x,7.5,-4.23,0);K.gable(.9,.8,.45,roof,x,8,-4.7,.08,PI/2)}
- // Mittelpavillon: Säulenportikus, Dreiecksgiebel mit Wappen, Tambour, Kuppel mit Laterne, Statuen
- K.box(5.2,9,5.6,oc,0,4.5,-6.2,.06);K.box(5.6,.7,6,M.stone,0,.35,-6.2,.05);for(const x of[-1.9,-.65,.65,1.9]){K.cyl(.26,.3,5.6,wh,x,3.4,-3.05,16);K.box(.7,.3,.7,wh,x,.75,-3.05,.04);K.lathe([[.28,0],[.42,.25],[.46,.35],[0,.35]],wh,x,6.2,-3.05,12)}
- K.box(5.2,.6,1,wh,0,6.85,-3.1,.05);const tri=new THREE.Shape();tri.moveTo(-2.7,0);tri.lineTo(2.7,0);tri.lineTo(0,1.4);tri.closePath();const tg=new THREE.ExtrudeGeometry(tri,{depth:1,bevelEnabled:true,bevelSize:.05,bevelThickness:.05,bevelSegments:1});tg.translate(0,7.15,-3.6);K.add(tg,wh);
- K.add(new THREE.CircleGeometry(.4,20),M.gold,0,7.6,-2.55);K.arched(2,3.6,.3,[[0,1.3,2.5]],wh,0,.7,-3.55);K.box(1.3,3.2,.08,M.door,0,2.3,-3.65,.02);
- K.cyl(2.3,2.3,1.4,oc,0,9.7,-6.2,32);K.cyl(2.45,2.45,.25,wh,0,10.45,-6.2,32);for(let i=0;i<8;i++){const a=i/8*PI*2;K.box(.4,.6,.06,M.glass,Math.sin(a)*2.3,9.7,-6.2+Math.cos(a)*2.3,0).rotation.y=a}
- const d=new THREE.LatheGeometry([[2.35,0],[2.2,.9],[1.7,1.8],[.9,2.4],[.4,2.6],[0,2.6]].map(p=>new THREE.Vector2(p[0],p[1])),32);d.translate(0,10.55,-6.2);K.add(d,cop);
- K.cyl(.4,.45,.8,wh,0,13.5,-6.2,12);K.add(new THREE.ConeGeometry(.45,.8,12),cop,0,14.3,-6.2);K.add(new THREE.SphereGeometry(.18,10,8),M.gold,0,14.8,-6.2);
- for(const x of[-2.2,2.2])K.statue(stat,x,9,-3.2,.7);
- // Parterre: Kieswege, Broderie-Hecken, Formschnitt, Orangenbäume in Kübeln, Statuen
- K.box(19,.05,11,grav,0,.03,2.8,0);for(const sx of[-1,1]){const cx=sx*5.4;K.box(5.6,.35,7,hedge,cx,.2,2.8,.08);K.box(5.0,.37,6.4,tint(M.grass,0x6a8a3a,'lawn'),cx,.2,2.8,0);
-  for(let k=0;k<3;k++)K.tube(Array.from({length:13},(_,i)=>{const t=i/12*PI*2;return[cx+Math.cos(t)*(1.8-k*.5),.4,2.8+Math.sin(t*2)*(2.4-k*.6)]}),.12,hedge,true);
-  for(const z of[-.5,6.1])for(const dx of[-2.6,2.6]){K.box(.6,.5,.6,wh,cx+dx,.25,z,.04);K.cyl(.05,.07,.8,M.wood,cx+dx,.9,z,6);K.add(new THREE.SphereGeometry(.45,12,10),hedge,cx+dx,1.5,z);for(let o=0;o<4;o++)K.add(new THREE.SphereGeometry(.07,6,5),tint(null,0xe89020,'orange'),cx+dx+Math.sin(o*1.6)*.38,1.5+Math.cos(o*2)*.2,z+Math.cos(o*1.6)*.38)}
-  K.add(new THREE.ConeGeometry(.55,2.4,12),hedge,sx*8.8,1.2,-1.3);K.add(new THREE.ConeGeometry(.55,2.4,12),hedge,sx*8.8,1.2,8.6);K.box(.7,1,.7,wh,sx*2.6,.5,8.6,.04);K.statue(stat,sx*2.6,1,8.6,.8,sx)}
- // Fontäne: Becken mit Profil, Mittelschale, Wasserstrahlen
- K.lathe([[0,0],[3.2,0],[3.4,.2],[3.4,.55],[3.2,.62],[3.05,.62],[3.05,.2],[0,.2]],wh,0,0,3,48);K.col(0,3,3.2,3.2,.6);K.add(new THREE.CircleGeometry(3.05,48).rotateX(-PI/2),M.water,0,.52,3);
- K.lathe([[.5,0],[.35,.9],[.3,1.4],[1.3,1.6],[1.35,1.75],[0,1.7]],wh,0,.5,3,32);K.add(new THREE.CircleGeometry(1.25,32).rotateX(-PI/2),M.water,0,2.2,3);
- K.cyl(.05,.15,4,M.spray,0,4.2,3,8);for(let i=0;i<8;i++){const a=i/8*PI*2;K.tube([[Math.sin(a)*1.25,2.2,3+Math.cos(a)*1.25],[Math.sin(a)*1.9,2.0,3+Math.cos(a)*1.9],[Math.sin(a)*2.4,.6,3+Math.cos(a)*2.4]],.04,M.spray)}
- for(let i=0;i<6;i++){const a=i/6*PI*2;K.tube([[Math.sin(a)*3,.6,3+Math.cos(a)*3],[Math.sin(a)*2.3,2.1,3+Math.cos(a)*2.3],[Math.sin(a)*1.6,.6,3+Math.cos(a)*1.6]],.035,M.spray)}}
+// ================= Barock: Stift Melk – Felsen über der Donau, Doppelturmfassade, Kuppel, lange Klostertrakte, Altane mit Bogenfenster =================
+function stiftMelk(g,M){const K=kit(g),yel=stucco('melkgelb','#e9bd55'),wh=stucco('melkweiss','#f4efe4'),roof=tint(M.slate,0x7a6a5a,'melkroof'),cop=M.copper,gold=M.gold,B=2.4;
+ // Felsplateau mit Freitreppe
+ K.rock(23.4,B,22,tint(M.stone,0x948a76,'melkrock'),0,B/2,-3,5,.1);K.col(0,-3,11.6,11,B);g.walkAreas.push([0,-3,11.5,10.9,B]);
+ for(let i=0;i<8;i++)K.box(6,B/8*(i+1),.6,wh,0,B/16*(i+1),12.4-i*.6,.02);K.box(23.6,.05,6,M.gravel,0,.03,11,0);
+ // Klostertrakte links und rechts, Prälatenhof dazwischen
+ for(const sx of[-1,1]){const x=sx*8.6;K.box(5.4,9,19,yel,x,B+4.5,-3.2,.05);K.col(x,-3.2,2.7,9.5,B+9);K.box(5.6,.35,19.2,wh,x,B+9,-3.2,.03);K.gable(19,5.4,2.6,roof,x,B+9.15,-3.2,.35,PI/2);
+  for(let z=-11.5;z<5.6;z+=1.6)for(const y of[2.2,5,7.6]){const xi=x-sx*2.73;K.box(.08,1.3,.7,M.glass,xi,B+y,z,0);K.box(.06,1.5,.9,wh,xi+sx*.02,B+y,z,0)}
+  for(let x2=-2;x2<=2;x2+=2)for(const y of[2.2,5,7.6]){K.box(.7,1.3,.08,M.glass,x+x2*.9,B+y,6.33,0)}
+  for(const z of[-12,5.8])K.box(.4,9,.4,wh,x+sx*2.6,B+4.5,z,.02)}
+ // Stiftskirche: Langhaus, Fassade mit Pilastern und Volutengiebel, Doppeltürme mit Barockhelmen, Kuppel über der Vierung
+ K.box(7,12,12,yel,0,B+6,-5,.05);K.col(0,-5,3.5,6,B+12);K.gable(12,7,3,roof,0,B+12,-5,.3,PI/2);
+ const FZ=1.4;K.box(8.6,13,1.2,yel,0,B+6.5,FZ,.05);for(const x of[-3.1,-1.2,1.2,3.1])K.box(.45,12.6,.25,wh,x,B+6.3,FZ+.7,.02);
+ K.arched(2.4,4,.3,[[0,1.4,2.5]],wh,0,B,FZ+.7);K.box(1.6,3.2,.08,M.door,0,B+1.6,FZ+.62,0);K.box(1.6,2.6,.08,M.glass,0,B+7.2,FZ+.62,0);K.archi(.85,.1,wh,0,B+8.5,FZ+.7,0,.15);
+ const vg=new THREE.Shape();vg.moveTo(-3,0);vg.lineTo(3,0);vg.quadraticCurveTo(2.6,1.4,1.2,1.6);vg.quadraticCurveTo(.4,2.6,0,2.8);vg.quadraticCurveTo(-.4,2.6,-1.2,1.6);vg.quadraticCurveTo(-2.6,1.4,-3,0);const vgg=new THREE.ExtrudeGeometry(vg,{depth:1,bevelEnabled:true,bevelSize:.05,bevelThickness:.05,bevelSegments:1});vgg.translate(0,B+13,FZ-.4);K.add(vgg,yel);K.statue(wh,0,B+15.7,FZ,.6);
+ for(const sx of[-1,1]){const x=sx*4.1;K.box(2.8,17,2.8,yel,x,B+8.5,FZ,.05);K.col(x,FZ,1.4,1.4,B+26);K.box(3,.35,3,wh,x,B+17.1,FZ,.03);K.box(2.4,3,2.4,wh,x,B+18.7,FZ,.04);
+  for(const[dx,dz,ry]of[[0,1.21,0],[1.21,0,PI/2],[0,-1.21,PI],[-1.21,0,-PI/2]]){K.box(.8,1.8,.06,M.dark,x+dx,B+18.8,FZ+dz,0).rotation.y=ry;K.box(.5,.5,.05,tint(null,0xf2ecd8,'melkclock'),x+dx*1.17,B+15.6,FZ+dz*1.17,0).rotation.y=ry}
+  K.lathe([[1.45,0],[1.55,.5],[1.05,1.3],[.5,1.7],[.85,2.3],[.65,2.9],[.25,3.3],[.38,3.75],[.12,4.4],[0,4.9]],cop,x,B+20.2,FZ,12);K.add(new THREE.SphereGeometry(.18,10,8),gold,x,B+25.2,FZ);K.box(.06,.7,.06,gold,x,B+25.7,FZ,0);K.box(.4,.06,.06,gold,x,B+25.8,FZ,0)}
+ K.cyl(2.7,2.7,3,yel,0,B+13.5,-8,16);K.cyl(2.9,2.9,.3,wh,0,B+15.1,-8,16);for(let i=0;i<8;i++){const a=i/8*PI*2;K.box(.6,1.4,.06,M.glass,Math.sin(a)*2.72,B+13.5,-8+Math.cos(a)*2.72,0).rotation.y=a}
+ K.lathe([[2.8,0],[2.6,1.2],[2.0,2.2],[1.0,2.9],[.5,3.05],[0,3.1]],cop,0,B+15.2,-8,24);K.cyl(.5,.55,1.2,wh,0,B+18.8,-8,10);K.lathe([[.6,0],[.35,.6],[.12,1],[0,1.2]],cop,0,B+19.4,-8,10);K.add(new THREE.SphereGeometry(.15,8,6),gold,0,B+20.7,-8);
+ // Altane: niedriger Verbindungstrakt mit großem Bogenfenster und Balustrade, Blick auf die Kirche
+ K.arched(11.8,5,1.6,[[0,3.2,3.4,.6]],yel,0,B,8.2);K.col(-4.1,8.2,1.8,.8,B+5);K.col(4.1,8.2,1.8,.8,B+5);K.box(12,.3,1.8,wh,0,B+5.1,8.2,.03);
+ for(let i=0;i<28;i++)K.lathe([[.07,0],[.1,.18],[.06,.36],[.09,.46],[0,.46]],wh,-5.6+i*.415,B+5.25,8.9,8);K.box(12,.1,.2,wh,0,B+5.75,8.9,0);
+ for(const sx of[-1,1])K.box(1.4,5.6,1.8,yel,sx*6.6,B+2.8,8.2,.04)}
 
 // ================= Napoleon: Triumphbogen mit Kassettengewölbe, Reliefs, Inschrift und Quadriga =================
 function triumphArch(g,M){const K=kit(g),st=tint(M.white,0xece2c8,'arcst',{uvs:3}),stD=tint(M.white,0xd2c6aa,'arcstD',{uvs:3}),rel=reliefMat('relief','#cfc3a6','#8a7c62'),ins=textMat('arcIns','À LA GRANDE ARMÉE','#d8ccb0','#4a3c28',1024,96);
@@ -284,31 +296,54 @@ function triumphArch(g,M){const K=kit(g),st=tint(M.white,0xece2c8,'arcst',{uvs:3
  kq.box(1.2,.8,.9,bz,0,1.2,-1,.05);for(const sx of[-1,1]){const w=kq.add(new THREE.TorusGeometry(.4,.06,6,16),bz,sx*.65,1,-1.1);w.rotation.y=PI/2}kq.statue(bz,0,1.4,-1.1,.9,1);
  for(const sx of[-1,1])K.statue(bz,sx*7,17.1,0,1.1,sx)}
 
-// ================= Neuzeit: Eiserner Aussichtsturm =================
-function ironTower(g,M){const K=kit(g),iron=M.iron,dk=M.ironD,glass=M.glass,gold=M.gold;
- const H=28,S=t=>.75+6.3*Math.pow(1-t,2.2),W=t=>.18+.62*(1-t),legs=[[-1,-1],[1,-1],[1,1],[-1,1]],T=[0,.06,.12,.19,.26,.34,.42,.5,.58,.66,.74,.82,.91,1];
- for(const [sx,sz]of legs){K.col(sx*S(0),sz*S(0),1,1,6);K.box(2.4,.8,2.4,M.stone,sx*S(0),.4,sz*S(0),.08);K.box(2.6,.15,2.6,M.stoneD,sx*S(0),.85,sz*S(0),.04);
-  const C=(t,cx,cz)=>[sx*S(t)+cx*W(t),t*H+.9,sz*S(t)+cz*W(t)],cs=[[-1,-1],[1,-1],[1,1],[-1,1]];
-  for(const [cx,cz]of cs)K.tube(T.map(t=>C(t,cx,cz)),.1,iron);
-  for(let i=0;i<T.length-1;i++)for(let f=0;f<4;f++){const [ax,az]=cs[f],[bx,bz]=cs[(f+1)%4];K.rod(C(T[i],ax,az),C(T[i+1],bx,bz),.035,dk,4);K.rod(C(T[i+1],ax,az),C(T[i],bx,bz),.035,dk,4);K.rod(C(T[i],ax,az),C(T[i],bx,bz),.04,iron,4)}
-  // Aufzugskabine am Bein
-  const t=.12,p=C(t,0,0);K.box(.9,1.2,.9,tint(null,0xb8a060,'lift',{metalness:.4}),p[0]-sx*.9,p[1],p[2]-sz*.9,.06)}
- // Zierbögen auf allen vier Seiten
- for(let f=0;f<4;f++){const [ax,az]=legs[f],[bx,bz]=legs[(f+1)%4];for(const off of[0,.25]){const pts=[];for(let i=0;i<=20;i++){const u=i/20,y=1.3+Math.sin(u*PI)*(3.9+off),t=(y-.9)/H,s=S(t)+W(t)*.4;pts.push([(ax+(bx-ax)*u)*s,y,(az+(bz-az)*u)*s])}K.tube(pts,off?.07:.2,iron)}
-  for(let i=1;i<8;i++){const u=i/8,y=1.3+Math.sin(u*PI)*3.9,s=S((y-.9)/H)+W(0)*.3;K.rod([(ax+(bx-ax)*u)*s,y,(az+(bz-az)*u)*s],[(ax+(bx-ax)*u)*s,y+.25+Math.sin(u*PI)*.0,(az+(bz-az)*u)*s],.03,dk,4)}}
- // Plattformen mit Galerie, Laternen, Restaurant
- for(const t of[.22,.52]){const y=t*H+.9,w=S(t)+W(t)+.6;K.box(2*w,.4,2*w,dk,0,y,0,.06);for(const s of[-1,1]){K.box(2*w,.08,.08,iron,0,y+1.1,s*w,0);K.box(.08,.08,2*w,iron,s*w,y+1.1,0,0);
-   for(let k=0;k<=12;k++){const u=-w+k*w/6;K.box(.05,.9,.05,iron,u,y+.65,s*w,0);K.box(.05,.9,.05,iron,s*w,y+.65,u,0)}
-   for(let k=0;k<10;k++){const u=-w+(k+.5)*w/5;K.add(new THREE.TorusGeometry(.18,.025,4,10,PI),dk,u,y-.2,s*w).rotation.x=PI;const r2=K.add(new THREE.TorusGeometry(.18,.025,4,10,PI),dk,s*w,y-.2,u);r2.rotation.set(PI,PI/2,0)}}
-  if(t<.3){K.box(2*w-1.2,1.8,2*w-1.2,tint(null,0x8a7a5a,'resto'),0,y+1.1,0,.06);for(const s of[-1,1]){K.box(2*w-1.4,1.2,.05,glass,0,y+1.2,s*(w-.58),0);K.box(.05,1.2,2*w-1.4,glass,s*(w-.58),y+1.2,0,0)}K.box(2*w-1,.2,2*w-1,dk,0,y+2.1,0,.04)}
-  for(const [sx,sz]of legs){K.cyl(.04,.04,1,dk,sx*w,y+.7,sz*w,6);const l=K.add(new THREE.SphereGeometry(.16,10,8),tint(null,0xfff0c0,'lamp',{emissive:0xffd080,emissiveIntensity:.6}),sx*w,y+1.3,sz*w);l.userData.keep=1}}
- const y3=H+.9;K.box(2.6,.3,2.6,dk,0,y3,0,.05);K.box(2.4,1.8,2.4,dk,0,y3+1,0,.05);for(const s of[-1,1]){K.box(2.2,1,.05,glass,0,y3+1.2,s*1.21,0);K.box(.05,1,2.2,glass,s*1.21,y3+1.2,0,0)}
- K.box(3,.2,3,iron,0,y3+2,0,.04);K.cyl(.9,1.1,.8,dk,0,y3+2.5,0,12);K.add(new THREE.ConeGeometry(.55,3.2,12),iron,0,y3+4.5,0);K.add(new THREE.SphereGeometry(.2,10,8),gold,0,y3+6.2,0);
- K.cyl(.03,.03,2,dk,0,y3+7.2,0,6);const fl=K.box(1.4,.8,.02,tint(null,0xb8201c,'flagR',{side:THREE.DoubleSide}),.72,y3+7.8,0,0);
- // Kassenhäuschen am Fuß
- for(const sx of[-1,1]){K.box(1.6,2.2,1.4,tint(M.plaster,0xe8dcc4,'kiosk'),sx*3,1.1,7.5,.05);K.add(new THREE.ConeGeometry(1.2,1,4),M.slate,sx*3,2.7,7.5).rotation.y=PI/4;K.box(.8,.6,.05,glass,sx*3,1.4,8.2,0)}}
+const stucco=(key,col)=>canvasMat(key,128,128,(x,W,H)=>{x.fillStyle=col;x.fillRect(0,0,W,H);for(let i=0;i<900;i++){const v=Math.random();x.fillStyle=`rgba(${v<.5?0:255},${v<.5?0:255},${v<.5?0:255},${.015+Math.random()*.02})`;x.fillRect(Math.random()*W,Math.random()*H,2,2)}},{roughness:.85,uvs:3});   // glatter Putz unabhängig von der Epochen-Wandtextur
+function schoenbrunn(g,M){const K=kit(g),yel=stucco('sbgelb2','#f3d683'),wh=stucco('sbweiss','#f4f0e6'),roof=tint(M.slate,0x70757a,'sbroof'),shut=tint(null,0x2f5e36,'sbgreen',{roughness:.7}),st=stucco('sbsockel','#e6dcc4'),hedge=M.hedge,lawn=tint(M.grass,0x5f8a34,'sblawn');
+ const Z=-2.5,FR=Z+2.3,FM=Z+2.9;   // Schloss in der Mitte: vorne Ehrenhof mit Tor, hinten Garten mit Neptunbrunnen und Gloriette
+ // Corps de logis mit Sockel, Mittel- und Eckrisaliten
+ K.box(19.2,.6,5.2,st,0,.3,Z,.05);K.box(18.8,7.2,4.6,yel,0,4.2,Z,.05);K.col(0,Z,9.4,2.6,8);
+ K.box(7,8.4,5.8,yel,0,4.8,Z+.1,.05);for(const sx of[-1,1])K.box(2.6,7.6,5.1,yel,sx*8.1,4.4,Z,.05);
+ K.box(19,.35,4.9,wh,0,7.95,Z,.04);K.box(7.2,.35,6,wh,0,9.15,Z+.1,.04);for(const sx of[-1,1])K.box(2.8,.35,5.3,wh,sx*8.1,8.35,Z,.04);
+ K.box(19,.25,.3,wh,0,3.6,FR+.15,.02);
+ // Fenster: weiße Faschen, Verdachungen, grüne Läden – zwei Geschosse
+ const win=(x,y,z,big,dir=1)=>{const h=big?1.9:1.5;K.box(.78,h+.15,.08,wh,x,y,z+dir*.04,0);K.box(.58,h-.1,.06,M.glass,x,y,z+dir*.08,0);K.box(.92,.14,.16,wh,x,y+h/2+.16,z+dir*.08,0);for(const s of[-1,1])K.box(.26,h-.1,.05,shut,x+s*.55,y,z+dir*.08,0)};
+ for(let x=-8.8;x<=8.81;x+=1.35){if(Math.abs(x)<3.6)continue;const z=Math.abs(x)>6.7?Z+2.55:FR;win(x,2.2,z,false);win(x,5.5,z,true)}
+ for(const x of[-2.4,-.8,.8,2.4]){win(x,5.6,FM,true);win(x,2.2,FM,false)}
+ for(let x=-8.8;x<=8.81;x+=1.35){const z=Math.abs(x)>6.7?Z-2.55:Math.abs(x)<3.6?Z-2.8:Z-2.3;win(x,2.2,z,false,-1);win(x,5.5,z,true,-1)}   // Gartenfassade
+ // Mittelrisalit: Pilaster, Uhr, Balkon auf Säulen über der Durchfahrt, Attika mit Trophäen
+ for(const x of[-3.3,-1.6,0,1.6,3.3]){if(x)K.box(.35,7.6,.2,wh,x,4.4,FM+.1,.02)}
+ K.add(new THREE.CircleGeometry(.55,24),tint(null,0xf2ecd8,'sbclock'),0,8.4,FM+.12);K.box(.05,.4,.02,M.dark,0,8.55,FM+.14,0);
+ K.box(5.6,.25,1.8,wh,0,3.75,FM+.9,.03);for(const x of[-2.5,-.9,.9,2.5])K.cyl(.17,.2,3.5,wh,x,1.95,FM+1.55,12);for(let i=0;i<14;i++)K.lathe([[.06,0],[.09,.15],[.05,.3],[.08,.4],[0,.4]],wh,-2.6+i*.4,3.88,FM+1.72,8);K.box(5.6,.1,.18,wh,0,4.33,FM+1.72,0);
+ K.arched(2.2,3.2,.3,[[0,1.4,2.2]],wh,0,0,FM+.05);K.box(1.5,2.9,.06,M.door,0,1.45,FM-.05,0);
+ for(const x of[-3.2,3.2])K.statue(tint(M.stone,0xe8e2d4,'sbstat'),x,9.3,FM-.3,.55);
+ // Walmdach mit Gauben und Kaminen
+ const rs=new THREE.Shape();rs.moveTo(-2.45,0);rs.lineTo(2.45,0);rs.lineTo(1.0,1.5);rs.lineTo(-1.0,1.5);rs.closePath();const rg=new THREE.ExtrudeGeometry(rs,{depth:18.4,bevelEnabled:true,bevelSize:.04,bevelThickness:.04,bevelSegments:1});rg.translate(0,0,-9.2);rg.rotateY(PI/2);K.add(rg,roof,0,8.1,Z);
+ for(const x of[-6,-4.6,4.6,6]){K.box(.7,.8,.6,wh,x,8.75,Z+1.6,.03);K.box(.4,.5,.05,M.glass,x,8.75,Z+1.92,0);K.gable(.6,.7,.35,roof,x,9.15,Z+1.6,.06,PI/2)}
+ for(const x of[-7.5,-3.8,3.8,7.5])K.box(.45,1.1,.45,wh,x,9.5,Z-.6,.03);
+ // Habsburger Fahne (Schwarz-Gelb) auf dem Mittelrisalit
+ K.box(.8,.5,.8,wh,0,9.45,Z-.4,.03);K.cyl(.09,.11,4,wh,0,11.6,Z-.4,10);K.add(new THREE.SphereGeometry(.16,10,8),M.gold,0,13.7,Z-.4);for(const[i,c]of[[0,0x141414],[1,0xe8c020]])K.box(1.6,.45,.04,tint(null,c,'sbflag'+i,{side:THREE.DoubleSide}),.89,13.1-i*.45,Z-.4,0).userData.keep=1;   // Fahnenmast auf Sockel am First, Fahne direkt am Mast
+ // Hufeisentreppe: zwei Rampen aus dem Hof hinauf zum Balkon, Wangenmauern mit Brüstung
+ for(const sx of[-1,1]){const tri=new THREE.Shape();tri.moveTo(sx*2.8,0);tri.lineTo(sx*8.2,0);tri.lineTo(sx*2.8,3.6);tri.closePath();const tg=new THREE.ExtrudeGeometry(tri,{depth:1.4,bevelEnabled:false});tg.translate(0,0,-.7);K.add(tg,st,0,0,FM+1.2);
+  const L=Math.hypot(5.4,3.6),a=Math.atan2(3.6,5.4),r1=K.box(L,.2,1.5,wh,sx*5.5,1.9,FM+1.2,.02);r1.rotation.z=-sx*a;const r2=K.box(L,.5,.14,wh,sx*5.5,2.25,FM+1.9,.02);r2.rotation.z=-sx*a}
+ // Ehrenhof (vorne): Kies, zwei Brunnen, Haupttor mit Obelisken und vergoldeten Adlern, schmiedeeisernes Gitter
+ const ZG=13.4;K.box(23.6,.05,ZG-FM-1,M.gravel,0,.03,(ZG+FM+1)/2,0);
+ for(const sx of[-1,1]){K.lathe([[0,0],[1.3,0],[1.4,.15],[1.4,.45],[1.25,.5],[1.2,.18],[0,.18]],wh,sx*6.5,0,9,32);K.col(sx*6.5,9,1.3,1.3,.5);K.add(new THREE.CircleGeometry(1.2,32).rotateX(-PI/2),M.water,sx*6.5,.42,9);K.statue(tint(M.stone,0xe8e2d4,'sbstat'),sx*6.5,.3,9,.6);K.cyl(.03,.08,1.6,M.spray,sx*6.5,1.6,9.35,6)}
+ for(const sx of[-1,1]){K.box(1.1,.8,1.1,st,sx*2.2,.4,ZG-.2,.04);K.add(new THREE.CylinderGeometry(.18,.42,4.2,4).rotateY(PI/4),wh,sx*2.2,2.9,ZG-.2);K.add(new THREE.SphereGeometry(.32,12,10),M.gold,sx*2.2,5.25,ZG-.2);
+  for(let x=sx*3;Math.abs(x)<11.8;x+=sx*.3)K.box(.04,1.5,.04,M.ironD,x,.75,ZG,0);K.box(8.8,.06,.06,M.ironD,sx*7.4,1.4,ZG,0);K.box(8.8,.06,.06,M.ironD,sx*7.4,.2,ZG,0);for(let x=sx*3.3;Math.abs(x)<11.9;x+=sx*2.15)K.box(.35,1.7,.35,st,x,.85,ZG,.03)}
+ for(let x=-1.6;x<=1.6;x+=.2)K.box(.04,2.1,.04,M.ironD,x,1.05,ZG,0);K.box(3.4,.07,.07,M.ironD,0,2.0,ZG,0);K.box(.5,.5,.06,M.gold,0,2.3,ZG,0);
+ // Schlosspark (hinten): Parterres mit Broderie und Eiben, Neptunbrunnen, Gloriette auf dem Hügel
+ const ZB=Z-2.6;K.box(23.6,.05,14+ZB,M.gravel,0,.03,(ZB-14)/2,0);
+ for(const sx of[-1,1]){const cx=sx*5.6,cz=ZB-2.6;K.box(5.2,.3,4.2,hedge,cx,.16,cz,.06);K.box(4.7,.32,3.7,lawn,cx,.17,cz,0);
+  for(let k=0;k<2;k++)K.tube(Array.from({length:13},(_,i)=>{const t=i/12*PI*2;return[cx+Math.cos(t)*(1.7-k*.7),.36,cz+Math.sin(t*2)*(1.4-k*.5)]}),.1,hedge,true);
+  for(const z of[cz-2.4,cz+2.4])K.add(new THREE.ConeGeometry(.42,2,12),hedge,cx+sx*2.9,1,z)}
+ const NZ=ZB-6.4;K.lathe([[0,0],[2.4,0],[2.55,.2],[2.55,.5],[2.4,.56],[2.3,.56],[2.3,.18],[0,.18]],wh,0,0,NZ,40);K.col(0,NZ,2.4,2.4,.6);K.add(new THREE.CircleGeometry(2.3,40).rotateX(-PI/2),M.water,0,.48,NZ);
+ K.rock(2.2,1.2,1.4,tint(M.stone,0xa8a296,'sbrock'),0,.9,NZ-.3,3,.12);const nep=K.statue(tint(M.stone,0xe8e2d4,'sbstat'),0,1.5,NZ-.3,.75);nep.rotation.y=PI;for(const sx of[-1,1])K.tube([[sx*.6,1.3,NZ-.8],[sx*1.3,1.1,NZ-1.1],[sx*1.8,.5,NZ-1.3]],.04,M.spray);
+ const GZ=-12.4;K.box(16,1.6,3.2,lawn,0,.8,GZ,.3);K.col(0,GZ,8,1.6,1.6);for(let i=0;i<5;i++)K.box(3,.2,.5,st,0,.1+i*.32,GZ+1.6+(4-i)*.5,.02);
+ K.arched(10,3.2,.5,[[-3.6,1.2,2.2],[-1.8,1.2,2.2],[0,1.35,2.35],[1.8,1.2,2.2],[3.6,1.2,2.2]],wh,0,1.6,GZ);K.box(10.3,.35,.75,wh,0,4.95,GZ,.03);
+ for(let i=0;i<6;i++)K.cyl(.12,.14,3.2,wh,-4.5+i*1.8,3.2,GZ+.42,10);K.box(3.6,1.1,.65,wh,0,5.65,GZ,.03);K.add(new THREE.SphereGeometry(.3,12,10),M.gold,0,6.5,GZ);K.box(1.1,.6,.08,M.gold,0,6.9,GZ,0);
+ for(const sx of[-1,1]){K.arched(2.2,2.4,.45,[[0,.9,1.6]],wh,sx*6.3,1.6,GZ);K.box(2.3,.3,.65,wh,sx*6.3,4.1,GZ,.03);K.lathe([[0,0],[.25,.1],[.3,.4],[.12,.55],[.18,.7],[0,.75]],wh,sx*4.9,5.15,GZ,12)}}
 
-const BUILD={steinzeit:stonehenge,hallstatt:burialMound,roemer:colosseum,fruehmittelalter:palaceChapel,hochmittelalter:imperialPalace,spaetmittelalter:cityGate,renaissance:domeCathedral,barock:pleasurePalace,napoleon:triumphArch,neuzeit:ironTower};
+const BUILD={steinzeit:stonehenge,hallstatt:burialMound,roemer:colosseum,fruehmittelalter:palaceChapel,hochmittelalter:imperialPalace,spaetmittelalter:stephansdom,renaissance:arkadenhof,barock:stiftMelk,napoleon:triumphArch,neuzeit:schoenbrunn};
+
 export function buildWonder(era,H={}){for(const k of[...CACHE.keys()])if(k.startsWith('t:'))CACHE.delete(k);   // Spielmaterialien ändern sich je Epoche – Tönungen neu ableiten
  const g=new THREE.Group();g.colliders=[];g.walkAreas=[];const Mt=mats(H);(BUILD[era]||imperialPalace)(g,Mt);
  const out=finalize(g);out.isWonder=true;return out}
