@@ -6,9 +6,9 @@ const PORT=5600+Math.floor(Math.random()*300),SAVE=path.join(os.tmpdir(),'zr-tes
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));let fails=0;const ok=(c,msg)=>{console.log((c?'  ✔ ':'  ✘ ')+msg);if(!c)fails++};
 const srv=spawn(process.execPath,[path.join(__dirname,'..','server.js')],{env:{...process.env,PORT:String(PORT),SAVE_FILE:SAVE},stdio:['ignore','pipe','pipe']});
 let srvErr='';srv.stderr.on('data',d=>srvErr+=d);
-function client(code,era){return new Promise((res,rej)=>{const ws=new WebSocket('ws://localhost:'+PORT);const st={ev:[],snap:null,hi:null,ws};
+function client(code,era,surv=false){return new Promise((res,rej)=>{const ws=new WebSocket('ws://localhost:'+PORT);const st={ev:[],snap:null,hi:null,ws};
  ws.on('message',buf=>{const m=JSON.parse(buf);if(m.t==='hi')st.hi=m;else if(m.t==='ev')st.ev.push(m.m);else if(m.t==='s'){const keep=st.snap||{};st.snap=m;for(const k of['b','cv','e'])if(!m[k]&&keep[k])m[k]=keep[k]}});   // Listen kommen nur bei Änderungen mit
- ws.on('open',()=>ws.send(JSON.stringify({t:'join',name:'Tester',code,create:true,era,ch:[0,2,0,2,1,0,0,9,0,0,0,0]})));ws.on('error',rej);
+ ws.on('open',()=>ws.send(JSON.stringify({t:'join',name:'Tester',code,create:true,surv,era,ch:[0,2,0,2,1,0,0,9,0,0,0,0]})));ws.on('error',rej);
  st.send=o=>ws.send(JSON.stringify(o));const t0=Date.now();(function wait(){if(st.hi&&st.snap)return res(st);if(Date.now()-t0>15000)return rej(new Error('kein hi'));setTimeout(wait,100)})()})}
 const evHas=(st,re)=>st.ev.some(m=>re.test(m));
 (async()=>{try{
@@ -47,6 +47,12 @@ const evHas=(st,re)=>st.ev.some(m=>re.test(m));
  A.ev.length=0;A.send({t:'evnow',k:'visit'});await sleep(500);ok(evHas(A,/Maria Theresia besucht/),'Kaiserin Maria Theresia besucht die Stadt');
  const e0=(A.snap.e||[]).length;A.send({t:'evnow',k:'siege'});await sleep(800);ok(evHas(A,/1683/),'Türkenbelagerung 1683 wird ausgerufen');ok((A.snap.e||[]).length>=e0+8,'Osmanisches Heer greift mit mindestens 8 Gegnern an');
  A.ws.close();
+ console.log('Zuzug im Survival');
+ const C=await client('TSTC','hochmittelalter',true);await sleep(400);const cm=C.hi.map;Rules.setWorldConfig(cm);
+ C.send({t:'creative',on:1});await sleep(200);for(const z of[-60,-30,30,60]){const x=Rules.riverX(z,cm)-45;C.send({t:'build',k:'keep',x,z,r:0});await sleep(300);if((C.snap.b||[]).some(d=>d[1]==='keep'))break}C.send({t:'creative',on:0});await sleep(300);
+ ok(C.snap.imm===0,'Survival startet ohne Zuzug');C.ev.length=0;C.send({t:'policy',imm:1});await sleep(400);ok(C.snap.imm===0&&evHas(C,/Ausbaustufe 2/),'Zuzug vor Ausbaustufe 2 gesperrt (Hinweis erscheint)');
+ C.send({t:'creative',on:1});await sleep(200);{const kd=(C.snap.b||[]).find(d=>d[1]==='keep');C.send({t:'mv',x:kd[2],z:kd[3]+9,ry:0,el:0});await sleep(300);for(let i=0;i<2;i++){C.send({t:'upgrade',b:kd[0]});await sleep(400)}}C.send({t:'creative',on:0});await sleep(300);
+ C.ev.length=0;C.send({t:'policy',imm:1});await sleep(400);if(C.snap.imm!==1)console.log('   DBG',C.ev.join(' | '),JSON.stringify((C.snap.b||[]).filter(d=>d[1]==='keep')));ok(C.snap.imm===1&&evHas(C,/Zuzug erlaubt/),'nach Ausbaustufe 2 lässt sich der Zuzug freigeben');C.ws.close();
  console.log('Eisenbahn (Neuzeit)');
  const B=await client('TSTB','neuzeit');B.send({t:'creative',on:1});await sleep(300);const bm=B.hi.map;Rules.setWorldConfig(bm);let st=null;
  for(const z of[-60,-30,30,60,0]){const x=Rules.riverX(z,bm)-40;B.send({t:'build',k:'keep',x:x-20,z:z+25,r:0});await sleep(250);B.send({t:'build',k:'station',x,z,r:0});await sleep(350);st=(B.snap.b||[]).find(d=>d[1]==='station');if(st)break}
