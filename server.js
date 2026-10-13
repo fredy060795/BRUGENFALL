@@ -609,7 +609,7 @@ function spawnTrade(r,force){const fr=friendTowns(r);if(!fr.length)return;const 
  else if(m){const wp=landRoute(r,f,{x:m.x,z:m.z+BD.market.d/2+3.5});
   if(!wp){if(!r.cvNo||r.dy-r.cvNo>=3){r.cvNo=r.dy;say(r,'🛒 Händler aus '+f.n+' kommen nicht über den Fluss – baue eine Brücke'+(h?'':' oder einen Hafen'))}return}
   r.cv.push({id:uid++,kind:'caravan',x:f.x,z:f.z,ry:0,st:'go',t:0,from:f.n,wp:wp.slice()});say(r,'🛒 Eine Handelskarawane aus '+f.n+' ist unterwegs'+(wp.length?' (über die Brücke)':''))}}
-function demolish(r,b,ruin){const B=BD[b.t],rf=Object.fromEntries(Object.entries(B.c).map(([k,n])=>[k,Math.floor(n*(ruin?.25:.5))]));for(const k in rf)r.inv[k]=Math.min(stockCap(r),r.inv[k]+rf[k]);
+function demolish(r,b,ruin){(r.demoIds=r.demoIds||[]).push(b.id);const B=BD[b.t],rf=Object.fromEntries(Object.entries(B.c).map(([k,n])=>[k,Math.floor(n*(ruin?.25:.5))]));for(const k in rf)r.inv[k]=Math.min(stockCap(r),r.inv[k]+rf[k]);
  if(ruin)r.ru=r.ru.filter(o=>o!==b);else{r.b=r.b.filter(o=>o!==b);for(const n of r.n){if(n.wb===b.id&&n.hp>0){n.hp=0;n.conv=1;const q=mkNpc(r,'peasant',n.x,n.z,n.o);q.ry=n.ry}if(n.hid===b.id)n.hid=0}}
  r.dirty=true;const t=costStr(Object.fromEntries(Object.entries(rf).filter(([,n])=>n>0)));say(r,'🔨 '+nm(r,b.t)+(ruin?'-Ruine geräumt':' abgerissen')+(t?' – zurück: '+t:''))}
 const yearSec=r=>+process.env.YEAR_SEC||4*((r.ev&&r.ev.sl)||4)*1440;
@@ -804,7 +804,7 @@ for(let i=0;i<r.co.length;i++)for(let j=i+1;j<r.co.length;j++){
  if(r.tk%20===1||r.decoT){r.decoT=false;m.eco=friendTowns(r).map(t=>{const e=ecoAt(r,t.n)||{st:{},pop:0,sp:0};return[t.n,e.pop,Math.round((e.sick||0)*100),e.omen?1:0,Math.round(e.st.food||0),SPEC[e.sp][0],Math.round(e.mood||0)]})}
  if(r.tk%20===1){m.bs={};for(const b of r.b)if(b.msg)m.bs[b.id]=b.msg;m.px={};for(const k in BASEP)m.px[k]=Math.round(priceOf(r,k))}
  if(r.pathDirty){m.paths=r.paths||[];r.pathDirty=false}
- if(r.chD||(r.chT=(r.chT|0)+1)%50===1){r.chD=0;m.chr=r.chron||[]}if(r.dirty){m.b=r.b.map(b=>[b.id,b.t,b.x,b.z,b.r,b.st|0,Math.round(100*b.hp/mh(b)),fireStage(b),b.off?1:0,b.lv||0,b.ext||0,b.manual?1:0,b.v|0,r.surv&&ANIMAL[b.t]?(b.an|0):-1,r.surv&&ANIMAL[b.t]?Math.round(b.feed||0):-1,b.col|0]);m.ru=r.ru.map(b=>[b.id,b.t,b.x,b.z,b.r]);r.dirty=false}
+ if(r.chD||(r.chT=(r.chT|0)+1)%50===1){r.chD=0;m.chr=r.chron||[]}if(r.dirty){m.b=r.b.map(b=>[b.id,b.t,b.x,b.z,b.r,b.st|0,Math.round(100*b.hp/mh(b)),fireStage(b),b.off?1:0,b.lv||0,b.ext||0,b.manual?1:0,b.v|0,r.surv&&ANIMAL[b.t]?(b.an|0):-1,r.surv&&ANIMAL[b.t]?Math.round(b.feed||0):-1,b.col|0,b.dm|0]);m.ru=r.ru.map(b=>[b.id,b.t,b.x,b.z,b.r]);if(r.demoIds&&r.demoIds.length){m.bd=r.demoIds;r.demoIds=[]}r.dirty=false}
  r.an=[];
  if(r.dcs){m.cs=r.cs.map(c=>{const S=c.S[c.i]||{n:3};return[c.id,c.t,c.x,c.z,c.r,c.v,S.n,Math.round(c.pr*100),siteMissing(c),c.i,c.S.length,c.got]});r.dcs=false}
  if(r.dl){m.lo=r.lo.map(o=>[o.id,o.k,o.x,o.z,o.n,o.ry||0,o.sc||1]);r.dl=false}if(r.dhb&&r.hb){m.hb=r.hb.map(o=>[o.id,o.x,o.z,o.g,o.k]);r.dhb=false}if(r.dsw){m.sw=r.sw.map(o=>[o.id,o.x,o.z,o.g]);r.dsw=false}
@@ -1099,7 +1099,7 @@ wss.on('connection',ws=>{let r,p;
    if(p.tool==='bow'){let b=null,ba=.35;for(const e of[...r.e,...r.w,...r.dr]){const dx=e.x-p.x,dz=e.z-p.z,d=Math.hypot(dx,dz);if(d>32||d<1)continue;const an=Math.acos(Math.max(-1,Math.min(1,(dx*fx+dz*fz)/d)));if(an<ba){ba=an;b=e}}
     if(b)shoot(r,p,b,Math.round(18*E));else shoot(r,p,{id:0,x:p.x+fx*24,z:p.z+fz*24,hp:0},0);used()}
    else if(p.tool==='hammer'&&p.hm==='demolish'&&(t=nearB(r.cs,5))){for(const k in t.got)r.inv[k]=(r.inv[k]||0)+t.got[k];for(let q=0;q<t.i;q++)for(const k in t.S[q].need)r.inv[k]=(r.inv[k]||0)+Math.floor(t.S[q].need[k]*.5);r.cs=r.cs.filter(o=>o!==t);r.dcs=true;r.ca=(r.ca||[]).map(c=>c.to===t.id?{...c,st:'back'}:c);say(r,'🔨 Baustelle '+nm(r,t.t)+' aufgegeben – Material zurück ins Lager',t)}
-   else if(p.tool==='hammer'&&p.hm==='demolish'){const ru=nearB(r.ru),bb=ru||nearB(r.b);if(!bb)tell(p,'Nichts zum Abreißen in der Nähe');else{bb.dm=(bb.dm||0)+1;used();if(bb.dm>=4)demolish(r,bb,!!ru);else tell(p,'Abriss '+bb.dm+'/4 …')}}
+   else if(p.tool==='hammer'&&p.hm==='demolish'){const ru=nearB(r.ru),bb=ru||nearB(r.b);if(!bb)tell(p,'Nichts zum Abreißen in der Nähe');else{bb.dm=(bb.dm||0)+1;used();if(bb.dm>=4)demolish(r,bb,!!ru);else{r.dirty=true;tell(p,'Abriss '+bb.dm+'/4 …')}}}
    else if(p.tool==='hammer'&&(t=nearB(r.cs,5))){siteFeed(r,t,p);if(siteHit(r,t,E,p))used()}
    else if(p.tool==='hammer'&&r.wells>0&&nearB(r.fires)){const fb=nearB(r.fires);fb.fire-=3;fb.fought=r.tk;r.dirty=true}
    else if(p.tool==='hammer'){const ru=nearB(r.ru),bb=ru||nearB(r.b.filter(b=>b.hp<mh(b)));
